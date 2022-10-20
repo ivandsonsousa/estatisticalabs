@@ -1,0 +1,626 @@
+---
+title: "Laboratório 02 - Passeio Aleatório - Introdução à Análise de Dados"
+author: "Ivandson Praeiro de Sousa"
+date: "27/09/2021"
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    theme: cerulean
+    # highlight: spacelab
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introdução
+
+Este relatório trata da atividade denominada "Laboratório 02", disponível no site do professor Jhames Sampaio[^passeio_aleatorio]. Resolvi fazer essas atividades para poder ter uma fluência básica em R, basicamente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc [^openintrolabs].
+
+[^passeio_aleatorio]: disponível em [lab02](http://www.passeioaleatorio.com/datalab/labs/lab2.html)
+
+[^openintrolabs]: Os laboratórios do site http://passeioaleatório.com foram baseados em um projeto maior, denominado OpenIntro Statistics: Labs for R, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
+
+[^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
+
+Algumas pessoas definem a Estatística como a ciência que tem por objetivo transformar informação em conhecimento. O primeiro passo no processo é sumarizar e descrever a informação bruta - os dados. Neste laboratório, você obterá novos conhecimentos sobre saúde pública gerando sumários gráficos e numéricos de um conjunto de dados coletados pelo Centro para o Controle e Prevenção de Doenças (Centers for Disease Control and Prevention, CDC). Como esse conjunto de dados é extenso, ao longo do caminho você também aprenderá as habilidades indispensáveis de processamento de dados e organização de subconjuntos.
+
+## Carregando as bibliotecas necessárias
+
+```{r, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(htmltools)
+library(knitr)
+library(rmarkdown)
+library(kableExtra) #Para gerar tabelas com um layout agradável
+```
+
+## Carregamento e detalhamento dos dados
+
+O Sistema de Monitoramento de Fatores de Risco Comportamental (Behavioral Risk Factor Surveillance System, BRFSS) é uma pesquisa anual realizada por telefone com 350.000 pessoas nos Estados Unidos. Como seu nome implica, o BRFSS foi desenvolvido para identificar fatores de risco na população adulta e relatar tendências emergentes na saúde. Por exemplo, os respondentes são indagados sobre sua dieta e atividades físicas semanais, seu diagnóstico de HIV/AIDS, uso provável de tabaco, e mesmo seu nível de cobertura por planos de saúde. O website do BRFSS <http://www.cdc.gov/brfss> contém uma descrição completa desta pesquisa, incluindo as questões que motivaram o estudo e muitos resultados interessantes derivados dos dados.
+
+Nós focaremos em uma amostra aleatória de 20.000 pessoas do BRFSS conduzida em 2000. Ainda que existam mais de 200 variáveis neste conjunto de dados, nós trabalharemos com um subconjunto menor.
+
+Começamos importando os dados das 20.000 observações para dentro do espaço de trabalho do R. Depois de inicializar o RStudio, entre com o seguinte comando [^datasets]:
+
+```{r}
+source("http://www.openintro.org/stat/data/cdc.R")
+```
+
+O conjunto de dados `cdc` que aparece em seu espaço de trabalho é uma matriz de dados, onde cada linha representa um caso e cada coluna representa uma `variável`. Lembre-se que o R denomina este formato de dados como banco de dados (data frame), que será um termo utilizado ao longo dos laboratórios.
+
+Para visualizar o nome das variáveis, digite o comando:
+
+```{r}
+names(cdc)
+```
+
+Ainda, nosso banco de dados tem `r nrow(cdc)` indivíduos entrevistados, sendo `r nrow(cdc[cdc$gender == "f", ])` do gênero feminino.
+
+Cada uma dessas variáveis corresponde a uma questão que foi feita na pesquisa. Por exemplo, para `genhlth`, os respondentes foram indagados sobre sua saúde geral, respondendo good, very good, excellent e fair. A variável `exerany` indica se o respondente se exercitou no último mês (1) ou não (0). Da mesma forma, `hlthplan` indica se o respondente tem alguma forma de cobertura por plano de saúde (1) ou não (0). A variável `smoke100` indica se o respondente fumou pelo menos 100 cigarros ao longo da vida. As variáveis `height`, `weight`, `wtdesire`, `age` e `gender` registram a altura (em polegadas), o peso (em libras), o peso desejado (em libras), a idade (em anos) e o gênero, respectivamente.
+
+Em tese, você poderia verificar toda a base de dados de só uma vez digitando seu nome no console, mas isso pode não ser muito sábio neste caso. Sabemos que `cdc` tem 20.000 linhas, portanto verificar o conjunto de dados inteiro significa inundar sua tela. Uma função bastante útil para dar uma rápida olhada no seu conjunto de dados, ver suas dimensões e os tipos de dados é a função `str`:
+
+```{r}
+str(cdc)
+```
+
+Note que o R chama as as variáveis categóricas de `factor` e a quantidade de categorias de `levels`. Você também poderá dar pequenas espiadas nos dados utilizando os comandos `head` (que mostra as primeiras linhas de dados),
+
+```{r}
+head(cdc)
+```
+
+`tail()` (que mostra as últimas linhas de dados),
+
+```{r}
+tail(cdc)
+```
+
+ou as técnicas de construção de subconjuntos que você aprenderá no decorrer do laboratório.
+
+Por outro lado, se quisermos mostrar o banco de dados na saída do arquivo html como uma tabela estruturada, podemos usar a biblioteca `rmarkdown`:
+
+```{r warning=FALSE, message=FALSE}
+paged_table(cdc)
+```
+
+<br>
+
+Outra maneira de estruturar os dados em uma tabela na saída do rmarkdown é por meio da biblioteca `kableExtra`:
+
+```{r}
+kable(head(cdc, 10), col.names = c("Saúde", "Atividade Física", "Plano de Saúde", "Fumou nos últimos 100 dias?", "Altura", "Peso", "Peso desejado", "Idade", "Gênero")) %>% 
+  kable_styling(full_width = F, bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+<br>
+
+# Descrevendo Distribuições
+
+## Histogramas
+
+O questionário do BRFSS é um tesouro enorme de informações. Um primeiro passo útil em qualquer análise é destilar toda essa informação em algumas estatísticas sumárias e gráficos.
+
+Vamos começar olhando alguns histogramas. Nós podemos criar um histograma da idade dos respondentes com o seguinte comando:
+
+```{r warning=FALSE, message=FALSE}
+qplot(x = age, data = cdc, geom = "histogram")
+```
+
+Esta função diz ao R para plotar a `age` no eixo-x. Além disso, a entrada `geom` (abreviação para geometric object) diz ao R o tipo de gráfico a ser plotado.
+
+Na realidade, uma vez que o padrão de geometria para uma única variável numérica é um histograma, poderíamos obter o mesmo gráfico omitindo o termo "histogram" que escolhe a geometria da variável:
+
+```{r warning=FALSE, message=FALSE}
+qplot(x = age, data = cdc)
+```
+
+Outro comentário interessante se deve ao fato do R reportar suas análises no idioma inglês. Como você pode notar, no caso do histograma, o eixo-x é descrito de acordo com o nome originário do conjunto de dados, enquanto o eixo-y recebe a descrição *count* (número de observações para o intervalo correspondente). Caso você queira mudar os nomes apresentados nos eixos do gráfico plotado, basta indicar ao R o nome desejado:
+
+```{r warning=FALSE, message=FALSE}
+qplot(x = age, data = cdc, xlab = "Idade", ylab = "Observações")
+```
+
+Também é possível adicionar um título ao gráfico ao incluir a entrada `main` e o título correspondente:
+
+```{r warning=FALSE, message=FALSE}
+qplot(x = age, data = cdc, xlab = "Idade", ylab = "Observações", main = "Histograma da Idade")
+```
+
+Histogramas costumam ser uma boa maneira de enxergar a forma da distribuição de uma variável, mas esta forma pode variar dependendo do número de intervalos escolhido (ou a amplitude de cada intervalo) para representar cada barra do histograma. Você pode definir facilmente a amplitude de cada intervalo ao indicá-lo ao R por meio da entrada `binwidth`:
+
+```{r warning=FALSE, message=FALSE}
+qplot(x = age, data = cdc, geom = "histogram", binwidth = 1)
+
+qplot(x = age, data = cdc, geom = "histogram", binwidth = 20)
+```
+
+É uma boa ideia explicitar em seu código todas as opções ao invés de aceitar as entradas padrões do R. Isso lhe permitirá a construção de gráficos mais informacionais e esteticamente mais agradáveis. Por exemplo, suponha que você queira a cor azul (blue em inglês) para seu histograma. Isto pode ser feito com o comando abaixo:
+
+```{r}
+qplot(x = age, data = cdc, geom = "histogram", binwidth = 1, fill = I("blue"))
+```
+
+Você também pode adicionar contornos pretos (black em inglês) a cada barra do gráfico à partir do comando:
+
+```{r}
+qplot(x = age, data = cdc, geom = "histogram", binwidth = 1, fill = I("blue"), col = I("black"))
+```
+
+Além disso, podemos adicionar transparência ao gráfico por meio do comando abaixo:
+
+```{r}
+qplot(x = age, data = cdc, geom = "histogram", binwidth = 1, fill = I("blue"), col = I("black"), alpha = I(.4))
+```
+
+Existem diversas possibilidades para alterar a estética dos seus gráficos e, para tal, nós o incentivamos a procurar informações à respeito dos comandos do R assim como do pacote ggplot2. Por fim, é bastante comum que queiramos construir um histograma onde o eixo-y contenha uma medida de altura adequada, de tal modo que a área de cada bloco seja correspondente à frequência relativa do intervalo que representa a base do bloco, ao invés do número de observações. Neste caso, não podemos nos basear no formato do comando qplot, mas o pacote ggplot2 nos oferece alternativas interessantes e podemos obter esse gráfico com o comando abaixo:
+
+```{r}
+ggplot(cdc, aes(x = age)) + 
+  geom_histogram(aes(y = ..density..), binwidth = 1, fill = "blue", 
+                 alpha = .4, col = "black") + 
+  labs(title = "Histograma da Idade") + 
+  labs(x = "Idade", y = "Altura")
+```
+
+Observe que utilizamos o comando `ggplot` no lugar de `qplot`, mas as entradas são similares. Por exemplo, `aes` indica ao R quais as variáveis correspondentes a cada eixo, `geom_histogram` indica ao R a geometria do histograma (no caso, escolhemos a densidade para o eixo-y) e as demais entradas são bastante similares às que comentamos nos gráficos anteriores. O comando + indica ao R que ao gráfico serão adicionadas novas informações adiante. Poderíamos, inclusive, adicionar uma linha com a densidade estimada ao último gráfico com o comando:
+
+```{r}
+ggplot(cdc, aes(x = age)) + 
+  geom_histogram(aes(y = ..density..), binwidth = 1, fill = "blue",
+                 alpha = .4, col = "black") + 
+  labs(title = "Histograma da Idade") +
+  labs(x = "Idade", y = "Altura") + 
+  geom_density(col = "red")
+```
+
+## Estatísticas Descritivas
+
+Como um exemplo simples, a função `summary` retorna um sumário numérico: mínimo, primeiro quartil, mediana, média, terceiro quartil e máximo. Para a variável `peso`do nosso conjunto de dados `cdc`, este sumário é dado por:
+
+```{r}
+cdc %>%
+  select(weight) %>%
+  summary()
+```
+
+Alternativamente, poderíamos ter a mesma saída acima com o seguinte comando:
+
+```{r}
+summary(cdc$weight)
+```
+
+> O operador %>% é chamado de operedor de direcionamento. Basicamente, ele pega a saída da linha corrente e a direciona à linha de código seguinte.
+
+Você também pode criar a sua própria lista de estatísticas descritivas escolhendo aquelas que te interessam, assim como as variáveis que deseja visualizar usando a função `summarise`:
+
+```{r}
+summarise(cdc, media_pe = mean(weight), dp_pe = sd(weight), media_al = mean(height), dp_al = sd(height))
+```
+
+ou calcular uma estatística descritiva individualmente com o comando
+
+```{r}
+mean(cdc$weight)
+median(cdc$height)
+```
+
+Note que na função `summarise` nós criamos uma lista de quatro elementos. Os nomes desses elementos são definidos pelo usuário, por exemplo `mean_pe`, `dp_pe`, etc. e você pode alterá-los como quiser (apenas não utilize espaço entre seus nomes). Ao calcular estas estatísticas, o R também exige que você conheça as chamadas das funções. Algumas chamadas úteis para estatísticas descritivas numéricas únicas seguem abaixo com seu significado:
+
+-   `mean` - calcula a média
+-   `median` - calcula a mediana
+-   `sd` - calcula o desvio padrão amostral
+-   `var` - calcula a variância amostral
+-   `IQR` - calcula a distância interquantil
+-   `range` - calcula o mínimo e o máximo
+-   `min` - calcula o mínimo
+-   `max` - calcula o máximo
+
+Uma outra funcionalidade bastante útil é você ser capaz de calcular estatísticas descritivas para várias categorias no seu banco de dados. Por exemplo, nós podemos calcular as estatísticas desejadas separadamente para os grupos masculino e feminino usando a função `group_by`:
+
+```{r}
+cdc %>%
+  group_by(gender) %>%
+  summarise(media_pe = mean(weight), dp_pe = sd(weight), media_al = mean(height), dp_al = sd(height))
+```
+
+Aqui, primeiramente agrupamos os dados por gênero, e depois calculamos as estatísticas descritivas.
+
+-   Exercício 2: Calcule a mediana e a distância interquantil da variável `peso`, separadamente, para pessoas que se exercitaram ou não no último mês.
+
+```{r}
+cdc %>%
+  group_by(exerany) %>%
+  summarise(median_pe = median(weight), dq_peso = IQR(weight))
+```
+
+## Tabelas
+
+Ainda que faça sentido descrever uma variável quantitativa como `peso` em termos destas estatísticas, o que fazer com variáveis qualitativas? Nós podemos considerar a frequência da amostra ou a distribuição relativa de frequência. A função `table` faz isso por você contando o número de vezes que cada tipo de resposta é dada. Por exemplo, para ver o número de pessoas que fumaram 100 cigarros ao longo de sua vida, digite
+
+```{r}
+cdc %>%
+  select(smoke100) %>%
+  table()
+```
+
+ou então, verifique a distribuição da frequência relativa digitando
+
+```{r}
+cdc %>%
+  select(smoke100) %>%
+  table()/20000
+```
+
+Perceba como o R automaticamente divide todas as entradas na tabela por 20.000 no comando acima. Isso é similar a algo que observamos no último laboratório; quando multiplicamos ou dividimos um vetor por um número, o R aplica essa ação a todas as entradas dos vetores. Como vimos acima, isso também funciona para tabelas. Em seguida, criamos um gráfico de barras para as entradas na tabela:
+
+
+
+```{r}
+cdc %>%
+  select(smoke100, gender) %>%
+  mutate(smoke100 = ifelse(smoke100 == 1, "Sim", "Não")) %>%
+  ggplot(aes(x = smoke100, fill = gender)) + 
+  geom_bar(position = "dodge", width = 0.5) + 
+  coord_flip() + 
+  labs(
+    x = "Fumou pelo menos 100 cigarros?",
+    y = "Número de indivíduos",
+    title = "Distribuição dos Fumantes por Gênero"
+  )
+```
+
+
+-   Calcule a distribuição da frequência relativa para as variáveis `gender` e `genhlth`. Quantos homens compõem a amostra? Qual proporção da amostra diz estar com saúde excelente?
+
+-   Para a variável `gender` temos, em relação ao total:
+
+```{r}
+cdc %>%
+  select(gender) %>%
+  table() %>%
+  prop.table()
+```
+
+Já para a variável `genhlth`, temos:
+
+```{r}
+cdc %>%
+  select(genhlth) %>%
+  table() %>%
+  prop.table()
+```
+
+O comando `table` pode também ser utilizado para criar tabelas de contingência. Por exemplo, para examinar quais participantes fumaram separadamente por gênero, podemos usar os comandos abaixo.
+
+```{r}
+cdc %>%
+  select(gender, smoke100) %>%
+  table()
+```
+
+<br>
+
+a.  Qual percentual de fumantes são homens? Qual percentual de fumantes são mulheres?
+
+Para responder essa pergunta, da forma como dispusemos os dados, precisamos determinar o percentual em relação ao total da coluna:
+
+```{r}
+cdc %>%
+  select(gender, smoke100) %>%
+  table() %>%
+  prop.table(margin = 2)
+```
+
+Nesse caso, vemos que aproximadamente 53% dos fumantes são homens e aproximadamente 47% são mulheres. Poderíamos também estar interessados em determinar os percentuais em relação ao total geral de indivíduos na amostra:
+
+```{r}
+cdc %>%
+  select(gender, smoke100) %>%
+  table() %>%
+  prop.table()
+```
+
+-   Poderíamos fazer o mesmo procedimento apenas com filtros no dataframe, sem usar a função ```table()```. Por exemplo, para determinar o percentual de fumantes que são mulheres, fazemos:
+
+```{r}
+nrow( cdc[cdc$smoke100 == 1 & cdc$gender == 'f', ] ) / nrow( cdc[cdc$smoke100 == 1, ] )
+```
+
+b.  Dentre os homens, qual o percentual dos que são fumantes? Dentre as mulheres, qual o percentual das que são fumantes?
+
+Para responder a essa pergunta, da forma como dispusemos os dados, precisamos determinar o percentual em relação ao total da linha:
+
+```{r}
+cdc %>%
+  select(gender, smoke100) %>%
+  table() %>%
+  prop.table(margin = 1)
+```
+
+Nesse caso, vemos que o percentual de homens que são fumantes é aproximandamente 52%, enquanto nas mulheres esse percentual é de aproximadamente 42%.
+
+c.  Qual par de estatísticas é mais útil para determinar se é mais provável um homem ou uma mulher ser fumante? Justifique sua resposta.
+
+Penso que, nesse caso, o melhor par de estatísticas para estimar se é mais provável um homem ou uma mulher ser fumante é aquele calculado no item (a), ou seja, dentre os fumantes, qual o percentual de homens e de mulheres.
+
+-   **Indo um pouco além:** uma outra maneira de olhar para essas tabelas de contingência é olhar para os totais (e não percentuais) em cada linha ou coluna. Isso pode ser feito com o uso da função `margin.table()`, da seguinte forma:
+
+1.  Somando sobre a linha:
+
+```{r}
+cdc %>%
+  select(gender, smoke100) %>%
+  table() %>%
+  margin.table(margin = 1)
+```
+
+2.  Somando sobre a coluna:
+
+```{r}
+cdc %>%
+  select(gender, smoke100) %>%
+  table() %>%
+  margin.table(margin = 2)
+```
+
+# Visualizando Relações {.tabset .tabset-fade .tabset-pills}
+
+## Entre duas variáveis quantitativas
+
+No último laboratório nós visualizamos a relação entre duas variáveis numéricas usando gráficos de dispersão. Como um rápido lembrete, vamos criar mais um desses gráficos:
+
+```{r}
+qplot(x = weight, y = height, data = cdc, geom = 'point')
+```
+
+Uma medida importante que nos dá informação de como duas variáveis numéricas estão relacionadas é a correlação. Podemos calcular a correlação entre duas variáveis numéricas por meio do comando `cor`. Abaixo calculamos a correlação entre as variáveis `peso` e altura:
+
+```{r}
+cor(cdc$weight, cdc$height)
+```
+
+Com base no gráfico de dispersão e na medida de correlação, como você explica a relação entre essas variáveis?
+
+-   Com base no baixo valor da correlação linear entre as duas variáveis ($\rho \approx 0,56$), concluímos que há uma correlação linear fraca entre elas.
+
+## Entre duas variáveis qualitativas
+
+Para criar um gráfico de barras segmentado nós podemos utilizar a seguinte opção.
+
+
+```{r}
+cdc %>%
+  select(smoke100, gender) %>%
+  mutate(smoke100 = ifelse(smoke100 == 1, "Sim", "Não")) %>%
+  ggplot(aes(x = smoke100, fill = gender)) + 
+  geom_bar(position = "dodge", width = 0.5) + 
+  coord_flip() + 
+  labs(
+    x = "Fumou pelo menos 100 cigarros?",
+    y = "Número de indivíduos",
+    title = "Distribuição dos Fumantes por Gênero"
+  )
+```
+
+
+## Entre uma variável quantitativa e uma qualitativa
+
+A finalidade de um boxplot é proporcionar um esboço de uma variável com o propósito de comparar as categorias existentes. Portanto, podemos, por exemplo, comparar as alturas de homens e mulheres com
+
+
+```{r}
+cdc %>%
+  ggplot(aes(x = gender, y = height)) + 
+  geom_boxplot()
+```
+
+Há uma nova notação para a geometria aqui. Nós pedimos ao R para plotar os boxplots da altura em relação aos gêneros masculino e feminino que estão descritos no banco de dados.
+
+Vamos considerar uma nova variável que não aparece diretamente neste conjunto de dados: o Índice de Massa Corporal (IMC) (<https://pt.wikipedia.org/wiki/%C3%8Dndice_de_massa_corporal>).
+
+O IMC é uma razão entre peso e altura calculado segundo a fórmula:
+
+$$ IMC = \dfrac{peso}{altura^2} $$ 
+
+Como nossos dados não estão nas unidades métricas (quilogramas e metros) e sim nas unidades imperiais (libras e polegadas) multiplicamos a primeira fórmula por 703 (que é o valor aproximado de conversão das unidades métricas para imperiais), obtendo a fórmula
+
+$$ IMC = \dfrac{peso}{altura^2}*703 $$
+
+Agora, podemos usar a função `mutate` para adicionar uma nova variável, relativa ao IMC, ao conjunto de dados `cdc`:
+
+```{r}
+cdc = mutate(cdc, imc = (weight/height^2)*703)
+```
+
+Perceba que a primeira linha acima representa uma simples aritmética, mas é aplicada para todos os 20.000 números do conjunto de dados `cdc`. Ou seja, para cada um dos 20.000 participantes, pegamos seu peso, dividimos pelo quadrado de sua altura e multiplicamos por 703. O resultado são 20.000 valores de IMC, um para cada respondente. Essa é uma das razões pela qual gostamos do R: ele nos permite realizar cálculos como esse utilizando expressões bem simples.
+
+Agora nós podemos utilizar esta nova variável em nossa análise. Por exemplo, vamos criar uma sequência de boxplots da variável `imc` à partir das categorias da variável `saude`.
+
+
+```{r}
+cdc %>%
+  ggplot(aes(x = genhlth, y = imc)) + 
+  geom_boxplot()
+```
+
+-   Essa figura nos mostra que, quanto pior o estado de saúde relatado da pessoa, maior é o seu IMC mediano.
+
+-   Escolha outra variável qualitativa do banco de dados e verifique como ela se relaciona ao IMC. Liste a variável que você escolheu, explique por que você pensou que ela poderia ter alguma relação com o IMC, construa uma sequência de boxplots à partir das categorias da variável e indique o que o gráfico parece sugerir.
+
+```{r}
+cdc %>%
+  ggplot(aes(x = gender, y = imc)) + 
+  geom_boxplot()
+```
+
+
+-   Conforme vemos no boxplot acima, os homens possuem um IMC maior. Contudo, as mulheres possuem outliers mais acentuados.
+
+# Subconjuntos
+
+É bastante comum agruparmos, em subconjuntos, elementos individuais do banco de dados que possuam características específicas. Nós podemos fazer isso facilmente por meio da função `filter` e uma série de operadores lógicos. Os operadores lógicos mais comuns na análise de dados são
+
+-   `==` - significa "igual a"
+-   `!=` - significa "diferente de"
+-   `>` or `<` - significa "maior que" ou "menor que"
+-   `>=` or `<=` - siginifica "maior ou igual que" ou "menor ou igual que"
+
+Usando esses operadores, nós podemos criar um subconjunto do banco de dados `cdc` relativo apenas aos homens e, então, salvar esta filtragem em um novo conjunto de dados chamado `homens`:
+
+```{r}
+men = filter(cdc, gender == "m")
+```
+
+Aqui nós criamos um novo objeto, chamado `men`. O símbolo especial `<-` realiza uma tarefa, tomando a saída de um comando de linha e salvando-o em um novo objeto que você definiu.
+
+Nós podemos dar uma olhada neste objeto clicando sobre o banco de dados `homens` que aparece em seu ambiente de traballho (Environment), ou podemos usar o comando `head` para dar uma espiada nas suas primeiras linhas:
+
+```{r}
+head(men)
+```
+
+Este novo conjunto de dados contém as mesmas variáveis de antes, apenas com um número menor de linhas. Nós também poderíamos dizer ao R para manter algumas variáveis específicas usando a função `select` que foi introduzida anteriormente, mas isto não é relevante no momento, uma vez que iremos focar na criação de subconjuntos do banco de dados.
+
+
+```{r}
+men2 = cdc %>%
+  subset(gender == "m", select = c(gender, genhlth, age))
+```
+
+Você poderá utilizar diversas dessas condições conjuntamente aos condicionadores `&` and `|`. O condicionador `&` corresponde à intersecção. A grosso modo, podemos dizer que `&` é equivalente a `e`. Nos comandos abaixo, agrupamos em um banco de dados os indivíduos que são homens e possuem mais de trinta anos:
+
+```{r}
+homens_e_30mais = filter(cdc, gender == "m" & age > 30)
+```
+
+Já o condicionador `|` corresponde à união e, podemos dizer, que é equivalente a `ou`. O comando abaixo agrupa os indivíduos do conjunto de dados que são homens ou possuam mais de 30 anos:
+
+```{r}
+homens_ou_30mais = filter(cdc, gender == "m" | age > 30)
+```
+
+À princípio, você pode usar esses condicionadores na quantidade e da maneira que decidirem para formar subconjuntos. Se estes agrupamentos tem interpretações práticas é uma outra questão
+
+-   Crie um novo objeto `menos23_fumante` relativo àqueles que possuem menos de 23 anos e já fumaram 100 cigarros em seu tempo de vida. Escreva o comando que você utilizou para criar este novo objeto e apresente o número de casos que atendem a esse critério.
+
+```{r}
+menos23_fumante = filter(cdc, age < 23 & smoke100 == 1)
+```
+
+Vemos então que `r nrow(menos23_fumante)` indivíduos do nosso banco de dados atendem à condição de ter menos que 23 anos e já ter fumado pelos menos 100 cigarros ao longo da vida.
+
+# Recapitulando
+
+A esta altura, fizemos uma boa primeira exposição sobre a análise das informações contidas no questionário BRFSS. Nós descobrimos uma associação interessante entre fumo e gênero, e nós podemos comentar algo a respeito da relação entre a avaliação de saúde em geral dada pelas pessoas e seu próprio IMC. Nós também nos apropriamos de ferramentas computacionais essenciais -- estatísticas descritivas, subconjuntos e gráficos -- que nos servirão bem ao longo deste curso.
+
+# Por sua conta
+
+1.  Crie um gráfico de dispersão da variável peso em relação ao peso desejado. Descreva a relação entre essas duas variáveis.
+
+
+```{r}
+cdc %>%
+  ggplot(aes(x = wtdesire, y = weight)) + 
+  geom_point()
+
+cor(cdc$wtdesire, cdc$weight)
+```
+
+O gráfico de dispersão mostrado acima mostra uma relação praticamente linear entre as variáveis `weight` e `wtdesire`. Este fato é corroborado pelo coeficiente de correlação linear entre as variáveis, que foi de aproximadamente 0.8.
+
+2.  Vamos considerar uma nova variável: a diferença entre o peso desejado (`wtdesire`) e o peso atual (`weight`). Crie esta nova variável subtraindo as duas colunas na base de dados e atribuindo-as a um novo objeto chamado `pdif`.
+
+```{r}
+pdif = cdc$pdesejado - cdc$peso
+```
+
+3.  Que tipo de dados estão contidos na variável `pdif`? Se uma observação de pdif é 0, o que isso implica em relação ao peso atual e desejado de uma pessoa? E se o valor de pdif for positivo ou negativo?
+
+```{r}
+typeof(pdif)
+
+typeof(cdc$weight)
+
+typeof(cdc$wtdesire)
+```
+
+Como podemos ver na saída dos comandos acima, as variáveis `weight` e `wtdesire` são ambas do tipo `integer`, de modo que `pdif`, que é a diferença entre aquelas duas, é também do tipo inteiro. Vemos então que tanto o peso como o peso desejado foram registrados em quilos no nosso banco de dados, sem a parte fracionária.
+
+4.  Descreva a distribuição de `pdif` em termos de sua posição central, forma e variação, incluindo qualquer gráfico que você usar. O que isso nos diz sobre como as pessoas se sentem a respeito do seu peso atual?
+
+
+```{r}
+cdc = mutate(cdc, pdif = wtdesire - weight)
+```
+
+```{r warning=FALSE, message=FALSE}
+cdc %>%
+  select(pdif) %>%
+  summary()
+```
+
+
+```{r warning=FALSE, message=FALSE}
+cdc %>%
+  ggplot(aes(x = pdif)) +
+  geom_histogram(aes(y = ..density..), 
+                 fill = "blue", binwidth = 10, alpha = 0.4, color = "black") +
+  labs(
+    x = "P_dif", 
+    y = "Densidade", 
+    title = "Histograma da diferença entre o peso desejado e o atual"
+  )
+```
+
+Com este resumo dos dados da variável `pdif` que fizemos logo acima, percebemos que, em média, os participantes acreditam que estão próximos de seu peso ideal, com cerca de 6 quilos acima. Além disso, a partir do histograma e do boxplot gerados, podemos notar também que a distribuição das diferenças entre os pesos ideal e real dos participantes do estudo é praticamente simétrica. Contudo, podemos notar também que existem mais pessoas acreditando que estão acima do peso ideal do que abaixo dele.
+
+
+5.  Utilizando estatísticas numéricas e uma sequência de boxplots, determine se homens tendem a ver seu peso diferentemente das mulheres.
+
+```{r}
+cdc %>%
+  group_by(gender) %>%
+  summarize(media_pdif = mean(pdif), sd_pdif = sd(pdif), mediana_pdif = median(pdif), dq_pdif = IQR(pdif))
+
+cdc %>%
+  ggplot(aes(x = gender, y = pdif)) +
+  geom_boxplot()
+```
+
+Conforme vemos nas estatísticas calculadas acima, bem como nos boxplots, dentre os participantes do estudo, as mulheres tendem a achar que estão mais acima do peso do que os homens pensam sobre eles mesmos.
+
+6.  Agora chegou a hora de usar a criatividade. Encontre a média e o desvio padrão de peso e determine qual a proporção de pesos que estão a um desvio padrão da média. E a dois desvios padrões da média?
+
+Para responder a essas perguntas, basta calcularmos, dentro do nosso dataframe, a proporção de elementos que satisfazem as seguintes condições
+
+$$ |P-\bar{P}| < sd(P)  $$
+
+$$ |P-\bar{P}| < 2*sd(P)  $$
+
+```{r}
+nrow(filter(cdc, abs(weight - mean(weight)) < sd(weight)))/nrow(cdc)
+
+nrow(filter(cdc, abs(weight - mean(weight)) < 2*sd(weight)))/nrow(cdc)
+```
+
+Como podemos ver, aproximadamente 70% dos valores dos pesos dos entrevistados estão dentro de 1 desvio padrão da média, ao passo que aproxidamente 95% dos valores estão dentro de dois desvios padrões de distância da média. Vemos, portanto, que o peso dos indivíduos entrevistados seguem uma distribuição aproximadamente normal. Isto pode ser corroborado com um histograma para essa variável:
+
+
+```{r warning=F, message=F}
+cdc %>%
+  ggplot(aes(x = weight)) +
+  geom_histogram(aes(y = ..density..), 
+                 fill = "blue",
+                 alpha = 0.4,
+                 col = "black") + 
+  labs(x = "Peso", 
+       y = "Density",
+       title = "Histograma para os pesos dos participantes do estudo")
+```
+

@@ -1,0 +1,249 @@
+---
+title: "Laboratório 01 - Passeio Aleatório - Introdução ao R e ao RStudio"
+author: "Ivandson Praeiro de Sousa"
+date: "20/09/2021"
+output:
+  html_document:
+    number_sections: true
+    toc: true
+    toc_float: true
+    theme: cerulean
+    highlight: tango
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introdução
+
+Este relatório trata da atividade denominada "Laboratório 01", disponível no site do professor Jhames Sampaio[^passeio_aleatorio]. Resolvi fazer essas atividades para poder ter uma fluência básica em R, basicamente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc.
+
+[^passeio_aleatorio]: disponível em [lab01](http://www.passeioaleatorio.com/datalab/labs/lab1.html).
+
+
+## Carregamento de pacotes
+
+O R é uma linguagem de programação de código aberto, o que significa que os usuários podem contribuir com pacotes que facilitam nossas vidas. Ainda melhor, podemos usá-las gratuitamente. Para este laboratório, e muitos outros futuros, usaremos os seguintes pacotes do R:
+
+* ```dplyr```: para descrição de dados
+* ```ggplot2```: para visualização de dados
+
+Para carregá-los no nosso ambiente de trabalho, digitamos no console:
+
+```{r warning = F, message = F}
+library(dplyr)
+library(ggplot2)
+```
+
+## Os dados: Registros de batismos do Dr. Arbuthnot
+
+```{r}
+source("http://www.openintro.org/stat/data/arbuthnot.R")
+```
+
+O conjunto de dados Arbuthnot se refere ao Dr. John Arbuthnot, um médico, escritor e matemático do século 18. Ele se interessou pela razão de meninos e meninas recém-nascidos, e para isso ele coletou os registros de batismo de crianças nascidas em Londres no período compreendido entre 1629 e 1710. Nós podemos dar uma olhada nos dados:
+
+```{r}
+arbuthnot
+```
+
+Podemos ver as dimensões desse banco de dados
+
+```{r}
+dim(arbuthnot)
+```
+
+Para ver os nomes das variáveis observadas (colunas), fazemos:
+
+```{r}
+names(arbuthnot)
+```
+
+# Explorando os dados
+
+Nós podemos acessar separadamente os dados de uma única coluna da base de dados da seguinte forma:
+
+```{r}
+arbuthnot$boys
+```
+
+```{r}
+arbuthnot$girls
+```
+
+Nesse caso, os dados são impressos em tela como vetores, e não como um banco de dados estruturado.
+
+O R tem algumas funções poderosas para criar gráficos. Podemos criar um gráfico simples do número de meninas batizadas por ano com o comando
+
+
+```{r}
+qplot(x = year, y = girls, data = arbuthnot)
+```
+
+A função `qplot()`(significando "quick plot") cria um gráfico de dispersão no qual cada par (x, y) é indicado por um círculo aberto. Os primeiros dois argumentos dessa função especificam as variáveis referentes aos eixos x e y, enquanto o terceiro fornece o nome do conjunto de dados no qual elas podem ser encontradas.
+
+Se nós quiséssemos conectar os pontos dos dados com linhas, poderíamos adicionar um quarto argumento para especificar a geometria que queremos:
+
+```{r}
+qplot(x = year, y = girls, data = arbuthnot, geom = "line")
+```
+
+## Há alguma tendência aparente no número de meninas batizadas ao longo dos anos? Como você a descreveria? 
+
+Para saber o número total de crianças batizadas em cada ano, fazemos:
+
+```{r}
+arbuthnot$boys + arbuthnot$girls
+```
+
+Nesse caso, visualizamos um vetor com 82 entradas, cada uma contendo a soma do número de meninos e de meninas batizados no respectivo ano. Nós podemos ainda utilizar este vetor para gerar alguns gráficos, então iremos salvá-lo como uma coluna permanente do nosso banco de dados:
+
+```{r}
+arbuthnot = mutate(arbuthnot, total = boys + girls)
+
+arbuthnot
+```
+Assim, uma nova coluna chamada "total" foi incluída no banco de dados. Podemos criar um gráfico do número total de batismos por ano com o comando:
+
+```{r}
+qplot(x = year, y = total, data = arbuthnot, geom = "line")
+```
+
+Podemos também calcular a proporção do número de meninos batizados em relação ao número de meninas batizadas em cada ano:
+
+```{r}
+arbuthnot$boys / arbuthnot$girls
+```
+
+Podemos também calcular a proporção de meninos batizados ano a ano em relação ao total de crianças batizadas no respectivo ano:
+
+```{r}
+arbuthnot$boys / (arbuthnot$boys + arbuthnot$girls)
+```
+
+Vamos usar novamente a função ```mutate```para incluir uma nova coluna em nosso conjunto de dados para a proporção do número de meninos em relação ao total de recém-nascidos em cada ano:
+
+```{r}
+arbuthnot = mutate(arbuthnot,ratio_boys = arbuthnot$boys / arbuthnot$total )
+
+arbuthnot
+```
+
+Podemos também fazer um gráfico da proporção de meninos batizados relativo ao total ano a ano:
+
+```{r}
+qplot(x = year, y = ratio_boys, data = arbuthnot, geom = "line")
+```
+
+Nesse caso, percebe-se que a proporção de meninos oscila em torno de 50%.
+
+Podemos ainda criar uma variável lógica que indica se o número de meninos nascidos é maior que o número de meninas:
+
+```{r}
+arbuthnot = mutate(arbuthnot, more_boys = boys > girls)
+
+arbuthnot
+```
+
+# Um novo conjunto de dados: registros atuais de nascimento nos Estados Unidos
+
+Primeiro, carregamos o conjunto de dados:
+
+```{r}
+source("http://www.openintro.org/stat/data/present.R")
+```
+
+1. Quais anos estão incluídos nesse conjuntos de dados? 
+
+```{r}
+names(present)
+```
+
+```{r}
+present$year
+```
+
+2. Quais as dimensões da base de dados? 
+
+```{r}
+dim(present)
+```
+
+3. Quais sãos os nomes das colunas ou variáveis?
+
+```{r}
+names(present)
+```
+
+4. Como esses dados se comparam aos de Arbuthnot? Eles estão em uma escala similar?
+
+
+```{r}
+qplot(x = year, y = girls, data = present)
+```
+
+Como podemos ver no gráfico acima, o conjunto de dados ```present```tem a mesma escala temporal que o dataset ```arbuthnot```. Porém, no atual caso em análise, existem duas tendências de alta claras, uma de cerca de 20 anos e outra de aproximadamente 10 anos, separadas por uma tendência de baixa de 10 anos.
+
+5. Crie um gráfico que mostre a proporção de meninos em relação às meninas para cada ano do conjunto de dados. O que você vê? A observação de Arbuthnot de que os meninos nascem numa proporção maior do que as meninas se mantém nos EUA?
+
+
+```{r}
+present = mutate(present, ratio_boys_girls = present$boys/present$girls)
+```
+
+```{r}
+qplot(x = year, y = ratio_boys_girls, data = present, geom = 'line')
+```
+
+Conforme podemos ver na saída do comando abaixo, a observação de Arbuthnot se mantêm nos EUA, embora o gráfico acima nos mostre que a proporção entre o número de meninos e de meninas nascidos vem caindo ao longo das décadas.
+
+```{r}
+present$meninos > present$meninas
+```
+
+Outra maneira de ver se existe algum ano no qual o número de meninos nascidos é menor do que o número de meninas é fazendo um filtro no dataframe:
+
+```{r}
+present[present$boys < present$girls, ]
+```
+
+Como vemos, a saída é vazia, tendo apenas os nomes das variáveis, sem qualquer observação nas linhas.
+
+6. Em qual ano se verifica o maior número de nascimentos nos EUA? **Dica**: primeiramente calcule o total e salve em uma nova variável. Então, ordene seu banco de dados em ordem decrescente na colula total. VocÊ pode fazer isso interativamente no seu *Data Viewer*, clicando nas flechas próximas aos nomes das variáveis.
+
+Primeiro, vamos acrescentar a coluna "Total" ao nosso dataframe. 
+
+```{r}
+present = mutate(present, Total = present$boys + present$girls)
+```
+
+Em seguida, vamos aplicar um filtro ao dataframe, assim como fizemos acima, e mostrar todas as colunas do dataframe, porém apenas a linha correspondente ao valor máximo da coluna **Total**:
+
+```{r}
+present[present$Total == max(present$Total), ]
+```
+
+Uma maneira mais elegante de fazer esse filtro é por meio 
+
+```{r}
+present%>%
+  subset(Total == max(Total))
+```
+
+Por outro lado, para responder à mesma pergunta e mostrar apenas as colunas **ano** e **Total**, na linha correspondente ao total máximo, fazemos:
+
+
+```{r}
+present[present$Total == max(present$Total), c('year', 'Total')]
+```
+
+Ou, por meio da função `select()`:
+
+```{r}
+present%>%
+  subset(Total == max(Total), select = c("year", "Total"))
+```
+
+Esses dados são provenientes de uma pesquisa realizada pelo Centro de Controle de Doenças (Center For Disease Control) [Link do Artigo](http://www.cdc.gov/nchs/data/nvsr/nvsr53/nvsr53_20.pdf).

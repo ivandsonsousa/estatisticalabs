@@ -1,0 +1,337 @@
+---
+title: "Laboratório 04 - Passeio Aleatório - Distribuições Amostrais"
+author: "Ivandson Praeiro de Sousa"
+date: "18/10/2021"
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    theme: cerulean
+    # highlight: spacelab
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introdução
+
+Este relatório trata da atividade denominada "Laboratório 04", disponível no site do professor Jhames Sampaio[^passeio_aleatorio]. Resolvi fazer essas atividades para poder ter uma fluência básica em R, basicamente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc [^openintrolabs].
+
+[^passeio_aleatorio]: Disponível em [lab03_Passeio_Aleatório](http://www.passeioaleatorio.com/datalab/labs/lab3.html).
+
+[^openintrolabs]: Os laboratórios do site http://passeioaleatório.com foram baseados em um projeto maior, denominado OpenIntro Statistics: Labs for R, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
+
+[^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
+
+Neste laboratório, investigaremos os meios pelos quais as estatísticas de uma amostra aleatória de dados podem servir como estimativas pontuais de parâmetros populacionais. Estamos interessados em formular uma distribuição amostral de nossa estimativa para aprender sobre as propriedades da estimativa, como sua distribuição.
+
+> **Especificando uma semente:** Nós iremos tomar amostras aleatórias e gerar algumas distribuições amostrais neste laboratório. Desse modo, você deverá especificar uma semente logo no início de seu relatório. Caso tenha dúvidas sobre como definir esta semente, retorne ao laboratório anterior onde explicamos este conceito.
+
+
+```{r}
+set.seed(123)
+```
+
+
+## Carregamento dos pacotes necessários
+
+```{r, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(htmltools)
+library(knitr)
+library(rmarkdown)
+library(kableExtra) #Para gerar tabelas com um layout agradável
+```
+
+# Os Dados
+
+Vamos analisar dados do setor imobiliário da cidade de Ames, no estado de Iowa, Estados Unidos. Os detalhes de cada transação imobiliária na cidade de Ames são registrados pelo escritório da Secretaria Municipal da Receita da cidade. Nosso foco particular para este laboratório será todas as vendas de casa em Ames entre 2006 e 2010. Essa coleção representa nossa população de interesse. Neste laboratório queremos aprender sobre essas vendas de casas retirando pequenas amostras da população completa. Vamos importar os dados[^datasets].
+
+
+```{r}
+load("ames.rda")
+names(ames)
+```
+
+
+Como você pode observar, o banco de dados está em sua língua originária, inglês, e existe uma quantidade consideravelmente grande de variáveis. Para este laboratório, restringiremos nossa atenção para somente duas variáveis: a área habitável da casa acima do nível do solo em pés quadrados (```area```) e o preço da venda (```price```) em dólares.
+
+Nós podemos explorar a distribuição da área das casas em nossa população de vendas de casas calculando algumas estatísticas sumárias e criando um histograma. Vamos iniciar criando uma visualização por meio do histograma:
+
+
+```{r}
+ames %>%
+  ggplot(aes(x = area)) + 
+  geom_histogram(fill = "orange", col = "black", binwidth = 250) + 
+  labs(
+    x = "Area",
+    y = "N",
+    title = "Histograma para as áreas das casas em Ames, Iowa"
+  ) + 
+  theme(text = element_text(size = 15))
+```
+
+
+Vamos obter, também, algumas medidas descritivas. Observe que podemos fazer isso por meio da função `summarise`. O número de estatísticas a serem calculadas fica a nosso critério. Algumas das funções abaixo já foram discutidas no primeiro laboratório (como `mean`, `median`, `sd`, `IQR`, `min`, e `max`). A função `quantile` aparece pela primeira vez em nossos laboratórios, correspondendo ao quantil especificado da distribuição de interesse. Por exemplo, a expressão `quantile(x, 0.25)` irá nos revelar o valor que acumula 25% (Q1) da distribuição da variável `X`. Como estudado em sala, esses valores são úteis na descrição da distribuição dos dados: como exemplo, poderíamos estar interessados na “região central que acumula 50% das casas com área dada em pés quadrados”.
+
+
+```{r}
+n = nrow(ames)
+ames %>%
+  summarise(mu = mean(area), pop_med = median(area),
+            sigma = ((n-1)/n)*sd(area), pop_iqr = IQR(area),
+            pop_min = min(area), pop_max = max(area),
+            pop_q1 = quantile(area, 0.25),# primeiro quartil, 25º percentil
+            pop_q3 = quantile(area, 0.75))# terceiro quartil, 75º percentil
+```
+
+
+* **Exercício 1**: Descreva a distribuição desta população usando visualizações e estatísticas descritivas. Você não precisa usar todas as estatísticas descritivas existentes, mas deve decidir quais delas são relevantes baseando-se na forma da distribuição. Não esqueça de incluir os gráficos e saídas das estatísticas calculadas no seu relatório juntamente com a sua narrativa.
+
+
+```{r}
+ames %>%
+  select(area) %>%
+  filter(abs(area - mean(area)) < ((n-1)/n)*sd(area)) %>%
+  nrow()/nrow(ames)
+```
+
+Como podemos notar a partir do histograma plotado e da saída do código logo acima, assim como através das estatísticas descritivas selecionadas na função `summarise`, a distribuição das áreas das habitações do nosso conjunto de dados é aproximadamente normal, porém, com uma leve assimetria à direita, devido aos poucos imóveis que possuem área muito maior que os demais (*outliers*). Isso pode ser reforçado pela visualização de um boxplot:
+
+```{r}
+ames %>%
+  ggplot(aes(x = "", y = area)) + 
+  geom_boxplot(width = 0.3) + 
+  theme(text = element_text(size = 16)) + 
+  labs(
+    title = "Boxplot para as áreas das casas em Ames, Iowa",
+    x = "Area"
+  )
+```
+
+
+# A distribuição Amostral Desconhecida
+
+Neste laboratório nós temos acesso à população inteira, mas isso raramente acontece na vida real. Reunir informação sobre uma população inteira costuma ser muito custoso ou impossível. Por essa razão, frequentemente retiramos uma amostra da população e a utilizamos para compreender propriedades da população.
+
+Se estivermos interessados em estimar a área habitável média na cidade de Ames com base numa amostra, podemos utilizar o seguite comando para sondar a população.
+
+```{r}
+set.seed(123)
+amostra1 = slice_sample(ames, n = 50, replace = T)
+```
+
+
+Esse comando retira uma amostra aleatória simples de tamanho 50 do vetor `area`, que é atribuída à variável `amostra1`. É como se fossemos ao banco de dados da Secretaria Municipal da Fazenda e retirássemos os arquivos de 50 vendas de casas aleatoriamente. Trabalhar com esses 50 arquivos seria consideravelmente mais simples do que lidar com todas as 2930 vendas de casas.
+
+* **Exercício 2**: Descreva a distribuição desta amostra. Como ela se compara à distribuição da população? Dica A função `slice_sample` retira uma amostra das observações (i.e. linhas) no banco de dados. Você pode utilizar os mesmos nomes para as variáveis do banco de dados. Os códigos utilizados no exercício anterior podem ser muito úteis para visualizar e descrever a distribuição, mas tenha cuidado ao nomear as estatísticas uma vez que `mu` e `sigma` são parâmetros populacionais já definidos e o que você tem é uma amostra e, consequentemente, estatísticas amostrais. Você pode nomear à sua escolha as estatísticas calculadas, sendo muito útil indicar no nome atribuído que seus valores são oriundos de uma amostra.
+
+Se estamos interessados em estimar a área habitável média nas casas da cidade de Ames utilizando esta amostra, nosso melhor palpite é a média da amostra.
+
+```{r}
+summarise(amostra1, x_bar = mean(area))
+```
+
+Dependendo de quais foram as 50 casas que foram sorteadas, sua estimativa pode estar um pouco acima ou abaixo da média populacional verdadeira de 1499,69 pés quadrados. De maneira geral, mesmo assim, a média da amostra costuma ser uma estimativa muito boa da média da área habitável, e nós a obtemos por meio de uma amostra de menos de 3% da população.
+
+
+Não é surpreendente que, a cada vez que retiramos uma nova amostra aleatória, obtemos uma média amostral diferente. É útil ter uma ideia de quanta variabilidade podemos esperar quando estimamos a média populacional desta maneira. A distribuição das médias amostrais, denominada de *distribuição amostral*, pode nos ajudar a compreeder essa variabilidade. Neste laboratório, uma vez que temos acesso à população, podemos elaborar a distribuição amostral para a média amostral repetindo os passos acima várias vezes. Agora iremos gerar 2000 amostras e calcularemos a média amostral de cada uma delas. Note que utilizamos o argumento `replace = TRUE` pelo simples fato de que amostras aleatórias simples são obtidas da distribuição original para cada réplica.
+
+
+```{r}
+set.seed(123)
+amostra50 = rdply(2000, slice_sample(ames, n = 50, replace = T), .id = "id_sample")
+```
+
+para determinar as médias de cada uma das 2000 amostras de 50 elementos, utilizamos as funções da biblioteca `dplyr`, além do operador `%>%`:
+
+```{r}
+medias_amostra50 = amostra50 %>%
+  group_by(id_sample) %>%
+  summarise(x_bar = mean(area))
+```
+
+
+## Interlúdio: A função `rdply`
+
+Na seção anterior, utilizamos a função `rdply`, do pacote `plyr`, para gerar `L = 2000` amostras de tamanho `n = 50` do nosso conjunto de dados `ames`. Para tanto, continuamos a utilizar a função `slice_sample`, da biblioteca `dplyr`. Contudo, como nesse caso não precisávemos apenas de uma amostra, mas de 2000, selecionadas aleatoriamente do nosso dataframe, foi necessário a utilização da função `rdply`.
+
+A função `rdply`permite replicar o cálculo de uma expressão sem a necessidade de utilizar uma estrutura de repetição (ou *loop*), de modo a tornar a programação mais limpa e rápida. Além disso, os resultados dos cálculos efetuados são alocados em um novo dataframe, associados a um identificador (argumento `.id`, inserido na função `rdply`). 
+
+Para separar o dataframe criado em 2000 amostras isoladas, podemos usar a função `split`, da biblioteca `plyr`. Poderíamos fazer, por exemplo, `amostra50 = split(amostra50, rep(1:2000, each = nrow(amostra50)/2000))`. Neste caso, seria criada uma lista com os 2000 dataframes. Essa talvez não seja a opção mais interessante, uma vez que irá ocupar muito espaço de memória. Uma alternativa, por exemplo, é fazer o *slice* do dataframe que é retornado da função `rdply`, por meio da coluna `.id`.
+
+
+## Tamanho da Amostra e a Distribuição Amostral
+
+Deixando de lado os aspectos técnicos de programação, vamos retomar a razão pela qual utilizamos a função `rdply`: calcular uma distribuição amostral, especificamente, esta aqui.
+
+
+```{r}
+medias_amostra50 %>%
+  ggplot(aes(x = x_bar)) + 
+  geom_histogram(aes(y = ..density..), 
+                 binwidth = 10, fill = "green", col = "black") + 
+  stat_function(
+    fun = dnorm,
+    args = 
+      list(mean = mean(medias_amostra50$x_bar), sd = sd(medias_amostra50$x_bar)
+           ), 
+    size = 1, color = "red"
+    ) + 
+  theme(text = element_text(size = 16)) + 
+  labs(
+    title = "Distribuição das médias amostrais",
+    subtitle = "2000 amostras com n = 50 cada"
+  )
+```
+
+
+A distribuição amostral que calculamos nos informa bastante sobre as estimativas da área habitável das casas na cidade de Ames. Uma vez que a média amostral é um estimador não viesado, a distribuição amostral estará centrada na verdadeira média da área habitável da população, e a dispersão da distribuição indica quanta variabilidade é possível ao se amostrar somente 50 vendas de casas.
+
+Para ter uma ideia melhor do efeito do tamanho da amostra na distribuição amostral, vamos construir distribuições a partir de amostras de diferentes tamanhos:
+
+**Passo 1**: Crie três distribuições amostrais, cada uma contendo 2000 médias amostrais, oriundas de amostras de tamanho $n=10$, $n=50$ e $n=100$.
+
+```{r}
+set.seed(123)
+medias_amostra10 = rdply(2000, slice_sample(ames, n = 10, replace = T), .id = "id_sample") %>%
+  group_by(id_sample) %>%
+  summarise(x_bar = mean(area))
+```
+
+```{r}
+set.seed(123)
+medias_amostra100 = rdply(2000, slice_sample(ames, n = 100, replace = T), .id = "id_sample") %>%
+  group_by(id_sample) %>%
+  summarise(x_bar = mean(area))
+```
+
+
+**Passo 2**: Construa o gráfico dessas três distribuições amostrais, uma seguida da outra e, na mesma escala, de modo que possamos comparar as formas, centros e dispersões de cada uma.
+
+* **Passo 2a**: Combine essas três distribuições amostrais (cada uma com 2000 valores) em um novo conjunto de dados contendo 6000 valores. Para combinar bancos de dados, linha por linha, nós usamos a função `rbind`.
+
+* **Passo 2b**: Adicione uma nova coluna chamada `tamanho_amostra` aos dados que você acabou de criar, indicando o tamanho da amostra utilizado ao obter cada entrada. Lembre-se que os primeiros 2000 valores foram obtidos de amostras de tamanho 10, os 2000 seguintes de amostras de tamanho 50 e, finalmente, os 2000 últimos valores foram obtidos de amostras de tamanho 100. Portanto, essa nova variável é simplesmente a repetição do valor 10 por 2000 vezes, seguida de 50 por 2000 vezes e, novamente, 100 por 2000 vezes. O uso da função `factor` indica ao R que a variável é qualitativa, e não numérica. Lembre-se também de usar a função `mutate` para adicionar a nova variável ao banco de dados. O argumento `rep(c(10,50,100), each=2000)` diz ao R que os valores 10, 50 e 100 serão repetidos cada um 2000 vezes.
+
+
+```{r}
+medias_amostra = rbind(medias_amostra10, medias_amostra50, medias_amostra100) %>%
+  select(-id_sample) %>%
+  mutate(tamanho_amostra = factor(rep(c(10,50,100), each = 2000)))
+```
+
+* **Passo 2c**: Finalmente, construa os três gráficos representando estas três distribuições amostrais. Podemos fazer isso via *faceting*, i.e. criar faces separadas no gráfico para cada uma das distribuições. Lembre-se que nós identificamos cada distribuição a partir da variável `tamanho_amostra`, que acabamos de criar. A expressão `tamanho_amostra ~ .` é nova: ela separa o eixo-y do nosso gráfico em três faces segundo o `tamanho_amostra` e não separa o eixo-x, o que significa que os gráficos serão dispostos um acima do outro ao invés de um ao lado do outro. Decidimos por esta abordagem para facilitar a comparação entre a posição e a dispersão das distribuições.
+
+
+```{r}
+medias_amostra %>%
+  ggplot(aes(x = x_bar)) + 
+  geom_histogram(binwidth = 20, fill = "orange", col = "black") + 
+  facet_wrap(~tamanho_amostra, ncol = 1, strip.position =  "right") +
+  theme(text = element_text(size = 16))
+```
+
+
+Vemos, portanto, que o aumento do tamanho da amostra tem pouca influência sobre o centro da distribuição (a média amostral, que é uma estimativa da média populacional). A dispersão, porém, diminui bastante com o aumento do tamanho da amostra.
+
+# Por Sua Conta
+
+Até agora, nós nos ocupamos em estimar a média da área habitável nas casas do município de Ames. Agora você tentará estimar a média dos preços das casas.
+
+
+1. Retire uma amostra aleatória de tamanho 15 da variável `price` e calcule a média. Com essa amostra, qual é sua melhor estimativa pontual para a média populacional?
+
+
+Como sabemos, um bom estimador para a média populacional é a média amostral $\bar{X}$, que é um estimador não viesado. Para esse caso, a média amostral seria:
+
+
+```{r}
+ames %>%
+  select(price) %>%
+  slice_sample(n = 15, replace = T) %>%
+  summarise(x_bar = mean(price))
+```
+
+
+2. Já que você tem acesso à população, simule a distribuição amostral de $\bar{X}_{price}$, retirando 2000 amostras de tamanho 15 da população e calculando 2000 médias amostrais. Armazene essas médias em um vetor com o nome `medias_amostra15`. Crie um gráfico com os resultados, e então descreva a forma dessa distribuição amostral. Baseado nessa distribuição amostral, qual seria seu palpite para a média dos preços das casas na população? Por fim, calcule e informe a média populacional.
+
+
+```{r}
+set.seed(123)
+medias_amostra15 = rdply(2000, slice_sample(ames, n = 15, replace = T), .id = "id_sample") %>%
+  group_by(id_sample) %>%
+  summarise(x_bar = mean(price))
+
+medias_amostra15 %>%
+  ggplot(aes(x = x_bar)) +
+  geom_histogram(aes(y = ..density..), 
+                 binwidth = 2000, fill = "orange", col = "black") + 
+  labs(
+    title = "Distribuição das médias amostrais dos preços",
+    subtitle = "2000 amostras com n = 15 cada"
+  ) + 
+  theme(text = element_text(size = 16)) + 
+  stat_function(
+    fun = dnorm, 
+    args = list(mean = mean(medias_amostra15$x_bar), sd = sd(medias_amostra15$x_bar)),
+    size = 1, color = "red"
+    )
+```
+
+Conforme podemos ver no histograma plotado logo acima, a forma da distribuição da média para essas 2000 amostras de tamanho 15 é de uma normal, como seria de esperar pelo teorema do limite central. Segundo esse histograma, a melhor estimativa para a média populacional seria em torno de $ 180.000,00.
+
+Além disso, a média populacional dos preços dos imóveis do nosso conjunto de dados é igual a `r format(colMeans(select(ames, price)), scientific = F, decimal.mark = ",", big.mark = ".", nsmall = 2)` dólares.
+
+3. Mude o tamanho da sua amostra de 15 para 150, e então calcule a distribuição amostral utilizando o mesmo método descrito acima, e guarde as médias em um novo vetor com o nome `medias_amostra150`. Descreva a forma dessa distribuição amostral e compare-a com a distribuição amostral para a amostra de 15 elementos. Com base nessa distribuição amostral, qual seria seu palpite sobre a média dos preços de vendas de casas no município de Ames?
+
+
+```{r}
+set.seed(123)
+medias_amostra150 = rdply(2000, slice_sample(ames, n = 150, replace = T), .id = "id_sample") %>%
+  group_by(id_sample) %>%
+  summarise(x_bar = mean(price))
+
+medias_amostra150 %>%
+  ggplot(aes(x = x_bar)) +
+  geom_histogram(aes(y = ..density..), 
+                 binwidth = 2000, fill = "orange", col = "black") + 
+  labs(
+    title = "Distribuição das médias amostrais dos preços",
+    subtitle = "2000 amostras com n = 150 cada"
+  ) + 
+  theme(text = element_text(size = 16)) + 
+  stat_function(
+    fun = dnorm, 
+    args = list(mean = mean(medias_amostra150$x_bar), sd = sd(medias_amostra150$x_bar)),
+    size = 1, color = "red"
+    )
+```
+
+Como podemos ver no histograma acima, a forma da distribuição das médias para amostras de tananho $n=150$ é também normal, como esperado. Além disso, vemos também que nossa melhor estimativa para a média populacional continua sendo em torno de 180.000 dólares. 
+
+Comparando este caso com o da distribuição das médias dos preços para amostras de temanho $n = 15$, vemos que a maior diferença está na dispersão em torno da média populacional, que no presente caso é menor.
+
+
+```{r}
+medias_amostra_price = rbind(medias_amostra15, medias_amostra150) %>%
+  select(-id_sample) %>%
+  mutate(tamanho_amostra = factor(rep(c(15, 150), each = 2000)))
+
+medias_amostra_price %>%
+  ggplot(aes(x = x_bar)) + 
+  geom_histogram(aes(y = ..density..), 
+                 fill = "green", col = "black", binwidth = 2000) +
+  facet_wrap(~tamanho_amostra, ncol = 1, strip.position = "right") +
+  theme(text= element_text(size = 16))
+```
+
+
+4. Das distribuições amostrais calculadas nos exercícios 2 e 3, qual tem menor dispersão? Se estamos interessados em estimativas que estão mais próximas do valor verdadeiro, preferiríamos uma distribuição com uma dispersão pequena ou grande?
+
+
+Conforme já discutido no item acima, a distribuição amostral com menor dispersão é aquela com maior $n$, que nesse caso é aquela com $n = 150$. Se estamos interessados em fazer um inferência a respeito do valor da média populacional, por exemplo, deveríamos preferir amostras com maior $n$, a fim de ter maior precisão.

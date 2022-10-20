@@ -1,0 +1,565 @@
+---
+title: "Inferência para dados numéricos"
+author: "Ivandson Praeiro de Sousa"
+date: '2022-04-04'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    theme: cerulean
+    # highlight: spacelab
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Introdução
+
+
+```{r, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(plyr)
+library(tidyr)
+library(dplyr)
+library(htmltools)
+library(knitr)
+library(rmarkdown)
+library(kableExtra) #Para gerar tabelas com um layout agradável
+```
+
+Este relatório trata da atividade denominada "Laboratório 07", disponível no site do professor Jhames Sampaio[^passeio_aleatorio]. Resolvi fazer essas atividades para poder ter uma fluência básica em R, basicamente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc[^openintrolabs].
+
+
+Aqui, realizaremos testes de hipóteses e construíremos intervalos de confiança (IC's) para médias e diferenças de médias. Vamos fazer esses cálculos "manualmente" e através do uso de uma função nativa do R chamada `t.test()`, que é uma função extremamente útil e flexível quando a amostra bruta é dada. Às vezes, porém, só temos acesso a estatísticas da amostra (por exemplo, $\bar{x}, s_x, n$), o que exige que realizemos cálculos "manualmente" - ou seja, a função `t.test()` requer os dados brutos.
+
+[^passeio_aleatorio]: disponível em [lab06](http://www.passeioaleatorio.com/datalab/labs/lab7.html)
+
+[^openintrolabs]: Os laboratórios do site http://passeioaleatório.com foram baseados em um projeto maior, denominado OpenIntro Statistics: Labs for R, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
+
+[^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
+
+
+# Nascimentos na Carolina do Norte
+
+Em 2004, o estado da Carolina do Norte, Estados Unidos, disponibilizou um grande conjunto de dados contendo informações sobre os nascimentos registrados no estado. Esse conjunto de dados é útil para pesquisadores que estudam a relação entre hábitos e práticas de gestantes e o nascimento de seus filhos. Nós trabalharemos com uma amostra aleatória das observações deste conjunto de dados.
+
+
+# Análise Exploratória
+
+Carregue o conjunto de dados `nc` em seu espaço de trabalho[^datasets].
+
+```{r}
+load("nc.RData")
+```
+
+Temos dados de 13 variáveis diferentes, algumas qualitativas e outras quantitativas. O significado de cada variável é o seguinte:
+
+
+<center>
+
+<table style="border-collapse:collapse;border-color:#aaa;border-spacing:0" class="tg"><thead><tr><th style="background-color:#f38630;border-color:#aaa;border-style:solid;border-width:1px;color:#fff;font-family:Arial, sans-serif;font-size:14px;font-weight:bold;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:middle;word-break:normal"><span style="font-weight:700">variable</span></th><th style="background-color:#f38630;border-color:#aaa;border-style:solid;border-width:1px;color:#fff;font-family:Arial, sans-serif;font-size:14px;font-weight:bold;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:middle;word-break:normal"><span style="font-weight:700">description</span></th></tr></thead><tbody><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`fage`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">father’s age in years.</td></tr><tr><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`mage`</span></td><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">mother’s age in years.</td></tr><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`mature`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">maturity status of mother.</td></tr><tr><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`weeks`</span></td><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">length of pregnancy in weeks.</td></tr><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`premie`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">whether the birth was classified as premature (premie) or full-term.</td></tr><tr><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`visits`</span></td><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">number of hospital visits during pregnancy.</td></tr><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`marital`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">whether mother is <span style="color:inherit">married</span> or <span style="color:inherit">not married</span> at birth.</td></tr><tr><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`gained`</span></td><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">weight gained by mother during pregnancy in pounds.</td></tr><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`weight`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">weight of the baby at birth in pounds.</td></tr><tr><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`lowbirthweight`</span></td><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">whether baby was classified as low birthweight (<span style="color:inherit">low</span>) or not (<span style="color:inherit">not low</span>).</td></tr><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`gender`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">gender of the baby, <span style="color:inherit">female</span> or <span style="color:inherit">male</span>.</td></tr><tr><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`habit`</span></td><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">status of the mother as a <span style="color:inherit">nonsmoker</span> or a <span style="color:inherit">smoker</span>.</td></tr><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`whitemom`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">whether mom is <span style="color:inherit">white</span> or <span style="color:inherit">not white</span>.</td></tr></tbody></table>
+
+</center>
+
+<br>
+
+Primeiro, vamos fazer um breve resumo desse conjunto de dados:
+
+```{r, echo=FALSE}
+cat("Número de Registros:",
+    nrow(nc),
+    "\nResumo Estatístico:\n"
+    )
+
+summary(nc)
+```
+Com a ajuda da função `glimpse()`, vamos ver quais dados são numéricos e quais são do tipo categórico:
+
+```{r}
+glimpse(nc)
+```
+
+Vamos agora investigar a idade típica das mães e pais na Carolina do Norte. Comecemos construindo histogramas, boxplots e verificando o resumo de cinco números para cada caso:
+
+```{r}
+histogram = nc %>%
+  ggplot(aes(x = mage)) + 
+  geom_histogram(col = "black", fill = "skyblue", binwidth = 1) + 
+  labs(
+    title = "Mother's age",
+    x = "age",
+    y = "N"
+  ) + 
+  theme(text = element_text(size = 16))
+
+box_plot = nc %>%
+  ggplot(aes(y = mage)) + 
+  geom_boxplot(
+    fill = "skyblue",
+    outlier.colour = "red",
+    alpha = 0.95,
+    width = 0.4
+  ) + 
+  stat_boxplot(
+    geom = "errorbar",
+    width = 0.2
+  ) + 
+  theme(text = element_text(size = 18)) + 
+  theme_void()
+
+cowplot::plot_grid(histogram, box_plot)
+```
+
+```{r, message=FALSE, warning=FALSE}
+histogram = nc %>%
+  ggplot(aes(x = fage)) + 
+  geom_histogram(col = "black", fill = "orange", binwidth = 1) + 
+  labs(
+    title = "Father's age",
+    x = "age",
+    y = "N"
+  ) + 
+  theme(text = element_text(size = 16))
+
+box_plot = nc %>%
+  ggplot(aes(y = fage)) + 
+  geom_boxplot(
+    fill = "orange",
+    outlier.colour = "red",
+    alpha = 0.95,
+    width = 0.4
+  ) + 
+  stat_boxplot(
+    geom = "errorbar",
+    width = 0.2
+  ) + 
+  theme(text = element_text(size = 16)) + 
+  theme_void()
+
+cowplot::plot_grid(histogram, box_plot)
+```
+
+
+```{r, echo=FALSE}
+cat("Resumo de 5 números para a idade da mãe:\n")
+
+summary(nc$mage)
+
+cat("Resumo de 5 números para a idade do pai:\n")
+
+summary(nc$fage)
+
+cat("\nVariabilidade da idade da mãe:\n")
+
+nc %>% 
+  summarise(dq = IQR(mage, na.rm = T), s = sd(mage, na.rm = T))
+
+cat("\nVariabilidade da idade do pai:\n")
+
+nc %>% 
+  summarise(dq = IQR(fage, na.rm = T), s = sd(fage, na.rm = T))
+```
+
+>Note que `sd(fage)` e `IQR(fage)` não retorna resultados válidos. O resumo de 5 números indica que existem 171 nascimentos para os quais a idade do pai não foi informada. Por padrão, a maioria das funções do R não retorna resultados válidos quando o dado está ausente. Isto pode ser resolvido adicionando-se o argumento `na.rm = TRUE` na chamada da função.
+
+
+# Introdução à inferência
+
+Suponha que queremos testar a hipótese de que a idade média para as mães que dão à luz na Carolina do Norte é 26,5 anos. Calculando "manualmente", temos:
+
+
+```{r}
+# Dados amostrais
+
+xbar = mean(nc$mage)
+std = sd(nc$mage)
+n = length(nc$mage)
+
+# Teste de hipótese -- Calculando o p-valor
+
+dof = n - 1 #Graus de liberdade
+std_err = std/sqrt(n) #erro padrão do estimador
+test_stat = (xbar - 26.5)/std_err #Estatística do teste
+p_value = 2*pt(-abs(test_stat), df = dof)
+p_value
+
+#Construindo um intervalo de confiança de 95% para a média:
+
+q = qt(0.975, df = dof)
+IC = xbar + c(-1, 1)*q*std_err
+IC
+```
+
+Como o nosso p-valor é menor que o nível de significância $\alpha$ (0,05), temos evidências suficientes para rejeitar a hipótese de que a idade média das mulheres que dão à luz na Carolina do Norte é de 26,5 anos. Observe que 26,5 anos não está contido no intervalo de confiança de 95% para a idade média das mães dando à luz na Carolina do Norte. Os testes de hipóteses para a média com nível de significância $\alpha$ são logicamente equivalentes a um intervalo de confiança de $100(1 - \alpha)\%$ - essa é a grande sacada.
+
+Vamos agora fazer o mesmo procedimento com o uso da função `t.test()`:
+
+```{r}
+# Mother's mean age -- HT and 95% CI
+
+t.test(
+  x = nc$mage, 
+  alternative = "two.sided", 
+  mu = 26.5, 
+  conf.level = 0.95
+  )
+```
+
+> Suponha agora que queiramos testar se a idade média dos pais da NC é 30 anos. Use $\alpha = 0.01$. Construa também um intervalo de confiança de 99% para a média. Calcule "manualmente" e usando `t.test()`. **Dica**: quando calculamos "manualmente", os valores ausentes podem ser um problema, de modo que primeiro precisamos extrair e armazenar as informações úteis. A função `t.test()`, por outro lado, já cuida disso automaticamente.
+
+
+```{r}
+# Dados Amostrais
+
+# f_age = nc %>%
+#   select(fage) %>%
+#   drop_na()
+
+xbar = mean(nc$fage, na.rm = T)
+std = sd(nc$fage, na.rm = T)
+n = sum(!is.na(nc$fage))
+
+# Teste de hipótese - calculando o p-valor
+
+dof = n - 1 #Graus de liberdade
+std_err = std/sqrt(n) #Erro padrão do estimador
+test_stat = (xbar - 30)/std_err #Estatística do teste
+
+2*pt(-abs(test_stat), df = dof)
+
+# Construindo um intervalo de confiança de 99% para a média:
+
+q = qt(0.995, df = dof)
+IC = xbar + c(-1, 1)*q*std_err
+```
+
+Fazendo o mesmo cálculo usando a função `t.test()`, temos:
+
+```{r}
+t.test(
+  x = nc$fage, 
+  mu = 30, 
+  alternative = "two.sided",
+  conf.level = 0.99
+  )
+```
+
+Suponha que um pesquisador quer testar a hipótese de que a média da idade dos pais na NC é diferente da média da idade das mães que deram à luz - suponha um $\alpha$ de 0,01. Este é um teste para a diferença entre as duas médias populacionais, o que nos obriga a perguntar se os dados para os dois grupos (mães e pais) são pareados ou não. Claramente, os dados são pareados, uma vez que as idades do pai e da mãe guardam relação de interdependência. Fazendo o cálculo primeiro "manualmente", temos:
+
+```{r}
+# Teste pareado - apenas é necessária a diferença nas idades
+
+age_diff = nc$mage - nc$fage
+summary(age_diff)
+
+# Dados amostrais
+
+xbar = mean(age_diff, na.rm = T)
+std  = sd(age_diff, na.rm = T)
+n = sum(!is.na(age_diff))
+
+# Teste de hipótese - calculando o p-valor
+
+dof = n - 1 #graus de liberdade
+std_err = std/sqrt(n) #erro padrão do estimador
+test_stat = (xbar - 0)/std_err #estatística do teste
+2*pt(-abs(test_stat), df = dof)
+
+# Construindo um intervalo de confiança de 99% para a média
+
+q = qt(0.995, df = dof)
+IC = xbar + c(-1, 1)*q*std_err
+```
+
+E usando a função `t.test()`, nosso resultado sai muito mais rápido:
+
+
+```{r}
+# Opção 1: Calcular a diferença entre as duas variáveis externamente e
+# inserí-la na função t.test()
+
+t.test(x = age_diff, alternative = "two.sided", mu = 0, conf.level = 0.99)
+
+# Opção 2: Faça a própria função calcular a as diferenças, utilizando
+# o argumento paired = TRUE
+
+t.test(
+  x = nc$mage, 
+  y = nc$fage, 
+  paired = T, 
+  alternative = "two.sided",
+  mu = 0
+  )
+```
+
+Agora considere a relação entre o hábito de fumar de uma mãe e o peso de seu bebê. Plotar os dados é um primeiro passo útil, uma vez que nos ajuda a visualizar tendências rapidamente, identificar associações fortes e desenvolver questões de pesquisa.
+
+> Faça um box plot lado-a-lado para `habit` e `weight`. O que o gráfico destaca sobre a relação entre essas duas variáveis?
+
+```{r}
+nc %>%
+  drop_na() %>%
+  ggplot(aes(x = "", y = weight, fill = habit)) + 
+  geom_boxplot(
+    width = 0.8,
+    outlier.colour = "red",
+    alpha = 0.95
+    ) + 
+  scale_fill_manual(values = c("green", "yellow")) + 
+  theme_void() + 
+  theme(text = element_text(size = 20))
+```
+
+Vemos, portanto, que as crianças filhos de mães não fumantes tendem a ter maior peso, embora existam muitos *outliers* com valores muito baixos.
+
+Podemos ainda olhar para os pesos médios dos bebês dentro de cada grupo:
+
+```{r}
+nc %>%
+  select(habit, weight) %>%
+  drop_na() %>%
+  group_by(habit) %>%
+  summarise(media_peso = mean(weight))
+```
+
+Corroborando aquilo que já dissemos acima, a média de peso para os bebês filhos de mães não fumantes parece ser maior do que a média para os filhos de mães fumantes. Mas será que essa diferença é significativa? Para responder a essa pergunta, faremos um teste de hipóteses.
+
+> Verifique se as condições necessárias para a inferência são satisfeitas. Observe que você precisará obter tamanhos de amostra para verificar as condições. Você pode calcular o tamanho do grupo usando o mesmo comando acima, mas substituindo `mean` por `n()`.
+
+```{r}
+nc %>%
+  group_by(habit) %>%
+  summarise(n = n()) %>%
+  drop_na()
+```
+
+Uma dsa condições para se fazer inferência estatística é o tamanho da amostra ser suficientemente grande, a qual garante a validade do teorema do limite central. Quanto maior o tamanho da amostra, melhor, mas em geral, uma amostra de tamanho $n = 100$ já é válido para inferências. Aqui, como estamos fazendo um teste t, é preciso também supor que os dados populacionais têm distribuição normal.
+
+
+> Escreva as hipóteses para testar se os pesos médios dos bebês nascidos de mães fumantes e não fumantes são diferentes.
+
+$$H_0: \mu_F = \mu_{NF}$$
+
+$$H_1: \mu_F \neq \mu_{NF}$$
+
+Novamente, este é um teste de hipótese para uma diferença entre duas médias, porém, neste caso, os dados não são pareados - não há uma maneira razoável de comparar membros de um grupo (fumantes) com o outro grupo (não fumantes). Não há razão para acreditar que os grupos sejam dependentes, uma vez que os registros foram amostrados aleatoriamente.
+
+Primeiro, vamos fazer os cálculos "manualmente":
+
+
+```{r}
+# Estatísticas para os pesos dos bebês de mães fumantes:
+
+grp1 = nc %>%
+  subset(habit == "smoker", select = weight)
+xbar1 = mean(grp1$weight, na.rm = T)
+std1 = sd(grp1$weight, na.rm = T)
+n1 = sum(!is.na(grp1))
+
+# Estatísticas para os pesos dos bebês de mães não fumantes:
+
+grp2 = nc %>%
+  subset(habit == "nonsmoker", select = weight)
+xbar2 = mean(grp2$weight, na.rm = T)
+std2 = sd(grp2$weight, na.rm = T)
+n2 = sum(!is.na(grp2))
+
+# Teste de hipóteses - calculando o p-valor
+
+A = std1^2/n1
+B = std2^2/n2
+
+dof = ((A+B)^2)/(A^2/(n1-1) + B^2/(n2-1)) #Graus de liberdade
+std_err = sqrt(std1^2/n1 + std2^2/n2)
+test_stat = (xbar1 - xbar2 - 0)/std_err #Estatística do teste
+p_value = 2*pt(-abs(test_stat), df = dof)
+p_value
+
+# Construindo um intervalo de confiança de 95% para a diferença entre as
+# médias:
+
+q = qt(0.975, dof)
+IC = xbar1 - xbar2 + c(-1, 1)*q*std_err
+```
+
+Com a função `t.test()`, obtemos
+
+```{r}
+t.test(
+  x = grp1$weight, 
+  y = grp2$weight, 
+  alternative = "two.sided",
+  var.equal = F,
+  paired = F,
+  mu = 0,
+  conf.level = 0.95
+  )
+```
+
+Nesse último caso, o parâmetro `var.equal = F` é usado para indicar se estamos dispostos a assumir que os dois grupos têm variância igual. Na maioria dos casos, é mais seguro não fazer essa suposição.
+
+# Por sua conta
+
+1. Calcule um intervalo de confiança de 95% para a duração média das gestações (weeks) e interprete-o no contexto.
+
+
+```{r}
+duration = nc %>%
+  select(weeks) %>%
+  drop_na()
+
+xbar = mean(duration$weeks)
+n = nrow(duration)
+std = sd(duration$weeks)
+std_err = std/sqrt(n)
+dof = n - 1
+q = qt(0.975, df = dof)
+IC = xbar + c(-1, 1)*q*std_err
+
+cat(
+  "Intervalo de Confiança p/ a duração média da gestação:",
+  IC,
+  "\nAmplitude do IC(95%):",
+  abs(IC[1] - IC[2])
+  )
+```
+
+
+2. Calcule um novo intervalo de confiança para o mesmo parâmetro no nível de confiança de 90%.
+
+
+```{r}
+q = qt(0.95, df = dof)
+IC = xbar + c(-1, 1)*q*std_err
+cat(
+  "Intervalo de Confiança p/ a duração média da gestação:",
+  IC,
+  "\nAmplitude do IC(90%):",
+  abs(IC[1] - IC[2])
+  )
+```
+
+
+3. Agora, uma tarefa de não inferência: determine a idade de corte para mães mais jovens e maduras. Use um método de sua escolha e explique como seu método funciona.
+
+Vamos escolher o terceiro quartil como critério para definir a idade das mães mais jovens e mais maduras:
+
+
+```{r}
+q3 = as.double(quantile(nc$mage, 0.75))
+```
+
+
+4. Faça um teste de hipóteses avaliando se o peso médio ganho pelas mães mais jovens é diferente do peso médio ganho pelas mães maduras.
+
+Primeiro, vamos definir as hipóteses nula e alternativa:
+
+$$ H_0: \mu_{young} = \mu_{older} $$
+$$ H_1: \mu_{young} \neq \mu_{older} $$
+Agora, vamos fazer o teste de hipóteses propriamente dito. Primeiro, vamos dividir o conjunto de dados em dois grupos: o das mães mais jovens e o das mães mais velhas, os quais estão separados pelo terceiro quartil da idade. Após isso, de posse dos valores de peso ganho para os dois grupos, vamos fazer o teste estatístico.
+
+
+```{r}
+# Subdividindo o conjunto segundo as idades das mães mais velhas
+older = nc %>%
+  filter(mage >= q3) %>%
+  select(gained) %>%
+  drop_na()
+
+# Estatísticas da amostra de mães mais velhas
+xbar1 = mean(older$gained)
+std1 = sd(older$gained)
+n1 = nrow(older)
+
+# Subdividindo o conjunto segundo as idades das mães mais jovens
+younger = nc %>%
+  filter(mage < q3) %>%
+  select(gained) %>%
+  drop_na()
+
+# Estatísticas da amostra de mães mais jovens
+xbar2 = mean(younger$gained)
+std2 = sd(younger$gained)
+n2 = nrow(younger)
+
+# Vamos testar a igualdade das variâncias
+var.test(older$gained, younger$gained)
+
+# O resultado para o teste de igualdade das variâncias indica que as 
+# variâncias dos dois grupos são iguais. Essa informação será levada
+# em conta no teste t.
+
+t.test(
+  older$gained, 
+  younger$gained, 
+  var.equal = T,
+  paired = F,
+  alternative = "two.sided")
+```
+Conforme o resultado do teste t realizado aponta, há indícios de que o peso médio ganho pelas mães mais jovens e maduras são diferentes. Ainda, como a estatística do teste resultou ser negativa, concluímos também que o peso médio ganho pelas mães mais jovens é maior do que o ganho pelas mães mais maduras.
+
+Por fim, sempre é bom lembrar que, quando estamos fazendo um teste t (que é um teste paramétrico), estamos supondo que conhecemos a distribuição das populações, que, neste caso, tem que ser normal. Para um resultado mais fidedigno, precisaríamos fazer um teste não paramétrico, como por exemplo, o teste de Mann-Whitney.
+
+5. Escolha um par de variáveis numéricas e categóricas e crie uma questão de pesquisa avaliando a relação entre essas variáveis. Formule a questão de forma que possa ser respondida usando um teste de hipótese e/ou um intervalo de confiança. Responda sua pergunta usando a função `t.test()`, relate os resultados estatísticos e também forneça uma explicação em linguagem simples.
+
+
+Podemos investigar a relação existente entre o número de visistas ao hospital que as mães fizeram durante a gestação (`visits`) e a cor da pele. Primeiro, vamos ver essa relação por meio de um boxplot:
+
+```{r}
+nc %>%
+  select(visits, whitemom) %>%
+  drop_na() %>%
+  ggplot(aes(x = "", y = visits, fill = whitemom)) + 
+  geom_boxplot(
+    outlier.color = "red",
+    alpha = 0.95,
+    width = 0.4
+    ) + 
+  theme(text = element_text(size = 22)) + 
+  theme_void()
+```
+
+Aparentemente, não há grande diferenças entre o número de visitas feitas ao hospital durante a gravidez entre mulheres brancas e não brancas, ao menos do ponto de vista da mediana dos dados. 
+
+Vamos fazer um teste baseado no número médio de visitas ao hospital feitas pelos dois grupos de mães - brancas e não brancas, supondo, claro, que as populações são normais. Vamos formular as hipóteses:
+
+
+$$ H_0: \mu_{white} = \mu_{notwhite} $$
+
+$$ H_1: \mu_{white} \neq \mu_{notwhite} $$
+
+
+```{r}
+# Separando os dois grupos: mães brancas e não brancas
+white = nc %>%
+  filter(whitemom == "white") %>%
+  select(visits) %>%
+  drop_na()
+
+nwhite = nc %>%
+  filter(whitemom != "white") %>%
+  select(visits) %>%
+  drop_na()
+
+# Testando a igualdade das variâncias dos dois grupos
+
+var.test(white$visits, nwhite$visits)
+
+# Conforme o resultado do teste F para igualdade das variâncias, feito acima, concluímos que as variâncias dos dois grupos são diferentes.
+
+# Testando a igualdade das médias dos dois grupos:
+
+t.test(
+  white$visits, 
+  nwhite$visits, 
+  var.equal = F, 
+  paired = F, 
+  alternative = "two.sided"
+  )
+```
+
+Assim, de acordo com o resultado do nosso teste, rejeitamos a hipótese nula de que o número médio de visitas ao hospital é igual para os dois grupos de mães. Em outras palavras, concluímos que há indícios de que as mães brancas, em média, visitaram o hospital mais vezes que as mães não brancas durante a gravidez.
