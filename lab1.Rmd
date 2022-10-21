@@ -3,13 +3,13 @@ title: "Laboratório 01 - Passeio Aleatório - Introdução ao R e ao RStudio"
 author: "Ivandson Praeiro de Sousa"
 date: "20/09/2021"
 output:
-  html_document:
-    number_sections: true
-    toc: true
-    toc_float: true
-    theme: cerulean
-    highlight: tango
-  pdf_document: default
+  rmdformats::readthedown
+  # html_document:
+  #   number_sections: no
+  #   toc: yes
+  #   toc_float: yes
+  #   theme: cerulean
+  #   df_print: paged
 ---
 
 ```{r setup, include=FALSE}

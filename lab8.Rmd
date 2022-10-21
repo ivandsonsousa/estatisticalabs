@@ -3,13 +3,13 @@ title: "Mais Inferência para dados numéricos"
 author: "Ivandson Praeiro de Sousa"
 date: '2022-04-23'
 output:
-  html_document:
-    number_sections: yes
-    toc: yes
-    toc_float: yes
-    theme: cerulean
-    # highlight: spacelab
-    df_print: paged
+  rmdformats::readthedown
+  # html_document:
+  #   number_sections: no
+  #   toc: yes
+  #   toc_float: yes
+  #   theme: cerulean
+  #   df_print: paged
 ---
 
 ```{r setup, include=FALSE}

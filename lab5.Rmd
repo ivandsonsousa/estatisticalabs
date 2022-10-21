@@ -3,13 +3,13 @@ title: "Introdução à Regressão Linear"
 author: "Ivandson Praeiro de Sousa"
 date: "06/11/2021"
 output:
-  html_document:
-    number_sections: yes
-    toc: yes
-    toc_float: yes
-    theme: cerulean
-    # highlight: spacelab
-    df_print: paged
+  rmdformats::readthedown
+  # html_document:
+  #   number_sections: no
+  #   toc: yes
+  #   toc_float: yes
+  #   theme: cerulean
+  #   df_print: paged
 ---
 
 ```{r setup, include=FALSE}

@@ -3,13 +3,13 @@ title: "Laboratório 02 - Passeio Aleatório - Introdução à Análise de Dados
 author: "Ivandson Praeiro de Sousa"
 date: "27/09/2021"
 output:
-  html_document:
-    number_sections: yes
-    toc: yes
-    toc_float: yes
-    theme: cerulean
-    # highlight: spacelab
-    df_print: paged
+  rmdformats::readthedown
+  # html_document:
+  #   number_sections: no
+  #   toc: yes
+  #   toc_float: yes
+  #   theme: cerulean
+  #   df_print: paged
 ---
 
 ```{r setup, include=FALSE}
