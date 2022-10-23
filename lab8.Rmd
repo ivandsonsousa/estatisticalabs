@@ -25,6 +25,7 @@ library(ggplot2)
 #library(plyr)
 library(tidyr)
 library(dplyr)
+library(DescTools)
 library(htmltools)
 library(knitr)
 library(rmarkdown)
@@ -32,15 +33,24 @@ library(combinat)
 library(kableExtra) #Para gerar tabelas com um layout agradável
 ```
 
-Este relatório trata da atividade denominada "Laboratório 08", disponível no site do professor Jhames Sampaio[^passeio_aleatorio]. Resolvi fazer essas atividades para poder ter uma fluência básica em R, basicamente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc[^openintrolabs].
+Este relatório trata da atividade denominada *inferência para dados numéricos*. Resolvi fazer essas atividades para poder ter uma fluência básica em R, especialmente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc[^openintrolabs].
 
 
 
-[^passeio_aleatorio]: disponível em [lab06](http://www.passeioaleatorio.com/datalab/labs/lab7.html)
 
-[^openintrolabs]: Os laboratórios do site http://passeioaleatório.com foram baseados em um projeto maior, denominado OpenIntro Statistics: Labs for R, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
+[^openintrolabs]: Os laboratórios de estatística estudados aqui neste relatório se baseiam no e-book **OpenIntro Statistics: Labs for R**, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
 
 [^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
+
+
+
+## Conteúdos abordados neste laboratório
+
+
+* Intervalo de confiança
+* Teste t para a igualdade entre duas médias
+* Teste F para a igualdade entre as variâncias de duas populações normais
+* ANOVA
 
 
 # Salários Americanos
@@ -82,7 +92,12 @@ acs12 %>%
   summarise(
     n = n(), 
     percent = scales::percent(n()/nrow(acs12), accuracy = NULL)
-    )
+    ) %>%
+  kable() %>%
+   kable_styling(
+     full_width = F, 
+     bootstrap_options = c("striped", "hover", "condensed", "responsive")
+     )
 ```
 
 Primeiramente, vamos filtrar os entrevistados que estão empregados. Vamos chamar este banco de dados como `acs_emp`.
@@ -99,11 +114,11 @@ Agora, vamos dar um olhada na distribuição da renda de acordo com o gênero. O
 
 ```{r}
 acs_emp %>%
-  ggplot(aes(y = income, group = gender, fill = gender)) + 
+  ggplot(aes(y = income, x = "", fill = gender)) + 
   geom_boxplot(
     outlier.colour = "red",
-    width = 0.2,
-    alpha = 0.5
+    width = 0.4,
+    alpha = 0.95
   ) + 
   theme_void() + 
   theme(text = element_text(size = 18)) + 
@@ -121,7 +136,12 @@ acs_emp %>%
     media = mean(income),
     dp = sd(income),
     n = n()
-  )
+  ) %>%
+   kable() %>%
+   kable_styling(
+     full_width = F, 
+     bootstrap_options = c("striped", "hover", "condensed", "responsive")
+     )
 ```
 
 Assim, à primeira vista, os homens parecem ganhar muito mais que as mulheres, em média.
@@ -223,7 +243,12 @@ acs_emp %>%
   group_by(emp_type) %>%
   summarise(
     time_ratio = scales::percent(n()/nrow(acs_emp))
-  )
+  ) %>%
+  kable() %>%
+   kable_styling(
+     full_width = F, 
+     bootstrap_options = c("striped", "hover", "condensed", "responsive")
+     )
 ```
 
 Aqui, primeiramente, nós agrupamos os dados pela nova variável `emp_type`, e então calculamos as proporções de trabalhadores a tempo integral e parcial ao contar quantos elementos existem em cada grupo (com a função `n()`), e em seguida dividimos esse número pelo total de linhas do conjunto de dados.
@@ -321,7 +346,7 @@ cat(
 
 Portanto, vemos que, mesmo entre as pessoas que trabalham em tempo integral, existe uma diferença estatisticamente significativa entre as rendas médias de homens e mulheres.
 
-3. Use um teste de hipóteses para avaliar se existe diferença na renda média dos trabalhados masculinos e femininos que trabalham em tempo parical. Se a diferença for significativa, inclua um intervalo de confiança (equivalente ao nível de significância do teste) estimando a magnitude da diferença na renda média.
+3. Use um teste de hipóteses para avaliar se existe diferença na renda média dos trabalhados masculinos e femininos que trabalham em tempo parcial. Se a diferença for significativa, inclua um intervalo de confiança (equivalente ao nível de significância do teste) estimando a magnitude da diferença na renda média.
 
 Novamente, podemos fazer um teste t, supondo a normalidade dos dados:
 
@@ -356,22 +381,23 @@ Conforme comentado acima, concluímos que a quantidade de horas trabalhadas é d
 
 5. Que tipo de teste deveríamos utilizar para compararmos os salários médios em torno dos vários grupos de raça/etnia neste conjunto de dados? Explique seu raciocínio.
 
-Primeiro, vamos ver quantos grupos existem para o fator gênero no conjunto de dados completo:
+Primeiro, vamos ver quantos grupos existem para o fator raça no conjunto de dados completo:
 
 
 ```{r}
 levels(acs12$race)
 ```
 
-Portanto, vemos que temos 4 grupos dentro do fator gênero. Quando queremos comparar as médias de mais que dois grupos, podemos usar um teste ANOVA (*Analysis of Variance*). Esse teste se baseia na variabilidade dentro dos grupos e entre os grupos e utiliza a distribuição F para testar a hipótese de igualdade entre as médias de todos os grupos contra a hipótese alternativa de que a média de pelo menos um grupo é diferente das demais.
+Portanto, vemos que temos 4 grupos dentro do fator raça. Quando queremos comparar as médias de mais que dois grupos, podemos usar um teste ANOVA (*Analysis of Variance*). Esse teste se baseia na variabilidade dentro dos grupos e entre os grupos e utiliza a distribuição F para testar a hipótese de igualdade entre as médias de todos os grupos contra a hipótese alternativa de que a média de pelo menos um grupo é diferente das demais.
 
-6. Realize este teste de hipóteses utilizando a função inference. Note que a variável resposta é a renda e a variável explicativa é raca. Você terá que descobrir os argumentos restantes para a função. Use uma abordagem de tentativa e erro, e deixe que os erros o informe sobre o que mais precisa ser especificado, e como. (Nota: Utilize o conjunto de dados que contém os registros de todos os funcionários participantes: nomeie acs_map) Escreva suas hipóteses, e interprete a sua conclusão no contexto dos dados e da questão de pesquisa. Note que a função inference, por padrão, usa um nível de significância de 0,05 para a ANOVA, serão executados pares de testes t e p-valores serão reportados para eles, se a ANOVA for significativa. (Note também que você pode mudar o nível de significância definindo sig_level igual a algum outro valor.)
+6. Realize este teste de hipóteses utilizando a função inference. Note que a variável resposta é a renda e a variável explicativa é raça. Você terá que descobrir os argumentos restantes para a função. Use uma abordagem de tentativa e erro, e deixe que os erros o informe sobre o que mais precisa ser especificado, e como. (Nota: Utilize o conjunto de dados que contém os registros de todos os funcionários participantes: nomeie acs_map) Escreva suas hipóteses, e interprete a sua conclusão no contexto dos dados e da questão de pesquisa. Note que a função inference, por padrão, usa um nível de significância de 0,05 para a ANOVA, serão executados pares de testes t e p-valores serão reportados para eles, se a ANOVA for significativa. (Note também que você pode mudar o nível de significância definindo sig_level igual a algum outro valor.)
 
 Aqui, podemos combinar as funções `aov()` e `anova()` para gerar o resultado do teste.
 
 
 ```{r}
-result = anova(aov(income ~ race, acs12))
+anova1 = aov(income ~ race, acs12)
+result = anova(anova1)
 result
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
@@ -381,9 +407,9 @@ cat(
 )
 ```
 
-Com o resultado do teste acima, vemos que devemos rejeitar a hipótese nula de igualdade das rendas médias para os 4 diferentes gêneros, já que p < 0,05. Porém, devemos também notar que os diferentes gêneros só respondem por cerca de 1,5% da variabilidade dos dados como um todo. Sendo assim, a maior parte da variância desse conjunto de dados é devida a outros fatores.
+Com o resultado do teste acima, vemos que devemos rejeitar a hipótese nula de igualdade das rendas médias para os 4 diferentes grupos, já que p < 0,05. Porém, devemos também notar que os diferentes grupos só respondem por cerca de 1,5% da variabilidade dos dados como um todo. Sendo assim, a maior parte da variância desse conjunto de dados é devida a outros fatores.
 
-Agora que rejeitamos a hipótese de igualdade das médias, podemos compará-las duas a duas, por meio da construção de intervalos de confiança para cada comparação, utilizando o fator de correção de Bonferroi[^bussab_morettin]. Esse fator corrige o nível de significância para as comparações dois a dois, considerando o nível de significância global. Caso a correção não fosse considerada, o nível de significância global não seria mantido ao fazer as comparações dois a dois, e poderíamos obter diferenças espúrias entre as médias.
+Agora que rejeitamos a hipótese de igualdade das médias, podemos compará-las duas a duas, por meio da construção de intervalos de confiança para cada comparação, utilizando o fator de correção de Bonferroni[^bussab_morettin]. Esse fator corrige o nível de significância para as comparações dois a dois, considerando o nível de significância global. Caso a correção não fosse considerada, o nível de significância global não seria mantido ao fazer as comparações dois a dois, e poderíamos obter diferenças espúrias entre as médias.
 
 
 O fator de correção de Bonferroni considera que o nível de significância que deve ser usado em cada comparação deve ser igual a $\alpha^*/m$, em que $\alpha^*$ é o nível de significância global do teste e $m$ é o número de comparações a ser feitas. Vamos considerar aqui o número máximo de comparações, que é igual a $C_{4,2}$, já que temos 4 níveis para o fator `race`.
@@ -398,7 +424,7 @@ m = ncol(config) #número de comparações possíveis
 I = length(levels(acs12$race)) #número de grupos
 ```
 
-Agora, vamos calcular as estatísticas de cada grupo, para então podermso escrever os IC's:
+Agora, vamos calcular as estatísticas de cada grupo, para então podermos escrever os IC's:
 
 
 ```{r}
@@ -409,10 +435,16 @@ grupos = acs12 %>%
     xbar = mean(income, na.rm = T),
     s = sd(income, na.rm = T)
   )
-grupos
+grupos %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
-Agora, vamos calcular desvio padrão dentro dos grupos $S_e$, o qual pode ser determinado a partir do resultado da ANOVA ($QMDen$) e o erro padrão para cada comparação:
+Agora, vamos calcular o desvio padrão dentro dos grupos $S_e$, o qual pode ser determinado a partir do resultado da ANOVA ($QMDen$) e o erro padrão para cada comparação:
 
 
 ```{r}
@@ -470,6 +502,14 @@ $$ \mu_{white} = \mu_{other} > \mu_{black} < \mu_{asian} $$
 
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
 
+
+Poderíamos também fazer todas essas comparações entre pares de médias por meio da função `PostHocTest`, da biblioteca `Desctools`, o que pouparia muito trabalho:
+
+```{r}
+PostHocTest(anova1, method = "bonferroni", conf.level = 0.95)
+```
+
+
 7. Escolha outra variável numérica à partir do conjunto de dados para ser a variável resposta, e também escolha uma variável explicativa qualitativa (pode ser uma que usamos antes). Realize o teste de hipóteses apropriado, utilizando a função inference, para comparar as médias da variável resposta entre os diferentes casos da variável explicativa. Certifique-se de indicar a sua questão de pesquisa, e interpretar a sua conclusão no contexto do conjunto de dados. Note que você pode usar o banco de dados correspondente à força de trabalho ativa, `acs_emp`, ou qualquer outro subconjunto que você selecionar.
 
 Para decidir quais variáveis utilizar, vamos ver as possibilidades dentro do conjunto de dados original:
@@ -477,7 +517,13 @@ Para decidir quais variáveis utilizar, vamos ver as possibilidades dentro do co
 
 ```{r}
 acs_emp %>%
-  head()
+  head() %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Olhando para o dataframe, percebemos que a única variável que faz sentido usar como variável resposta é a renda (`income`) dos participantes do estudo. Porém, neste caso, vamos utilizar o nível de escolaridade da pessoa como variável explicativa. 
@@ -495,83 +541,25 @@ O problema de pesquisa aqui é testar se a renda média dos entrevistados é a m
 
 
 ```{r}
-result = anova(aov(income ~ edu, acs_emp))
+anova2 = aov(income ~ edu, acs_emp)
+result = anova(anova2)
 result
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
 cat(
-  "Coeficiente de explicação do teste:",
+  "Coeficiente de explicação do modelo:",
   rsq
 )
 ```
 
 Vemos assim que cerca de 15% da variância dos dados é devido aos diferentes níveis de escolaridade. Além disso, esse resultado é significativo para qualquer nível de significância usualmente utilizado. Dessa forma, concluímos por rejeitar a hipótese nula de que as rendas médias são iguais para os 3 grupos de escolaridade.
 
-Vamos agora testar a igualdade das médias salariais duas a duas. Primeiro, vamos ver as comparações possíveis:
+Vamos agora testar a igualdade das médias salariais duas a duas. Desta vez, vamos fazer isso diretamente através da função `PostHocTest`:
 
 
 ```{r}
-config = combn(levels(acs_emp$edu), 2)
-config #Configurações possíveis
-m = ncol(config) #Número de configurações possíveis
-I = length(levels(acs_emp$edu))
+PostHocTest(anova2, method = "bonferroni", conf.level = 0.95)
 ```
-
-Vamos agora calcular média e variância em cada grupo:
-
-
-```{r}
-grupos = acs_emp %>%
-  group_by(edu) %>%
-  summarise(
-    n = n(),
-    xbar = mean(income, na.rm = F),
-    s = sd(income, na.rm = F)
-  )
-grupos
-```
-
-
-Agora, vamos calcular o desvio padrão dentro dos grupos $S_e$, o qual pode ser determinado a partir do resultado da ANOVA ($QMDen$) e o erro padrão para cada comparação:
-
-
-```{r}
-#Tamanho de cada grupo
-n1 = grupos$n[1]
-n2 = grupos$n[2]
-n3 = grupos$n[3]
-
-#Tamanho do conjunto de dados
-n = nrow(acs_emp)
-
-#Devio padrão dos resíduos
-se = sqrt(result$`Mean Sq`[2])
-
-#hs or lower - college
-ep12 = se*sqrt(1/n1 + 1/n2)
-#hs or lower - grad
-ep13 = se*sqrt(1/n1 + 1/n3)
-#college - grad
-ep23 = se*sqrt(1/n2 + 1/n3)
-
-#quantil para o IC de 95%, com fator de correção
-qb = qt(1-(1/m)*0.05/2, df = n-I)
-```
-
-Por fim, vamos calcular os ICs:
-
-
-```{r}
-cat(
-  "IC(mu1 - mu2; 95%) =",
-  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep12,
-  "\nIC(mu1 - mu3; 95%) =",
-  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep13,
-  "\nIC(mu2 - mu3; 95%) =",
-  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep23
-)
-```
-
 
 Concluímos então que:
 
