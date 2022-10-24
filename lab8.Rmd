@@ -1,5 +1,5 @@
 ---
-title: "Mais Inferência para dados numéricos"
+title: "Lab08: Mais Inferência para dados numéricos"
 author: "Ivandson Praeiro de Sousa"
 date: '2022-04-23'
 output:
@@ -33,9 +33,7 @@ library(combinat)
 library(kableExtra) #Para gerar tabelas com um layout agradável
 ```
 
-Este relatório trata da atividade denominada *inferência para dados numéricos*. Resolvi fazer essas atividades para poder ter uma fluência básica em R, especialmente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc[^openintrolabs].
-
-
+Este relatório trata da atividade denominada *Mais inferência para dados numéricos*. Resolvi fazer essas atividades para poder ter uma fluência básica em R, especialmente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc[^openintrolabs].
 
 
 [^openintrolabs]: Os laboratórios de estatística estudados aqui neste relatório se baseiam no e-book **OpenIntro Statistics: Labs for R**, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
@@ -48,9 +46,10 @@ Este relatório trata da atividade denominada *inferência para dados numéricos
 
 
 * Intervalo de confiança
-* Teste t para a igualdade entre duas médias
+* Teste t para a diferença entre duas médias
 * Teste F para a igualdade entre as variâncias de duas populações normais
 * ANOVA
+* Correção de Bonferroni
 
 
 # Salários Americanos

@@ -1,5 +1,5 @@
 ---
-title: "Inferência para dados numéricos"
+title: "Lab07: Inferência para dados numéricos"
 author: "Ivandson Praeiro de Sousa"
 date: '2022-04-04'
 output:
@@ -22,25 +22,35 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, warning=FALSE, message=FALSE}
 library(ggplot2)
-library(plyr)
+#library(plyr)
 library(tidyr)
 library(dplyr)
+library(DescTools)
 library(htmltools)
 library(knitr)
 library(rmarkdown)
+library(combinat)
 library(kableExtra) #Para gerar tabelas com um layout agradável
 ```
 
-Este relatório trata da atividade denominada "Laboratório 07", disponível no site do professor Jhames Sampaio[^passeio_aleatorio]. Resolvi fazer essas atividades para poder ter uma fluência básica em R, basicamente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc[^openintrolabs].
+Este relatório trata da atividade denominada *Inferência para dados numéricos*. Resolvi fazer essas atividades para poder ter uma fluência básica em R, especialmente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc[^openintrolabs].
+
+
+[^openintrolabs]: Os laboratórios de estatística estudados aqui neste relatório se baseiam no e-book **OpenIntro Statistics: Labs for R**, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
+
+[^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
 
 
 Aqui, realizaremos testes de hipóteses e construíremos intervalos de confiança (IC's) para médias e diferenças de médias. Vamos fazer esses cálculos "manualmente" e através do uso de uma função nativa do R chamada `t.test()`, que é uma função extremamente útil e flexível quando a amostra bruta é dada. Às vezes, porém, só temos acesso a estatísticas da amostra (por exemplo, $\bar{x}, s_x, n$), o que exige que realizemos cálculos "manualmente" - ou seja, a função `t.test()` requer os dados brutos.
 
-[^passeio_aleatorio]: disponível em [lab06](http://www.passeioaleatorio.com/datalab/labs/lab7.html)
 
-[^openintrolabs]: Os laboratórios do site http://passeioaleatório.com foram baseados em um projeto maior, denominado OpenIntro Statistics: Labs for R, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
+## Conteúdos abordados neste laboratório
 
-[^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
+
+* Intervalo de confiança
+* Teste t para a média de uma população supostamente normal
+* Teste t pareado e não pareado para a diferença entre duas médias
+
 
 
 # Nascimentos na Carolina do Norte
@@ -85,60 +95,61 @@ glimpse(nc)
 
 Vamos agora investigar a idade típica das mães e pais na Carolina do Norte. Comecemos construindo histogramas, boxplots e verificando o resumo de cinco números para cada caso:
 
-```{r}
+
+```{r, warning=FALSE}
 histogram = nc %>%
   ggplot(aes(x = mage)) + 
-  geom_histogram(col = "black", fill = "skyblue", binwidth = 1) + 
+  geom_histogram(col = "black", fill = "pink", binwidth = 1) + 
   labs(
     title = "Mother's age",
     x = "age",
     y = "N"
   ) + 
-  theme(text = element_text(size = 16))
+  theme(text = element_text(size = 18))
 
 box_plot = nc %>%
-  ggplot(aes(y = mage)) + 
+  ggplot(aes(y = mage, x = "")) + 
+  geom_boxplot(
+    fill = "pink",
+    outlier.colour = "red",
+    alpha = 0.95,
+    width = 0.4
+  ) + 
+  labs(
+    x = "",
+    y = ""
+  ) +
+  theme(text = element_text(size = 18))
+
+cowplot::plot_grid(histogram, box_plot)
+```
+
+
+
+```{r, warning=FALSE}
+histogram = nc %>%
+  ggplot(aes(x = fage)) + 
+  geom_histogram(col = "black", fill = "skyblue", binwidth = 1) + 
+  labs(
+    title = "Father's age",
+    x = "age",
+    y = "N"
+  ) + 
+  theme(text = element_text(size = 18))
+
+box_plot = nc %>%
+  ggplot(aes(y = fage, x = "")) + 
   geom_boxplot(
     fill = "skyblue",
     outlier.colour = "red",
     alpha = 0.95,
     width = 0.4
   ) + 
-  stat_boxplot(
-    geom = "errorbar",
-    width = 0.2
-  ) + 
-  theme(text = element_text(size = 18)) + 
-  theme_void()
-
-cowplot::plot_grid(histogram, box_plot)
-```
-
-```{r, message=FALSE, warning=FALSE}
-histogram = nc %>%
-  ggplot(aes(x = fage)) + 
-  geom_histogram(col = "black", fill = "orange", binwidth = 1) + 
   labs(
-    title = "Father's age",
-    x = "age",
-    y = "N"
-  ) + 
-  theme(text = element_text(size = 16))
-
-box_plot = nc %>%
-  ggplot(aes(y = fage)) + 
-  geom_boxplot(
-    fill = "orange",
-    outlier.colour = "red",
-    alpha = 0.95,
-    width = 0.4
-  ) + 
-  stat_boxplot(
-    geom = "errorbar",
-    width = 0.2
-  ) + 
-  theme(text = element_text(size = 16)) + 
-  theme_void()
+    x = "",
+    y = ""
+  ) +
+  theme(text = element_text(size = 18))
 
 cowplot::plot_grid(histogram, box_plot)
 ```
@@ -194,7 +205,7 @@ IC = xbar + c(-1, 1)*q*std_err
 IC
 ```
 
-Como o nosso p-valor é menor que o nível de significância $\alpha$ (0,05), temos evidências suficientes para rejeitar a hipótese de que a idade média das mulheres que dão à luz na Carolina do Norte é de 26,5 anos. Observe que 26,5 anos não está contido no intervalo de confiança de 95% para a idade média das mães dando à luz na Carolina do Norte. Os testes de hipóteses para a média com nível de significância $\alpha$ são logicamente equivalentes a um intervalo de confiança de $100(1 - \alpha)\%$ - essa é a grande sacada.
+Como o nosso p-valor é menor que o nível de significância $\alpha$ (0,05), temos evidências suficientes para rejeitar a hipótese de que a idade média das mulheres que dão à luz na Carolina do Norte é de 26,5 anos. Observe que 26,5 anos não está contido no intervalo de confiança de 95% construído. Os testes de hipóteses para a média com nível de significância $\alpha$ são logicamente equivalentes a um intervalo de confiança de $100(1 - \alpha)\%$ - essa é a grande sacada.
 
 Vamos agora fazer o mesmo procedimento com o uso da função `t.test()`:
 
@@ -235,6 +246,7 @@ test_stat = (xbar - 30)/std_err #Estatística do teste
 
 q = qt(0.995, df = dof)
 IC = xbar + c(-1, 1)*q*std_err
+IC
 ```
 
 Fazendo o mesmo cálculo usando a função `t.test()`, temos:
@@ -273,6 +285,7 @@ test_stat = (xbar - 0)/std_err #estatística do teste
 
 q = qt(0.995, df = dof)
 IC = xbar + c(-1, 1)*q*std_err
+IC
 ```
 
 E usando a função `t.test()`, nosso resultado sai muito mais rápido:
@@ -284,7 +297,7 @@ E usando a função `t.test()`, nosso resultado sai muito mais rápido:
 
 t.test(x = age_diff, alternative = "two.sided", mu = 0, conf.level = 0.99)
 
-# Opção 2: Faça a própria função calcular a as diferenças, utilizando
+# Opção 2: Faça a própria função calcular as diferenças, utilizando
 # o argumento paired = TRUE
 
 t.test(
@@ -292,9 +305,14 @@ t.test(
   y = nc$fage, 
   paired = T, 
   alternative = "two.sided",
-  mu = 0
+  mu = 0,
+  conf.level = 0.99
   )
 ```
+
+
+> Conforme já discutido no texto, o teste t pareado é usado quando os dois conjuntos de dados cujas médias queremos comparar guardam relação de interdependência. Vimos o exemplo das idades de mães e pais de recém nascidos. Outro caso interessante é quando consideramos medidas de uma mesma grandeza e em um mesmo indivíduo em momentos diferentes - por exemplo, a pressão arterial do mesmo grupo de indivíduos antes e depois de administrar-se determinada droga.
+
 
 Agora considere a relação entre o hábito de fumar de uma mãe e o peso de seu bebê. Plotar os dados é um primeiro passo útil, uma vez que nos ajuda a visualizar tendências rapidamente, identificar associações fortes e desenvolver questões de pesquisa.
 
