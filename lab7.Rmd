@@ -40,6 +40,8 @@ Este relatório trata da atividade denominada *Inferência para dados numéricos
 
 [^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
 
+[^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
+
 
 Aqui, realizaremos testes de hipóteses e construíremos intervalos de confiança (IC's) para médias e diferenças de médias. Vamos fazer esses cálculos "manualmente" e através do uso de uma função nativa do R chamada `t.test()`, que é uma função extremamente útil e flexível quando a amostra bruta é dada. Às vezes, porém, só temos acesso a estatísticas da amostra (por exemplo, $\bar{x}, s_x, n$), o que exige que realizemos cálculos "manualmente" - ou seja, a função `t.test()` requer os dados brutos.
 
@@ -180,7 +182,7 @@ nc %>%
 
 # Introdução à inferência
 
-Suponha que queremos testar a hipótese de que a idade média para as mães que dão à luz na Carolina do Norte é 26,5 anos. Calculando "manualmente", temos:
+Suponha que queremos testar a hipótese de que a idade média para as mães que dão à luz na Carolina do Norte é 26,5 anos. Calculando "manualmente", temos[^bussab_morettin]:
 
 
 ```{r}
@@ -323,12 +325,15 @@ nc %>%
   drop_na() %>%
   ggplot(aes(x = "", y = weight, fill = habit)) + 
   geom_boxplot(
-    width = 0.8,
+    width = 0.6,
     outlier.colour = "red",
     alpha = 0.95
     ) + 
   scale_fill_manual(values = c("green", "yellow")) + 
   theme_void() + 
+  labs(
+    title = "Peso dos recém-nascidos"
+  ) +
   theme(text = element_text(size = 20))
 ```
 
@@ -341,7 +346,13 @@ nc %>%
   select(habit, weight) %>%
   drop_na() %>%
   group_by(habit) %>%
-  summarise(media_peso = mean(weight))
+  summarise(media_peso = mean(weight)) %>%
+  kable %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Corroborando aquilo que já dissemos acima, a média de peso para os bebês filhos de mães não fumantes parece ser maior do que a média para os filhos de mães fumantes. Mas será que essa diferença é significativa? Para responder a essa pergunta, faremos um teste de hipóteses.
@@ -352,10 +363,16 @@ Corroborando aquilo que já dissemos acima, a média de peso para os bebês filh
 nc %>%
   group_by(habit) %>%
   summarise(n = n()) %>%
-  drop_na()
+  drop_na() %>%
+  kable %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
-Uma dsa condições para se fazer inferência estatística é o tamanho da amostra ser suficientemente grande, a qual garante a validade do teorema do limite central. Quanto maior o tamanho da amostra, melhor, mas em geral, uma amostra de tamanho $n = 100$ já é válido para inferências. Aqui, como estamos fazendo um teste t, é preciso também supor que os dados populacionais têm distribuição normal.
+Uma dsa condições para se fazer inferência estatística é o tamanho da amostra ser suficientemente grande, a qual garante a validade do teorema do limite central. Quanto maior o tamanho da amostra, melhor, mas em geral, uma amostra de tamanho $n = 100$ já é válida para inferências. Aqui, como estamos fazendo um teste t, é preciso também supor que os dados populacionais têm distribuição normal.
 
 
 > Escreva as hipóteses para testar se os pesos médios dos bebês nascidos de mães fumantes e não fumantes são diferentes.
@@ -402,6 +419,7 @@ p_value
 
 q = qt(0.975, dof)
 IC = xbar1 - xbar2 + c(-1, 1)*q*std_err
+IC
 ```
 
 Com a função `t.test()`, obtemos
@@ -469,6 +487,7 @@ Vamos escolher o terceiro quartil como critério para definir a idade das mães 
 
 ```{r}
 q3 = as.double(quantile(nc$mage, 0.75))
+q3
 ```
 
 
@@ -537,8 +556,8 @@ nc %>%
     alpha = 0.95,
     width = 0.4
     ) + 
-  theme(text = element_text(size = 22)) + 
-  theme_void()
+  theme_void() + 
+  theme(text = element_text(size = 20))
 ```
 
 Aparentemente, não há grande diferenças entre o número de visitas feitas ao hospital durante a gravidez entre mulheres brancas e não brancas, ao menos do ponto de vista da mediana dos dados. 

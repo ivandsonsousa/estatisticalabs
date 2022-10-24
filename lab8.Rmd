@@ -40,6 +40,8 @@ Este relatório trata da atividade denominada *Mais inferência para dados numé
 
 [^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
 
+[^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
+
 
 
 ## Conteúdos abordados neste laboratório
@@ -498,8 +500,6 @@ cat(
 ```
 
 $$ \mu_{white} = \mu_{other} > \mu_{black} < \mu_{asian} $$
-
-[^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
 
 
 Poderíamos também fazer todas essas comparações entre pares de médias por meio da função `PostHocTest`, da biblioteca `Desctools`, o que pouparia muito trabalho:
