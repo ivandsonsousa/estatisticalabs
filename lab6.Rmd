@@ -18,14 +18,27 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introdução
 
-Este relatório trata da atividade denominada "Laboratório 06", disponível no site do professor Jhames Sampaio[^passeio_aleatorio]. Resolvi fazer essas atividades para poder ter uma fluência básica em R, basicamente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc[^openintrolabs].
+```{r, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(plyr)
+library(tidyr)
+library(dplyr)
+library(DescTools)
+library(htmltools)
+library(knitr)
+library(rmarkdown)
+library(combinat)
+library(kableExtra) #Para gerar tabelas com um layout agradável
+```
 
-[^passeio_aleatorio]: disponível em [lab06](http://www.passeioaleatorio.com/datalab/labs/lab6.html)
+Este relatório trata da atividade denominada *Intervalos de confiança*. Resolvi fazer essas atividades para poder ter uma fluência básica em R, especialmente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc[^openintrolabs].
 
-[^openintrolabs]: Os laboratórios do site http://passeioaleatório.com foram baseados em um projeto maior, denominado OpenIntro Statistics: Labs for R, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
+
+[^openintrolabs]: Os laboratórios de estatística estudados aqui neste relatório se baseiam no e-book **OpenIntro Statistics: Labs for R**, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
 
 [^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
 
+[^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
 
 
 # Amostra de Ames, Iowa
