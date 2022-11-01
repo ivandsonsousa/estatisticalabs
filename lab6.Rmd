@@ -41,6 +41,16 @@ Este relatório trata da atividade denominada *Intervalos de confiança*. Resolv
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
 
 
+
+## Conteúdos abordados neste laboratório
+
+
+* Teorema do Limite Central
+* Distribuição Normal
+* Distribuição normal padrão
+* Intervalo de confiança
+
+
 # Amostra de Ames, Iowa
 
 Se você tem acesso aos dados de um população inteira, por exemplo o tamanho de cada casa na cidade de Ames, Iowa, Estado Unidos, é fácil e direto responder a questões como “Qual é o tamanho de uma casa típica na cidade de Ames?” e “Quanta variação existe no tamanho das casas?”. Se você tem acesso somente a uma amostra da população, como costuma ser o caso, responder a essas perguntas fica um pouco mais complicado. Qual é a sua melhor estimativa para o tamanho típico de uma casa se você só sabe o tamanho de algumas dezenas de casas? Esse tipo de situação requer que você use sua amostra para fazer inferências à respeito da população em geral.

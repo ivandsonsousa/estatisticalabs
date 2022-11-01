@@ -1,5 +1,5 @@
 ---
-title: "Laboratório 01 - Passeio Aleatório - Introdução ao R e ao RStudio"
+title: "Lab01: Introdução ao R e ao RStudio"
 author: "Ivandson Praeiro de Sousa"
 date: "20/09/2021"
 output:
@@ -18,35 +18,59 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introdução
 
-Este relatório trata da atividade denominada "Laboratório 01", disponível no site do professor Jhames Sampaio[^passeio_aleatorio]. Resolvi fazer essas atividades para poder ter uma fluência básica em R, basicamente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc.
+Este relatório trata da atividade denominada *Introdução ao R e ao RStudio*. Resolvi fazer essas atividades para poder ter uma fluência básica em R, especialmente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc[^openintrolabs].
 
-[^passeio_aleatorio]: disponível em [lab01](http://www.passeioaleatorio.com/datalab/labs/lab1.html).
+
+[^openintrolabs]: Os laboratórios de estatística estudados aqui neste relatório se baseiam no e-book **OpenIntro Statistics: Labs for R**, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
+
+[^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
+
+[^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
 
 
 ## Carregamento de pacotes
 
-O R é uma linguagem de programação de código aberto, o que significa que os usuários podem contribuir com pacotes que facilitam nossas vidas. Ainda melhor, podemos usá-las gratuitamente. Para este laboratório, e muitos outros futuros, usaremos os seguintes pacotes do R:
+O R é uma linguagem de programação de código aberto, o que significa que os usuários podem contribuir com pacotes que facilitam nossas vidas. Ainda melhor, podemos usá-las gratuitamente. Para este laboratório, e muitos outros futuros, usaremos principalmente os seguintes pacotes do R:
 
-* ```dplyr```: para descrição de dados
-* ```ggplot2```: para visualização de dados
+* `dplyr`: para descrição de dados
+* `ggplot2`: para visualização de dados
+* `kableExtra`: Para deixar as saídas de dados em formato de tabela
+* `rmarkdown`: para fazer relatórios como este, usando markdown
 
 Para carregá-los no nosso ambiente de trabalho, digitamos no console:
 
-```{r warning = F, message = F}
-library(dplyr)
+```{r, warning=FALSE, message=FALSE}
 library(ggplot2)
+#library(plyr)
+library(tidyr)
+library(dplyr)
+library(DescTools)
+library(htmltools)
+library(knitr)
+library(rmarkdown)
+library(combinat)
+library(kableExtra) #Para gerar tabelas com um layout agradável
 ```
 
 ## Os dados: Registros de batismos do Dr. Arbuthnot
+
+Aqui, vamos carregar os dados diretamente da itnernet, na página do *OpenIntro Statistics*:
 
 ```{r}
 source("http://www.openintro.org/stat/data/arbuthnot.R")
 ```
 
-O conjunto de dados Arbuthnot se refere ao Dr. John Arbuthnot, um médico, escritor e matemático do século 18. Ele se interessou pela razão de meninos e meninas recém-nascidos, e para isso ele coletou os registros de batismo de crianças nascidas em Londres no período compreendido entre 1629 e 1710. Nós podemos dar uma olhada nos dados:
+O conjunto de dados Arbuthnot se refere ao Dr. John Arbuthnot, um médico, escritor e matemático do século 18. Ele se interessou pela razão ente o número de meninos e meninas recém-nascidos, e para isso ele coletou os registros de batismo de crianças nascidas em Londres no período compreendido entre 1629 e 1710. Vamos começar dando uma olhada nos dados, com o auxílio da função `head()`:
 
 ```{r}
-arbuthnot
+arbuthnot %>%
+  head(10) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Podemos ver as dimensões desse banco de dados
@@ -79,12 +103,15 @@ O R tem algumas funções poderosas para criar gráficos. Podemos criar um gráf
 
 
 ```{r}
-qplot(x = year, y = girls, data = arbuthnot)
+arbuthnot %>%
+  ggplot(aes(x = year, y = girls)) + 
+  geom_point(size = 2, col = "orange") + 
+  theme(text = element_text(size = 18))
 ```
 
-A função `qplot()`(significando "quick plot") cria um gráfico de dispersão no qual cada par (x, y) é indicado por um círculo aberto. Os primeiros dois argumentos dessa função especificam as variáveis referentes aos eixos x e y, enquanto o terceiro fornece o nome do conjunto de dados no qual elas podem ser encontradas.
 
 Se nós quiséssemos conectar os pontos dos dados com linhas, poderíamos adicionar um quarto argumento para especificar a geometria que queremos:
+
 
 ```{r}
 qplot(x = year, y = girls, data = arbuthnot, geom = "line")
