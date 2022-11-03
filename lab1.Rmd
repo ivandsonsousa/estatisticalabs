@@ -105,16 +105,25 @@ O R tem algumas funções poderosas para criar gráficos. Podemos criar um gráf
 ```{r}
 arbuthnot %>%
   ggplot(aes(x = year, y = girls)) + 
-  geom_point(size = 2, col = "orange") + 
-  theme(text = element_text(size = 18))
+  geom_point(size = 2, col = "red") +
+  labs(
+    title = "Registros de nascimento do dr. Arbuthnot"
+  ) +
+  theme(text = element_text(size = 16))
 ```
 
 
-Se nós quiséssemos conectar os pontos dos dados com linhas, poderíamos adicionar um quarto argumento para especificar a geometria que queremos:
+Podemos também fazer um gráfico de linhas, ao invés de plotar os pontos dispersos:
 
 
 ```{r}
-qplot(x = year, y = girls, data = arbuthnot, geom = "line")
+arbuthnot %>%
+  ggplot(aes(x = year, y = girls)) + 
+  geom_line(size = 1, col = "red") +
+  labs(
+    title = "Registros de nascimento do dr. Arbuthnot"
+  ) +
+  theme(text = element_text(size = 16))
 ```
 
 ## Há alguma tendência aparente no número de meninas batizadas ao longo dos anos? Como você a descreveria? 
@@ -130,12 +139,27 @@ Nesse caso, visualizamos um vetor com 82 entradas, cada uma contendo a soma do n
 ```{r}
 arbuthnot = mutate(arbuthnot, total = boys + girls)
 
-arbuthnot
+arbuthnot %>%
+  head(10) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
+
 Assim, uma nova coluna chamada "total" foi incluída no banco de dados. Podemos criar um gráfico do número total de batismos por ano com o comando:
 
+
 ```{r}
-qplot(x = year, y = total, data = arbuthnot, geom = "line")
+arbuthnot %>%
+  ggplot(aes(x = year, y = total)) + 
+  geom_line(size = 1, col = "orange") +
+  labs(
+    title = "Registros de nascimento do dr. Arbuthnot"
+  ) +
+  theme(text = element_text(size = 16))
 ```
 
 Podemos também calcular a proporção do número de meninos batizados em relação ao número de meninas batizadas em cada ano:
@@ -150,18 +174,32 @@ Podemos também calcular a proporção de meninos batizados ano a ano em relaç�
 arbuthnot$boys / (arbuthnot$boys + arbuthnot$girls)
 ```
 
-Vamos usar novamente a função ```mutate```para incluir uma nova coluna em nosso conjunto de dados para a proporção do número de meninos em relação ao total de recém-nascidos em cada ano:
+Vamos usar novamente a função `mutate`para incluir uma nova coluna em nosso conjunto de dados para a proporção do número de meninos em relação ao total de recém-nascidos em cada ano:
 
 ```{r}
-arbuthnot = mutate(arbuthnot,ratio_boys = arbuthnot$boys / arbuthnot$total )
+arbuthnot = mutate(arbuthnot, ratio_boys = arbuthnot$boys / arbuthnot$total)
 
-arbuthnot
+arbuthnot %>%
+  head(10) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Podemos também fazer um gráfico da proporção de meninos batizados relativo ao total ano a ano:
 
+
 ```{r}
-qplot(x = year, y = ratio_boys, data = arbuthnot, geom = "line")
+arbuthnot %>%
+  ggplot(aes(x = year, y = ratio_boys)) + 
+  geom_line(size = 1, col = "skyblue") +
+  labs(
+    title = "Porporção de meninos batizados"
+  ) +
+  theme(text = element_text(size = 16))
 ```
 
 Nesse caso, percebe-se que a proporção de meninos oscila em torno de 50%.
@@ -171,12 +209,19 @@ Podemos ainda criar uma variável lógica que indica se o número de meninos nas
 ```{r}
 arbuthnot = mutate(arbuthnot, more_boys = boys > girls)
 
-arbuthnot
+arbuthnot %>%
+  head(10) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 # Um novo conjunto de dados: registros atuais de nascimento nos Estados Unidos
 
-Primeiro, carregamos o conjunto de dados:
+Vamos agora trabalhar com um conjunto de dados obtido mais recentemente. Primeiro, carregamos o dataframe:
 
 ```{r}
 source("http://www.openintro.org/stat/data/present.R")
@@ -191,6 +236,8 @@ names(present)
 ```{r}
 present$year
 ```
+
+Vemos então que os anos incluídos vão de 1940 a 2002.
 
 2. Quais as dimensões da base de dados? 
 
@@ -208,10 +255,24 @@ names(present)
 
 
 ```{r}
-qplot(x = year, y = girls, data = present)
+present %>%
+  ggplot(aes(x = year, y = girls)) + 
+  geom_point(size = 2, col = "red") +
+  labs(
+    title = "Registros de nascimento atuais"
+  ) +
+  theme(text = element_text(size = 16))
 ```
 
-Como podemos ver no gráfico acima, o conjunto de dados ```present```tem a mesma escala temporal que o dataset ```arbuthnot```. Porém, no atual caso em análise, existem duas tendências de alta claras, uma de cerca de 20 anos e outra de aproximadamente 10 anos, separadas por uma tendência de baixa de 10 anos.
+
+```{r}
+cat("Intervalo de anos para os dados do dr. Arbuthnot:", 
+    c(min(arbuthnot$year), max(arbuthnot$year)),
+    "\nIntervalo de anos para os dados atuais:",
+    c(min(present$year), max(present$year))
+    )
+```
+Como podemos ver a partir do resultado do gráfico acima, bem como com a saída da função `cat()`, os dados dos conjuntos `arbuthnot` e `present` estão em escalas diferentes. No caso dos dados do dr. Arbuthnot, o número de batismos de menina, por exemplo, está na escala de alguns milhares, ao passo que no conjunto de dados atual, esse número está na escala de milhão. Além disso, o intervalo temporal de coleta dos dois conjuntos de dados são também diferentes.
 
 5. Crie um gráfico que mostre a proporção de meninos em relação às meninas para cada ano do conjunto de dados. O que você vê? A observação de Arbuthnot de que os meninos nascem numa proporção maior do que as meninas se mantém nos EUA?
 
@@ -221,10 +282,17 @@ present = mutate(present, ratio_boys_girls = present$boys/present$girls)
 ```
 
 ```{r}
-qplot(x = year, y = ratio_boys_girls, data = present, geom = 'line')
+present %>%
+  ggplot(aes(x = year, y = ratio_boys_girls)) + 
+  geom_line(size = 1, col = "orange") +
+  labs(
+    title = "Razão entre o número de meninos e de meninas",
+    subtitle = "Conjunto de dados atual."
+  ) +
+  theme(text = element_text(size = 16))
 ```
 
-Conforme podemos ver na saída do comando abaixo, a observação de Arbuthnot se mantêm nos EUA, embora o gráfico acima nos mostre que a proporção entre o número de meninos e de meninas nascidos vem caindo ao longo das décadas.
+Conforme podemos ver na saída do comando abaixo, a observação de Arbuthnot se mantêm nos EUA, embora o gráfico acima nos mostre que a razão entre o número de meninos e de meninas nascidos vem caindo ao longo das décadas, se aproximando de 1.
 
 ```{r}
 present$meninos > present$meninas
@@ -238,7 +306,7 @@ present[present$boys < present$girls, ]
 
 Como vemos, a saída é vazia, tendo apenas os nomes das variáveis, sem qualquer observação nas linhas.
 
-6. Em qual ano se verifica o maior número de nascimentos nos EUA? **Dica**: primeiramente calcule o total e salve em uma nova variável. Então, ordene seu banco de dados em ordem decrescente na colula total. VocÊ pode fazer isso interativamente no seu *Data Viewer*, clicando nas flechas próximas aos nomes das variáveis.
+6. Em qual ano se verifica o maior número de nascimentos nos EUA? **Dica**: primeiramente calcule o total e salve em uma nova variável. Então, ordene seu banco de dados em ordem decrescente na colula total. Você pode fazer isso interativamente no seu *Data Viewer*, clicando nas flechas próximas aos nomes das variáveis.
 
 Primeiro, vamos acrescentar a coluna "Total" ao nosso dataframe. 
 
@@ -249,10 +317,11 @@ present = mutate(present, Total = present$boys + present$girls)
 Em seguida, vamos aplicar um filtro ao dataframe, assim como fizemos acima, e mostrar todas as colunas do dataframe, porém apenas a linha correspondente ao valor máximo da coluna **Total**:
 
 ```{r}
-present[present$Total == max(present$Total), ]
+present[present$Total == max(present$Total), ] 
 ```
 
-Uma maneira mais elegante de fazer esse filtro é por meio 
+Uma maneira mais elegante de fazer esse filtro é por meio da função `subset()`:
+
 
 ```{r}
 present%>%
