@@ -522,15 +522,18 @@ Agora, podemos usar a função `mutate` para adicionar uma nova variável, relat
 cdc = mutate(cdc, imc = (weight/height^2)*703)
 ```
 
-Perceba que a primeira linha acima representa uma simples aritmética, mas é aplicada para todos os 20.000 números do conjunto de dados `cdc`. Ou seja, para cada um dos 20.000 participantes, pegamos seu peso, dividimos pelo quadrado de sua altura e multiplicamos por 703. O resultado são 20.000 valores de IMC, um para cada respondente. Essa é uma das razões pela qual gostamos do R: ele nos permite realizar cálculos como esse utilizando expressões bem simples.
+Perceba que a primeira linha acima representa uma simples aritmética, mas é aplicada para todos os 20.000 elementos do conjunto de dados `cdc`. Ou seja, para cada um dos 20.000 participantes, pegamos seu peso, dividimos pelo quadrado de sua altura e multiplicamos por 703. O resultado são 20.000 valores de IMC, um para cada respondente. Essa é uma das razões pela qual gostamos do R: ele nos permite realizar cálculos como esse utilizando expressões bem simples.
 
 Agora nós podemos utilizar esta nova variável em nossa análise. Por exemplo, vamos criar uma sequência de boxplots da variável `imc` à partir das categorias da variável `saude`.
 
 
 ```{r}
 cdc %>%
-  ggplot(aes(x = genhlth, y = imc)) + 
-  geom_boxplot()
+  ggplot(aes(x = genhlth, y = imc, fill = genhlth)) + 
+  geom_boxplot(size = 0.6) + 
+  theme_void() + 
+  scale_fill_manual(values = c("green", "skyblue", "orange", "yellow", "red")) + 
+  theme(text = element_text(size = 20))
 ```
 
 -   Essa figura nos mostra que, quanto pior o estado de saúde relatado da pessoa, maior é o seu IMC mediano.
@@ -539,16 +542,18 @@ cdc %>%
 
 ```{r}
 cdc %>%
-  ggplot(aes(x = gender, y = imc)) + 
-  geom_boxplot()
+  ggplot(aes(x = gender, y = imc, fill = gender)) + 
+  geom_boxplot(size = 0.6, width = 0.4) + 
+  theme_void() + 
+  theme(text = element_text(size = 20))
 ```
 
 
--   Conforme vemos no boxplot acima, os homens possuem um IMC maior. Contudo, as mulheres possuem outliers mais acentuados.
+Esperamos que o IMC médio (ou mediano) varie entre os gêneros, por isso escolhemos essa variável para analisar o comportamento dessa medida nos dois grupos disponíveis. Conforme vemos no boxplot acima, os homens possuem um IMC maior. Contudo, as mulheres possuem outliers mais acentuados.
 
 # Subconjuntos
 
-É bastante comum agruparmos, em subconjuntos, elementos individuais do banco de dados que possuam características específicas. Nós podemos fazer isso facilmente por meio da função `filter` e uma série de operadores lógicos. Os operadores lógicos mais comuns na análise de dados são
+É bastante comum agruparmos em subconjuntos elementos individuais do banco de dados que possuam características específicas. Nós podemos fazer isso facilmente por meio da função `filter` e uma série de operadores lógicos. Os operadores lógicos mais comuns na análise de dados são
 
 -   `==` - significa "igual a"
 -   `!=` - significa "diferente de"
@@ -561,12 +566,16 @@ Usando esses operadores, nós podemos criar um subconjunto do banco de dados `cd
 men = filter(cdc, gender == "m")
 ```
 
-Aqui nós criamos um novo objeto, chamado `men`. O símbolo especial `<-` realiza uma tarefa, tomando a saída de um comando de linha e salvando-o em um novo objeto que você definiu.
-
-Nós podemos dar uma olhada neste objeto clicando sobre o banco de dados `homens` que aparece em seu ambiente de traballho (Environment), ou podemos usar o comando `head` para dar uma espiada nas suas primeiras linhas:
+Aqui nós criamos um novo objeto, chamado `men`. Nós podemos dar uma olhada neste objeto clicando sobre o banco de dados `homens` que aparece em seu ambiente de traballho (Environment), ou podemos usar o comando `head` para dar uma espiada nas suas primeiras linhas:
 
 ```{r}
-head(men)
+head(men) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Este novo conjunto de dados contém as mesmas variáveis de antes, apenas com um número menor de linhas. Nós também poderíamos dizer ao R para manter algumas variáveis específicas usando a função `select` que foi introduzida anteriormente, mas isto não é relevante no momento, uma vez que iremos focar na criação de subconjuntos do banco de dados.
@@ -589,7 +598,7 @@ Já o condicionador `|` corresponde à união e, podemos dizer, que é equivalen
 homens_ou_30mais = filter(cdc, gender == "m" | age > 30)
 ```
 
-À princípio, você pode usar esses condicionadores na quantidade e da maneira que decidirem para formar subconjuntos. Se estes agrupamentos tem interpretações práticas é uma outra questão
+À princípio, você pode usar esses condicionadores na quantidade e da maneira que decidir para formar subconjuntos. Se estes agrupamentos tem interpretações práticas é uma outra questão
 
 -   Crie um novo objeto `menos23_fumante` relativo àqueles que possuem menos de 23 anos e já fumaram 100 cigarros em seu tempo de vida. Escreva o comando que você utilizou para criar este novo objeto e apresente o número de casos que atendem a esse critério.
 
@@ -611,7 +620,13 @@ A esta altura, fizemos uma boa primeira exposição sobre a análise das informa
 ```{r}
 cdc %>%
   ggplot(aes(x = wtdesire, y = weight)) + 
-  geom_point()
+  geom_point(size = 1.8, color = "orange") +
+  labs(
+    title = "Peso desejado versus peso real",
+    x = "peso real",
+    y = "peso desejado"
+  ) +
+  theme(text = element_text(size = 18))
 
 cor(cdc$wtdesire, cdc$weight)
 ```
@@ -621,7 +636,7 @@ O gráfico de dispersão mostrado acima mostra uma relação praticamente linear
 2.  Vamos considerar uma nova variável: a diferença entre o peso desejado (`wtdesire`) e o peso atual (`weight`). Crie esta nova variável subtraindo as duas colunas na base de dados e atribuindo-as a um novo objeto chamado `pdif`.
 
 ```{r}
-pdif = cdc$pdesejado - cdc$peso
+pdif = cdc$wtdesire - cdc$weight
 ```
 
 3.  Que tipo de dados estão contidos na variável `pdif`? Se uma observação de pdif é 0, o que isso implica em relação ao peso atual e desejado de uma pessoa? E se o valor de pdif for positivo ou negativo?
@@ -635,6 +650,9 @@ typeof(cdc$wtdesire)
 ```
 
 Como podemos ver na saída dos comandos acima, as variáveis `weight` e `wtdesire` são ambas do tipo `integer`, de modo que `pdif`, que é a diferença entre aquelas duas, é também do tipo inteiro. Vemos então que tanto o peso como o peso desejado foram registrados em quilos no nosso banco de dados, sem a parte fracionária.
+
+
+Vemos ainda que, se `pdif` é zero, a pessoa já acredita que está em seu peso ideal, desejado. Se essa quantidade é positiva, ela acredita que seu peso precisa aumentar e, se é negativa, ela acredita que precisa perder peso.
 
 4.  Descreva a distribuição de `pdif` em termos de sua posição central, forma e variação, incluindo qualquer gráfico que você usar. O que isso nos diz sobre como as pessoas se sentem a respeito do seu peso atual?
 
@@ -654,12 +672,13 @@ cdc %>%
 cdc %>%
   ggplot(aes(x = pdif)) +
   geom_histogram(aes(y = ..density..), 
-                 fill = "blue", binwidth = 10, alpha = 0.4, color = "black") +
+                 fill = "orange", bins = 50, alpha = 0.8, color = "black") +
   labs(
     x = "P_dif", 
     y = "Densidade", 
     title = "Histograma da diferença entre o peso desejado e o atual"
-  )
+  ) + 
+  theme(text = element_text(size = 18))
 ```
 
 Com este resumo dos dados da variável `pdif` que fizemos logo acima, percebemos que, em média, os participantes acreditam que estão próximos de seu peso ideal, com cerca de 6 quilos acima. Além disso, a partir do histograma e do boxplot gerados, podemos notar também que a distribuição das diferenças entre os pesos ideal e real dos participantes do estudo é praticamente simétrica. Contudo, podemos notar também que existem mais pessoas acreditando que estão acima do peso ideal do que abaixo dele.
@@ -670,11 +689,24 @@ Com este resumo dos dados da variável `pdif` que fizemos logo acima, percebemos
 ```{r}
 cdc %>%
   group_by(gender) %>%
-  summarize(media_pdif = mean(pdif), sd_pdif = sd(pdif), mediana_pdif = median(pdif), dq_pdif = IQR(pdif))
+  summarize(
+    media_pdif = mean(pdif), 
+    sd_pdif = sd(pdif), 
+    mediana_pdif = median(pdif), 
+    dq_pdif = IQR(pdif)
+    ) %>%
+    kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 
 cdc %>%
-  ggplot(aes(x = gender, y = pdif)) +
-  geom_boxplot()
+  ggplot(aes(x = gender, y = pdif, fill = gender)) +
+  geom_boxplot(width = 0.4) + 
+  theme_void() + 
+  theme(text = element_text(size = 20))
 ```
 
 Conforme vemos nas estatísticas calculadas acima, bem como nos boxplots, dentre os participantes do estudo, as mulheres tendem a achar que estão mais acima do peso do que os homens pensam sobre eles mesmos.
