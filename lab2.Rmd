@@ -50,7 +50,7 @@ O Sistema de Monitoramento de Fatores de Risco Comportamental (Behavioral Risk F
 
 Nós focaremos em uma amostra aleatória de 20.000 pessoas do BRFSS conduzida em 2000. Ainda que existam mais de 200 variáveis neste conjunto de dados, nós trabalharemos com um subconjunto menor.
 
-Começamos importando os dados das 20.000 observações para dentro do espaço de trabalho do R. Depois de inicializar o RStudio, entre com o seguinte comando [^datasets]:
+Começamos importando os dados das 20.000 observações para dentro do espaço de trabalho do R. Depois de inicializar o RStudio, entre com o seguinte comando[^datasets]:
 
 ```{r}
 source("http://www.openintro.org/stat/data/cdc.R")
@@ -447,18 +447,24 @@ Já aqui, como a soma está sendo feita ao longo da coluna, a saída está nos f
 No último laboratório nós visualizamos a relação entre duas variáveis numéricas usando gráficos de dispersão. Como um rápido lembrete, vamos criar mais um desses gráficos:
 
 ```{r}
-qplot(x = weight, y = height, data = cdc, geom = 'point')
+cdc %>%
+  ggplot(aes(x = height, y = weight)) + 
+  geom_point(size = 1.5, color = "red") + 
+  labs(
+    title = "Peso versus altura"
+  ) + 
+  theme(text = element_text(size = 18))
 ```
 
-Uma medida importante que nos dá informação de como duas variáveis numéricas estão relacionadas é a correlação. Podemos calcular a correlação entre duas variáveis numéricas por meio do comando `cor`. Abaixo calculamos a correlação entre as variáveis `peso` e altura:
+Uma medida importante que nos dá informação de como duas variáveis numéricas estão relacionadas é a correlação. Podemos calcular a correlação entre duas variáveis numéricas por meio do comando `cor`. Abaixo calculamos a correlação entre as variáveis peso e altura:
 
 ```{r}
 cor(cdc$weight, cdc$height)
 ```
 
-Com base no gráfico de dispersão e na medida de correlação, como você explica a relação entre essas variáveis?
+- Com base no gráfico de dispersão e na medida de correlação, como você explica a relação entre essas variáveis?
 
--   Com base no baixo valor da correlação linear entre as duas variáveis ($\rho \approx 0,56$), concluímos que há uma correlação linear fraca entre elas.
+Com base no baixo valor da correlação linear entre as duas variáveis ($\rho \approx 0,56$), concluímos que há uma correlação linear fraca entre elas.
 
 ## Entre duas variáveis qualitativas
 
@@ -476,7 +482,8 @@ cdc %>%
     x = "Fumou pelo menos 100 cigarros?",
     y = "Número de indivíduos",
     title = "Distribuição dos Fumantes por Gênero"
-  )
+  ) + 
+  theme(text = element_text(size = 18))
 ```
 
 
@@ -487,8 +494,14 @@ A finalidade de um boxplot é proporcionar um esboço de uma variável com o pro
 
 ```{r}
 cdc %>%
-  ggplot(aes(x = gender, y = height)) + 
-  geom_boxplot()
+  ggplot(aes(x = gender, y = height, fill = gender)) + 
+  geom_boxplot(width = 0.4) + 
+  labs(
+    x = "",
+    title = "Altura em função do gênero"
+  ) +
+  theme_void() + 
+  theme(text = element_text(size = 20))
 ```
 
 Há uma nova notação para a geometria aqui. Nós pedimos ao R para plotar os boxplots da altura em relação aos gêneros masculino e feminino que estão descritos no banco de dados.

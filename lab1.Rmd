@@ -54,7 +54,7 @@ library(kableExtra) #Para gerar tabelas com um layout agradável
 
 ## Os dados: Registros de batismos do Dr. Arbuthnot
 
-Aqui, vamos carregar os dados diretamente da itnernet, na página do *OpenIntro Statistics*:
+Aqui, vamos carregar os dados diretamente da itnernet, na página do *OpenIntro Statistics*[^datasets]:
 
 ```{r}
 source("http://www.openintro.org/stat/data/arbuthnot.R")
