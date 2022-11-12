@@ -731,12 +731,17 @@ Como podemos ver, aproximadamente 70% dos valores dos pesos dos entrevistados es
 ```{r warning=F, message=F}
 cdc %>%
   ggplot(aes(x = weight)) +
-  geom_histogram(aes(y = ..density..), 
-                 fill = "blue",
-                 alpha = 0.4,
-                 col = "black") + 
-  labs(x = "Peso", 
-       y = "Density",
-       title = "Histograma para os pesos dos participantes do estudo")
+  geom_histogram(
+    aes(y = ..density..), 
+    fill = "blue",
+    alpha = 0.5,
+    col = "black"
+    ) + 
+  labs(
+    x = "Peso", 
+    y = "Densidade",
+    title = "Histograma para os pesos dos participantes do estudo"
+    ) + 
+  theme(text = element_text(size = 18))
 ```
 

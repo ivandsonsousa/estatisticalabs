@@ -8,7 +8,7 @@
         <meta name="author" content="Ivandson Praeiro de Sousa" />
     
     
-    <title>Laboratório 03 - Passeio Aleatório - Probabilidade: Mãos Quentes (Hot Hands)</title>
+    <title>Lab03: Probabilidade: Mãos Quentes (Hot Hands)</title>
 
         <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1272,20 +1272,16 @@ src: url(data:application/font-sfnt;base64,AAEAAAARAQAABAAQR0RFRgs+Cz8AAjwQAAAAQ
          
    
         
-      <h1 class="title">Laboratório 03 - Passeio Aleatório -
-Probabilidade: Mãos Quentes (Hot Hands)</h1>
+      <h1 class="title">Lab03: Probabilidade: Mãos Quentes (Hot
+Hands)</h1>
       
          <!-- readthedown authors -->
    <div id="sidebar">
-    <h2><a href="#content">Laboratório 03 - Passeio Aleatório -
-Probabilidade: Mãos Quentes (Hot Hands)</a></h2>
+    <h2><a href="#content">Lab03: Probabilidade: Mãos Quentes (Hot
+Hands)</a></h2>
     <div id="toc">
       <ul>
-      <li><a href="#introdução" id="toc-introdução">Introdução</a>
-      <ul>
-      <li><a href="#carregamento-dos-pacotes-necessários" id="toc-carregamento-dos-pacotes-necessários">Carregamento dos
-      pacotes necessários</a></li>
-      </ul></li>
+      <li><a href="#introdução" id="toc-introdução">Introdução</a></li>
       <li><a href="#mãos-quentes-hot-hands" id="toc-mãos-quentes-hot-hands">Mãos Quentes (Hot Hands)</a></li>
       <li><a href="#começando" id="toc-começando">Começando</a></li>
       <li><a href="#ao-que-comparar" id="toc-ao-que-comparar">Ao que
@@ -1313,22 +1309,23 @@ Praeiro de Sousa</p>
 <div id="main">
 <div id="introdução" class="section level1">
 <h1>Introdução</h1>
-<p>Este relatório trata da atividade denominada “Laboratório 03”,
-disponível no site do professor Jhames Sampaio<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. Resolvi fazer essas
-atividades para poder ter uma fluência básica em R, basicamente no
-tocante às funções dos pacotes básicos de estatística e de carregamento
-de bases de dados externas. Antes de fazer esse “minicurso”, eu já tinha
-feito um curso introdutório na Udemy, no qual aprendi os comandos
-básicos, carregamento de pacotes, tipos de dados, etc <a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>.</p>
-<div id="carregamento-dos-pacotes-necessários" class="section level2">
-<h2>Carregamento dos pacotes necessários</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(htmltools)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rmarkdown)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra) <span class="co">#Para gerar tabelas com um layout agradável</span></span></code></pre></div>
-</div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DescTools)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(htmltools)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rmarkdown)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(combinat)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra) <span class="co">#Para gerar tabelas com um layout agradável</span></span></code></pre></div>
+<p>Este relatório trata da atividade denominada <em>Probabilidade: Mãos
+Quentes (Hot Hands)</em>. Resolvi fazer essas atividades para poder ter
+uma fluência básica em R, especialmente no tocante às funções dos
+pacotes básicos de estatística e de carregamento de bases de dados
+externas. Antes de fazer esse “minicurso”, eu já tinha feito um curso
+introdutório na Udemy, no qual aprendi os comandos básicos, carregamento
+de pacotes, tipos de dados, etc<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>.</p>
 </div>
 <div id="mãos-quentes-hot-hands" class="section level1">
 <h1>Mãos Quentes (Hot Hands)</h1>
@@ -1353,7 +1350,7 @@ real</strong>.</p>
 <div id="começando" class="section level1">
 <h1>Começando</h1>
 <p>Nossa investigação terá como foco a performance de um jogador: Kobe
-Bryant do Los Angeles Lakers<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>. Sua performance contra o Orlando Magic nas
+Bryant do Los Angeles Lakers<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>. Sua performance contra o Orlando Magic nas
 finais de 2009 da NBA lhe deram o título de Jogador Mais Valioso (ou, em
 inglês, <em>Most Valuable Player</em>) e vários espectadores comentaram
 como ele parecia demonstrar a característica de mãos quentes. Vamos
@@ -1520,7 +1517,7 @@ Como um exemplo simples, vamos simular o lançamento de uma moeda honesta
 onde <code>K</code> simboliza cara e <code>C</code> simboliza coroa:</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>face_moeda <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;K&quot;</span>, <span class="st">&quot;C&quot;</span>)</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sample</span>(face_moeda, <span class="at">size =</span> <span class="dv">1</span>, <span class="at">replace =</span> T)</span></code></pre></div>
-<pre><code>## [1] &quot;K&quot;</code></pre>
+<pre><code>## [1] &quot;C&quot;</code></pre>
 <p>Primeiramente registramos os possíveis resultados no vetor
 <code>face_moeda</code>. O comando <code>sample</code> realiza uma
 amostra do experimento ao selecionar aleatoriamente um dos valores
@@ -1544,19 +1541,19 @@ coroas num novo objeto denominado sim_moeda_honesta.</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>sim_moeda_honesta <span class="ot">=</span> <span class="fu">sample</span>(face_moeda, <span class="dv">100</span>, <span class="at">replace =</span> T)</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>sim_moeda_honesta</span></code></pre></div>
-<pre><code>##   [1] &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot;
-##  [19] &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot;
-##  [37] &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot;
-##  [55] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot;
-##  [73] &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot;
-##  [91] &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot;</code></pre>
+<pre><code>##   [1] &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot;
+##  [19] &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot;
+##  [37] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot;
+##  [55] &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot;
+##  [73] &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot;
+##  [91] &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot;</code></pre>
 <p>Para visualizar os resultados desta simulação, digite o nome do
 objeto e então use o comando table pra contar o número de caras e
 coroas.</p>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(sim_moeda_honesta)</span></code></pre></div>
 <pre><code>## sim_moeda_honesta
 ##  C  K 
-## 47 53</code></pre>
+## 50 50</code></pre>
 <p>Uma vez que há apenas dois elementos no vetor
 <code>face_moeda</code>, a probabilidade de que um lançamento dê o
 resultado cara é 0,5. Digamos que estamos tentando simular uma moeda
@@ -1721,13 +1718,12 @@ dois arremessadores são compatíveis.</p>
 <div class="footnotes footnotes-end-of-document">
 <hr />
 <ol>
-<li id="fn1"><p>Disponível em <a href="http://www.passeioaleatorio.com/datalab/labs/lab3.html">lab03_Passeio_Aleatório</a>.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
-<li id="fn2"><p>Os laboratórios do site <a href="http://passeioaleatório.com" class="uri">http://passeioaleatório.com</a> foram baseados em um projeto
-maior, denominado OpenIntro Statistics: Labs for R, disponíveis nas
-páginas <a href="https://openintrostat.github.io/openintro-labs-rguroo/">openintro-labs-rguroo</a>
-e <a href="https://nulib.github.io/kuyper-stat202/">openintro-book</a>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
-<li id="fn3"><p>Todos os datasets utilizados nesse e em outros
-laboratórios estão disponíveis na página do OpenIntro: <a href="https://www.openintro.org/data/">DataSets</a>.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn1"><p>Os laboratórios de estatística estudados aqui neste
+relatório se baseiam no e-book <strong>OpenIntro Statistics: Labs for
+R</strong>, disponíveis nas páginas <a href="https://openintrostat.github.io/openintro-labs-rguroo/">openintro-labs-rguroo</a>
+e <a href="https://nulib.github.io/kuyper-stat202/">openintro-book</a>.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>Todos os datasets utilizados nesse e em outros
+laboratórios estão disponíveis na página do OpenIntro: <a href="https://www.openintro.org/data/">DataSets</a>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
 </div>
