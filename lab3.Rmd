@@ -68,11 +68,17 @@ Você deve ver dois objetos na aba Environment: ```kobe_basket``` e ```calc_stre
 
 ```{r}
 names(kobe_basket)
-head(kobe_basket)
+head(kobe_basket) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  )
 ```
 
 
-Apenas olhando para a sequência de acertos e erros pode ser difícil de auferir se é provável que Kobe estava arremessando com as mãos quentes. Uma possível maneira de abordarmos este problema é supormos que arremessadores com as mãos quentes tendem a conseguir uma longa sequências de acertos. Para este laboratório, definiremos o comprimento de uma sequência de acertos como o *número de cestas consecutivas até acontecer um erro*.
+Apenas olhando para a sequência de acertos e erros pode ser difícil de auferir se é provável que Kobe estava arremessando com as mãos quentes. Uma possível maneira de abordarmos este problema é supormos que arremessadores com as mãos quentes tendem a conseguir uma longa sequência de acertos. Para este laboratório, definiremos o comprimento de uma sequência de acertos como o *número de cestas consecutivas até acontecer um erro*.
 
 Por exemplo, no Jogo 1, Kobe teve a seguinte sequência de acertos e erros de suas nove tentativas de arremessos no primeiro quarto:
 
@@ -90,7 +96,7 @@ kobe_basket%>%
 
 Dentre as nove tentativas de arremesso existem seis sequências, que são separadas por um “|” acima. Seus comprimentos são um, zero, dois, zero, zero, zero (em ordem de ocorrência). Vemos então que em uma sequência de comprimento 1 existe 1 acerto e 1 erro, ao passo que na sequência de comprimento 0 existe 0 acerto e 1 erro. Uma sequência de comprimento 2, por sua vez, contêm 2 acertos e 1 erro. Portanto, uma sequência de comprimento L contêm L acertos e 1 erro.
 
-Contar os comprimentos de todas as 133 sequências manualmente seria extremamente tedioso, então iremos utilizar a função ```calc_streak``` para realizar este trabalho para nós. Os resultados serão armazenados em um conjunto de dados chamado ```kobe_streak``` como a variável ```length``` (comprimento em inglês).
+Contar os comprimentos de todos os 133 arremessos manualmente seria extremamente tedioso, então iremos utilizar a função ```calc_streak``` para realizar este trabalho para nós. Os resultados serão armazenados em um conjunto de dados chamado ```kobe_streak``` como a variável ```length``` (comprimento em inglês).
 
 
 ```{r}
@@ -111,8 +117,7 @@ kobe_streak %>%
     title = "Tamanho das sequências de arremesso de Kobe",
     y = "N"
     ) +
-  theme_light() + 
-  theme(text = element_text(size=16))
+  theme(text = element_text(size=18))
 ```
 
 
@@ -145,7 +150,7 @@ Se ele converte o primeiro arremesso e tem as mãos quentes (arremessos não ind
 **P(arremesso 2 = H | arremesso 1 = H) = 0.60**
 </center>
 
-Como um resultado do aumento da probabilidade, seria esperado que Kobe obtivesse sequências mais longas. Compare com a perspectiva cética de que Kobe *não* tenha as mãos quentes, ou seja, que cada arremesso é independente do próximo. Se ele acerta seu primeiro arremesso, a probabilidade de ele acertar o segundo continua sendo 0.45.
+Como um resultado do aumento da probabilidade, seria esperado que Kobe obtivesse sequências mais longas. Compare com a perspectiva cética de que Kobe *não* tenha as mãos quentes, ou seja, que cada arremesso é independente do anterior. Se ele acerta seu primeiro arremesso, a probabilidade de ele acertar o segundo continua sendo 0.45.
 
 <center>
 **P(arremesso 2 = H | arremesso 1 = H) = 0.45**
