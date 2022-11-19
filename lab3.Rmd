@@ -243,12 +243,12 @@ Observe que nomeamos o novo vetor como ```sim_cesta```, com o mesmo nome que dem
 
 Com os resultados da simulação salvos como `sim_cesta`, temos os dados necessários para comparar Kobe ao nosso arremessador independente. Podemos visualizar os dados de Kobe em conjunto com os nossos dados simulados.
 
-Ambos os conjuntos de dados representam o resultado de 133 tentativas de arremessos, cada uma com o mesmo percentual de arremesso de 45%. Sabemos que nossos dados simulados são de uma arremessador que arremessa de forma independente. Quer dizer, sabemos que o arremessador simulado não tem as mãos quentes.
+Ambos os conjuntos de dados representam o resultado de 133 tentativas de arremessos, cada uma com o mesmo percentual de acerto de 45%. Sabemos que nossos dados simulados são de um arremessador que arremessa de forma independente. Quer dizer, sabemos que o arremessador simulado não tem as mãos quentes.
 
 
 # Por sua conta
 
-1. Utilizando a função ```calc_streak```, calcule os comprimentos de ```sim_cesta``` e salve os resultados em um conjunto de dados chamado ```sim_streak```. Note que ```sim_streak``` é apenas um vetor e não uma variável de um conjunto de dados como o que utilizamos para calcular as sequências de Kobe. Desse modo, não é preciso selecionar a variável dentro de um conjunto de dados, bastando apenas aplicar a função ao vetor.
+1. Utilizando a função ```calc_streak```, calcule os comprimentos  das sequências de arremessos convertidos de ```sim_cesta``` e salve os resultados em um conjunto de dados chamado ```sim_streak```. Note que ```sim_streak``` é apenas um vetor e não uma variável de um conjunto de dados como o que utilizamos para calcular as sequências de Kobe. Desse modo, não é preciso selecionar a variável dentro de um conjunto de dados, bastando apenas aplicar a função ao vetor.
 
 
 ```{r}
@@ -277,16 +277,19 @@ prop.table(table(sim_streak))
 ```
 Vemos, portanto, que as sequências ocorrem com frequências muito parecidas nos dois conjuntos de dados. Por exemplo, aproximadamente 51% das sequências de Kobe naquela final de temporada teve comprimento zero. No caso do simulador independente, esse percentual foi perto de 54%. Já as sequências de tamanho 2 ocorreram com frequência de aproximadamente 8% em ambos os casos. Por meio dessa análise, podemos concluir que os dois arremessadores são compatíveis.
 
+
+Por fim, vamos comparar os histogramas para os comprimentos dos arremessos de Kobe e do arremessador independente:
+
+
 ```{r}
 hist_kobe = ggplot(kobe_streak, aes(x = length)) +
-  geom_histogram(col = "black", fill = "blue", binwidth = 1) +
+  geom_histogram(col = "black", fill = "green", binwidth = 1) +
   labs(
     x = "Comprimento",
     y = "N",
     title = "Sequências de Kobe"
   ) +
-  theme_light() + 
-  theme(text = element_text(size=15))
+  theme(text = element_text(size=18))
 
 hist_sim = ggplot(sim_streak, aes(x = length)) +
   geom_histogram(col = "black", fill = "orange", binwidth = 1) +
@@ -295,8 +298,7 @@ hist_sim = ggplot(sim_streak, aes(x = length)) +
     y = "",
     title = "Sequências simuladas"
   ) +
-  theme_light() + 
-  theme(text = element_text(size=15))
+  theme(text = element_text(size=18))
 
 cowplot::plot_grid(hist_kobe, hist_sim, labels = "AUTO")
 ```
