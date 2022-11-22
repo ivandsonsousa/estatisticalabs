@@ -1,11 +1,11 @@
 ---
-title: "Lab01: Introdução ao R e ao RStudio"
+title: "Laboratórios de Estatística Básica com R"
 author: "Ivandson Praeiro de Sousa"
-date: "20/09/2021"
+date: "22/11/2022"
 output:
   rmdformats::readthedown
   # html_document:
-  #   number_sections: no
+  # number_sections: no
   #   toc: yes
   #   toc_float: yes
   #   theme: cerulean
@@ -16,9 +16,12 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
 ```
 
-# Introdução
 
-Este relatório trata da atividade denominada *Introdução ao R e ao RStudio*. Resolvi fazer essas atividades para poder ter uma fluência básica em R, especialmente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc[^openintrolabs].
+# Sobre o projeto 
+
+Esse curso é uma adaptação dos laboratórios de estatística disponíveis no livro **OpenIntro Statistics: Labs for R**[^openintrolabs]. Aqui, usamos as principais biliotecas do R para desenvolver aquilo que é proposto nos capítulos (laboratórios) do livro. Em cada caso, usamos também gráficos e tabelas para auxiliar no aprendizado dos conceitos estatísticos  envolvidos.
+
+Todas as análises realizadas nesta página são subsidiadas por bases de dados reais, públicas, disponibilidas pelos autores do livro[^datasets]. Além disso, como bibliografia complementar, utilizamos o livro-texto de Estatística Básica dos autores Bussab & Morettin[^bussab_morettin].
 
 
 [^openintrolabs]: Os laboratórios de estatística estudados aqui neste relatório se baseiam no e-book **OpenIntro Statistics: Labs for R**, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
@@ -26,6 +29,11 @@ Este relatório trata da atividade denominada *Introdução ao R e ao RStudio*. 
 [^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
 
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
+
+
+# Lab01: Introdução ao R e ao Rstudio
+
+Este relatório trata da atividade denominada *Introdução ao R e ao RStudio*. Resolvi fazer essas atividades para poder ter uma fluência básica em R, especialmente no tocante às funções dos pacotes básicos de estatística e de carregamento de bases de dados externas. Antes de fazer esse "minicurso", eu já tinha feito um curso introdutório na Udemy, no qual aprendi os comandos básicos, carregamento de pacotes, tipos de dados, etc[^openintrolabs].
 
 
 ## Conteúdos abordados neste laboratório

@@ -8,7 +8,7 @@
         <meta name="author" content="Ivandson Praeiro de Sousa" />
     
     
-    <title>Lab01: Introdução ao R e ao RStudio</title>
+    <title>Laboratórios de Estatística Básica com R</title>
 
         <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1488,14 +1488,18 @@ margin-left: 0 !important;
          
    
         
-      <h1 class="title">Lab01: Introdução ao R e ao RStudio</h1>
+      <h1 class="title">Laboratórios de Estatística Básica com R</h1>
       
          <!-- readthedown authors -->
    <div id="sidebar">
-    <h2><a href="#content">Lab01: Introdução ao R e ao RStudio</a></h2>
+    <h2><a href="#content">Laboratórios de Estatística Básica com
+R</a></h2>
     <div id="toc">
       <ul>
-      <li><a href="#introdução" id="toc-introdução">Introdução</a>
+      <li><a href="#sobre-o-projeto" id="toc-sobre-o-projeto">Sobre o
+      projeto</a></li>
+      <li><a href="#lab01-introdução-ao-r-e-ao-rstudio" id="toc-lab01-introdução-ao-r-e-ao-rstudio">Lab01: Introdução ao R
+      e ao Rstudio</a>
       <ul>
       <li><a href="#conteúdos-abordados-neste-laboratório" id="toc-conteúdos-abordados-neste-laboratório">Conteúdos abordados
       neste laboratório</a></li>
@@ -1517,7 +1521,7 @@ margin-left: 0 !important;
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
                   <p class="author"><span class="glyphicon glyphicon-user"></span> Ivandson
 Praeiro de Sousa</p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 20/09/2021</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 22/11/2022</p>
           </div>
    </div>
      
@@ -1527,15 +1531,28 @@ Praeiro de Sousa</p>
    
 <!-- Don't indent these lines or it will mess pre blocks indentation --> 
 <div id="main">
-<div id="introdução" class="section level1">
-<h1>Introdução</h1>
+<div id="sobre-o-projeto" class="section level1">
+<h1>Sobre o projeto</h1>
+<p>Esse curso é uma adaptação dos laboratórios de estatística
+disponíveis no livro <strong>OpenIntro Statistics: Labs for R</strong><a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. Aqui,
+usamos as principais biliotecas do R para desenvolver aquilo que é
+proposto nos capítulos (laboratórios) do livro. Em cada caso, usamos
+também gráficos e tabelas para auxiliar no aprendizado dos conceitos
+estatísticos envolvidos.</p>
+<p>Todas as análises realizadas nesta página são subsidiadas por bases
+de dados reais, públicas, disponibilidas pelos autores do livro<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>. Além
+disso, como bibliografia complementar, utilizamos o livro-texto de
+Estatística Básica dos autores Bussab &amp; Morettin<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>.</p>
+</div>
+<div id="lab01-introdução-ao-r-e-ao-rstudio" class="section level1">
+<h1>Lab01: Introdução ao R e ao Rstudio</h1>
 <p>Este relatório trata da atividade denominada <em>Introdução ao R e ao
 RStudio</em>. Resolvi fazer essas atividades para poder ter uma fluência
 básica em R, especialmente no tocante às funções dos pacotes básicos de
 estatística e de carregamento de bases de dados externas. Antes de fazer
 esse “minicurso”, eu já tinha feito um curso introdutório na Udemy, no
 qual aprendi os comandos básicos, carregamento de pacotes, tipos de
-dados, etc<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>.</p>
+dados, etc<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a>.</p>
 <div id="conteúdos-abordados-neste-laboratório" class="section level2">
 <h2>Conteúdos abordados neste laboratório</h2>
 <ul>
@@ -1575,7 +1592,7 @@ console:</p>
 <div id="os-dados-registros-de-batismos-do-dr.-arbuthnot" class="section level2">
 <h2>Os dados: Registros de batismos do Dr. Arbuthnot</h2>
 <p>Aqui, vamos carregar os dados diretamente da itnernet, na página do
-<em>OpenIntro Statistics</em><a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>:</p>
+<em>OpenIntro Statistics</em><a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a>:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;http://www.openintro.org/stat/data/arbuthnot.R&quot;</span>)</span></code></pre></div>
 <p>O conjunto de dados Arbuthnot se refere ao Dr. John Arbuthnot, um
 médico, escritor e matemático do século 18. Ele se interessou pela razão
@@ -2582,6 +2599,14 @@ R</strong>, disponíveis nas páginas <a href="https://openintrostat.github.io/o
 e <a href="https://nulib.github.io/kuyper-stat202/">openintro-book</a>.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
 <li id="fn2"><p>Todos os datasets utilizados nesse e em outros
 laboratórios estão disponíveis na página do OpenIntro: <a href="https://www.openintro.org/data/">DataSets</a>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira.
+<strong>Estatística básica</strong>. Saraiva Educação SA, 2017.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>Os laboratórios de estatística estudados aqui neste
+relatório se baseiam no e-book <strong>OpenIntro Statistics: Labs for
+R</strong>, disponíveis nas páginas <a href="https://openintrostat.github.io/openintro-labs-rguroo/">openintro-labs-rguroo</a>
+e <a href="https://nulib.github.io/kuyper-stat202/">openintro-book</a>.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>Todos os datasets utilizados nesse e em outros
+laboratórios estão disponíveis na página do OpenIntro: <a href="https://www.openintro.org/data/">DataSets</a>.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
 </div>
