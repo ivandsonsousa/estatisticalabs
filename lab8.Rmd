@@ -13,14 +13,14 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
 ```
 
 
 # Introdução
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
 library(ggplot2)
 #library(plyr)
 library(tidyr)

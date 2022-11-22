@@ -13,14 +13,14 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
 ```
 
 
 # Introdução
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
 library(ggplot2)
 #library(plyr)
 library(tidyr)
@@ -98,7 +98,7 @@ glimpse(nc)
 Vamos agora investigar a idade típica das mães e pais na Carolina do Norte. Comecemos construindo histogramas, boxplots e verificando o resumo de cinco números para cada caso:
 
 
-```{r, warning=FALSE}
+```{r}
 histogram = nc %>%
   ggplot(aes(x = mage)) + 
   geom_histogram(col = "black", fill = "pink", binwidth = 1) + 
@@ -128,7 +128,7 @@ cowplot::plot_grid(histogram, box_plot)
 
 
 
-```{r, warning=FALSE}
+```{r}
 histogram = nc %>%
   ggplot(aes(x = fage)) + 
   geom_histogram(col = "black", fill = "skyblue", binwidth = 1) + 

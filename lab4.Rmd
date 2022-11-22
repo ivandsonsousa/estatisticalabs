@@ -45,9 +45,17 @@ Neste laboratório, investigaremos os meios pelos quais as estatísticas de uma 
 > **Especificando uma semente:** Nós iremos tomar amostras aleatórias e gerar algumas distribuições amostrais neste laboratório. Desse modo, você deverá especificar uma semente logo no início de seu relatório. Caso tenha dúvidas sobre como definir esta semente, retorne ao laboratório anterior onde explicamos este conceito.
 
 
+
 ```{r}
 set.seed(123)
 ```
+
+
+## Conteúdos abordados neste laboratório
+
+* Amostragem no R
+* Distribuição amostral da média
+* Teorema do Limite Central
 
 
 ## Carregamento dos pacotes necessários

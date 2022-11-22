@@ -13,13 +13,13 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
 ```
 
 # Introdução
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
 library(ggplot2)
 #library(plyr)
 library(tidyr)
@@ -43,6 +43,20 @@ Algumas pessoas definem a Estatística como a ciência que tem por objetivo tran
 [^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
 
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
+
+
+## Conteúdos abordados neste laboratório
+
+* Histogramas
+* Estatísticas descritivas
+* Tabelas de contingência
+* Aprofundando a biblioteca `dplyr`
+* Observando relações entre duas variáveis quantitativas
+* Observando relações entre duas variáveis qualitativas
+* Observando relações entre uma variável qualitativa e uma quantitativa
+* Box plots
+* Distribuição normal
+
 
 ## Carregamento e detalhamento dos dados
 
@@ -102,7 +116,7 @@ ou as técnicas de construção de subconjuntos que você aprenderá no decorrer
 
 Por outro lado, se quisermos mostrar o banco de dados na saída do arquivo html como uma tabela estruturada, podemos usar a biblioteca `rmarkdown`:
 
-```{r warning=FALSE, message=FALSE}
+```{r}
 paged_table(cdc)
 ```
 
@@ -125,7 +139,7 @@ O questionário do BRFSS é um tesouro enorme de informações. Um primeiro pass
 
 Vamos começar olhando alguns histogramas. Nós podemos criar um histograma da idade dos respondentes com o seguinte comando:
 
-```{r warning=FALSE, message=FALSE}
+```{r}
 cdc %>%
   ggplot(aes(x = age)) + 
   geom_histogram(col = "black", fill = "orange") + 
@@ -144,7 +158,7 @@ Outro comentário interessante se deve ao fato do R reportar suas análises no i
 
 Histogramas costumam ser uma boa maneira de enxergar a forma da distribuição de uma variável, mas esta forma pode variar dependendo do número de intervalos escolhido (ou a amplitude de cada intervalo) para representar cada barra do histograma. Você pode definir facilmente a amplitude de cada intervalo ao indicá-lo ao R por meio do argumento `binwidth`:
 
-```{r warning=FALSE, message=FALSE}
+```{r}
 cdc %>%
   ggplot(aes(x = age)) + 
   geom_histogram(col = "black", fill = "orange", binwidth = 1) + 
@@ -661,14 +675,14 @@ Vemos ainda que, se `pdif` é zero, a pessoa já acredita que está em seu peso 
 cdc = mutate(cdc, pdif = wtdesire - weight)
 ```
 
-```{r warning=FALSE, message=FALSE}
+```{r}
 cdc %>%
   select(pdif) %>%
   summary()
 ```
 
 
-```{r warning=FALSE, message=FALSE}
+```{r}
 cdc %>%
   ggplot(aes(x = pdif)) +
   geom_histogram(aes(y = ..density..), 
@@ -728,7 +742,7 @@ nrow(filter(cdc, abs(weight - mean(weight)) < 2*sd(weight)))/nrow(cdc)
 Como podemos ver, aproximadamente 70% dos valores dos pesos dos entrevistados estão dentro de 1 desvio padrão da média, ao passo que aproxidamente 95% dos valores estão dentro de dois desvios padrões de distância da média. Vemos, portanto, que o peso dos indivíduos entrevistados seguem uma distribuição aproximadamente normal. Isto pode ser corroborado com um histograma para essa variável:
 
 
-```{r warning=F, message=F}
+```{r}
 cdc %>%
   ggplot(aes(x = weight)) +
   geom_histogram(

@@ -13,7 +13,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
 ```
 
 # Introdução
@@ -28,6 +28,13 @@ Este relatório trata da atividade denominada *Introdução ao R e ao RStudio*. 
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
 
 
+## Conteúdos abordados neste laboratório
+
+* Primeiros passos no R e no Rstudio
+* Explorando uma base de dados carregada da nuvem
+* fazendo filtros e gráficos com o R
+
+
 ## Carregamento de pacotes
 
 O R é uma linguagem de programação de código aberto, o que significa que os usuários podem contribuir com pacotes que facilitam nossas vidas. Ainda melhor, podemos usá-las gratuitamente. Para este laboratório, e muitos outros futuros, usaremos principalmente os seguintes pacotes do R:
@@ -39,7 +46,7 @@ O R é uma linguagem de programação de código aberto, o que significa que os 
 
 Para carregá-los no nosso ambiente de trabalho, digitamos no console:
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
 library(ggplot2)
 #library(plyr)
 library(tidyr)

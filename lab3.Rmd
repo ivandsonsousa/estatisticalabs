@@ -13,14 +13,14 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
 ```
 
 
 # Introdução
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
 library(ggplot2)
 library(plyr)
 library(tidyr)
@@ -41,6 +41,12 @@ Este relatório trata da atividade denominada *Probabilidade: Mãos Quentes (Hot
 
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
 
+
+## Conteúdos abordados neste laboratório
+
+* Probabilidade
+* Eventos independentes
+* Simulações de eventos independentes no R
 
 # Mãos Quentes (Hot Hands)
 
