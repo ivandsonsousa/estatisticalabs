@@ -1906,19 +1906,19 @@ coroas num novo objeto denominado sim_moeda_honesta.</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>sim_moeda_honesta <span class="ot">=</span> <span class="fu">sample</span>(face_moeda, <span class="dv">100</span>, <span class="at">replace =</span> T)</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>sim_moeda_honesta</span></code></pre></div>
-<pre><code>##   [1] &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot;
-##  [19] &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot;
-##  [37] &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot;
-##  [55] &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot;
-##  [73] &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot;
-##  [91] &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot;</code></pre>
+<pre><code>##   [1] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot;
+##  [19] &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot;
+##  [37] &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot;
+##  [55] &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot;
+##  [73] &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot;
+##  [91] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot;</code></pre>
 <p>Para visualizar os resultados desta simulação, digite o nome do
 objeto e então use o comando table pra contar o número de caras e
 coroas.</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(sim_moeda_honesta)</span></code></pre></div>
 <pre><code>## sim_moeda_honesta
 ##  C  K 
-## 59 41</code></pre>
+## 54 46</code></pre>
 <p>Uma vez que há apenas dois elementos no vetor
 <code>face_moeda</code>, a probabilidade de que um lançamento dê o
 resultado cara é 0,5. Digamos que estamos tentando simular uma moeda

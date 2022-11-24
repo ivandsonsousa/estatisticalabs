@@ -71,7 +71,7 @@ Para carregá-los no nosso ambiente de trabalho, digitamos no console:
 
 ```{r}
 library(ggplot2)
-#library(plyr)
+library(plyr)
 library(tidyr)
 library(dplyr)
 library(DescTools)
@@ -1095,4 +1095,276 @@ cdc %>%
     title = "Histograma para os pesos dos participantes do estudo"
     ) + 
   theme(text = element_text(size = 18))
+```
+
+
+
+# Lab03: Probabilidade: Mãos Quentes (Hot Hands)
+
+
+## Conteúdos abordados neste laboratório
+
+* Probabilidade
+* Eventos independentes
+* Simulações de eventos independentes no R
+
+## Mãos Quentes (Hot Hands)
+
+Jogadores de basquete que pontuam várias vezes seguidas costumam ser descritos como tendo as *mãos quentes*. Fãs e jogadores acreditam há muito tempo no fenômeno das mãos quentes, que refuta o pressuposto de que cada lance é independente do próximo. Contudo, um artigo de 1985 escrito por Gilovich, Vallone e Tversky coletou evidências que contradizem essa crença e mostrou que lances sucessivos são eventos independentes. Este artigo iniciou uma grande controvérsia que continua até hoje, como você pode verificar se procurar por *hot hand basketball* no Google.
+
+Não temos a expectativa de resolver esta controvérsia hoje. Entretanto, neste laboratório nós aplicaremos um procedimento para responder a questões como essa. Os objetivos deste laboratório são (1) **refletir sobre o efeito de eventos dependentes e independentes**, (2) **aprender como simular sequências de lances no R**, e (3) **comparar a simulação com os dados efetivos para determinar se o fenômeno das mãos quentes parece ser real**.
+
+
+## Começando
+
+Nossa investigação terá como foco a performance de um jogador: Kobe Bryant do Los Angeles Lakers[^datasets]. Sua performance contra o Orlando Magic nas finais de 2009 da NBA lhe deram o título de Jogador Mais Valioso (ou, em inglês, *Most Valuable Player*) e vários espectadores comentaram como ele parecia demonstrar a característica de mãos quentes. Vamos carregar alguns dados desses jogos que iremos utilizar durante este laboratório.
+
+
+```{r}
+load(file = "hot_hand.Rdata")
+```
+
+
+Você deve ver dois objetos na aba Environment: ```kobe_basket``` e ```calc_streak```:
+
+* ```kobe_basket```: um conjunto de dados de 133 observações e 6 variávies, onde cada linha registra um arremesso feito por Kobe Bryant. A variável `basket` indica se o arremesso foi um acerto (H) ou um erro (M).
+
+* ```calc_streak```: uma função customizada que irá nos ajudar a calcular comprimentos de sequências de acertos (mais sobre isso à frente).
+
+
+```{r}
+names(kobe_basket)
+head(kobe_basket) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  )
+```
+
+
+Apenas olhando para a sequência de acertos e erros pode ser difícil de auferir se é provável que Kobe estava arremessando com as mãos quentes. Uma possível maneira de abordarmos este problema é supormos que arremessadores com as mãos quentes tendem a conseguir uma longa sequência de acertos. Para este laboratório, definiremos o comprimento de uma sequência de acertos como o *número de cestas consecutivas até acontecer um erro*.
+
+Por exemplo, no Jogo 1, Kobe teve a seguinte sequência de acertos e erros de suas nove tentativas de arremessos no primeiro quarto:
+
+<center>
+**H M** | **M** | **H H M** | **M** | **M** | **M**
+</center>
+
+Para verificar esta informação, use o seguinte comando:
+
+```{r}
+kobe_basket%>%
+  filter(game == 1, quarter == 1) %>%
+  select(shot)
+```
+
+Dentre as nove tentativas de arremesso existem seis sequências, que são separadas por um “|” acima. Seus comprimentos são um, zero, dois, zero, zero, zero (em ordem de ocorrência). Vemos então que em uma sequência de comprimento 1 existe 1 acerto e 1 erro, ao passo que na sequência de comprimento 0 existe 0 acerto e 1 erro. Uma sequência de comprimento 2, por sua vez, contêm 2 acertos e 1 erro. Portanto, uma sequência de comprimento L contêm L acertos e 1 erro.
+
+Contar os comprimentos de todos os 133 arremessos manualmente seria extremamente tedioso, então iremos utilizar a função ```calc_streak``` para realizar este trabalho para nós. Os resultados serão armazenados em um conjunto de dados chamado ```kobe_streak``` como a variável ```length``` (comprimento em inglês).
+
+
+```{r}
+kobe_streak = kobe_basket %>%
+  select(shot) %>%
+  calc_streak()
+```
+
+
+Nós podemos dar uma olhada na distribuição desses comprimentos com o comando abaixo.
+
+
+```{r}
+kobe_streak %>%
+  ggplot(aes(x = length)) +
+  geom_histogram(binwidth = 1, col = "black", fill = "orange") + 
+  labs(
+    title = "Tamanho das sequências de arremesso de Kobe",
+    y = "N"
+    ) +
+  theme(text = element_text(size=18))
+```
+
+
+```{r}
+summary(kobe_streak)
+
+table(kobe_streak)
+```
+
+Conforme podemos ver na saída de código acima, o comprimento típico das sequências de Kobe foi zero. Além disso, podemos ver também que a mediana dos comprimentos das sequências é também zero, enquanto a média é um número menor que 1.
+
+
+## Ao que comparar
+
+Nós mostramos que Kobe teve algumas sequências longas de arremesso, mas elas são longas o suficiente para apoiar a crença de que ele tinha mãos quentes? Com o que podemos compará-las?
+
+Para responder a essa pergunta, vamos retornar ao conceito de *independência*. Dois eventos são independentes se o resultado de um evento não afeta o resultado do outro. Se cada arremesso do jogador for um evento independente, acertar ou errar o primeiro arremesso não afetará a probabilidade de ele converter ou errar o segundo arremesso.
+
+Um arremessador com as mãos quentes terá arremessos que *não* são independentes um do outro. Mais especificamente, se o arremessador converte seu primeiro arremesso, o modelo acerca das mãos quentes afirma que ele terá uma probabilidade *maior* de converter seu segundo arremesso.
+
+Vamos supor por um momento que o modelo das mãos quentes é válido para Kobe. Durante sua carreira, o percentual de vezes que Kobe acertou uma cesta (ou seja, seu percentual de arremessos convertidos) é de cerca de 45%, ou, em notação de probabilidade,
+
+<center>
+**P(arremesso 1 = H) = 0.45**
+</center>
+
+Se ele converte o primeiro arremesso e tem as mãos quentes (arremessos não independentes), então a probabilidade de ele converter seu segundo arremesso deveria aumentar para, digamos, 60%,
+
+<center>
+**P(arremesso 2 = H | arremesso 1 = H) = 0.60**
+</center>
+
+Como um resultado do aumento da probabilidade, seria esperado que Kobe obtivesse sequências mais longas. Compare com a perspectiva cética de que Kobe *não* tenha as mãos quentes, ou seja, que cada arremesso é independente do anterior. Se ele acerta seu primeiro arremesso, a probabilidade de ele acertar o segundo continua sendo 0.45.
+
+<center>
+**P(arremesso 2 = H | arremesso 1 = H) = 0.45**
+</center>
+
+Em outras palavras, converter o primeiro arremesso não afeta de maneira alguma a probabilidade de ele converter o segundo arremesso. Se os arremessos de Kobe forem independentes, então ele teria a mesma probabilidade de acertar cada arremesso independentemente de seus arremessos anteriores: 45%.
+
+Agora que reformulamos a situação em termos de arremessos independentes, vamos retornar à questão: como podemos saber se as sequências de arremessos de Kobe são longas o suficiente para indicar que ele tem mãos quentes? Podemos comparar o tamanho de suas sequências a alguém que não tem as mãos quentes: um arremessador independente.
+
+
+## Simulações no R
+
+Embora não tenhamos dados de um “arremessador independente”, esse tipo de dado é muito fácil de ser simulado no R. Numa simulação, você define as regras básicas de um processo aleatório e então o computador utiliza números aleatórios para gerar um resultado fiel a essas regras. Como um exemplo simples, vamos simular o lançamento de uma moeda honesta onde ```K``` simboliza cara e ```C``` simboliza coroa:
+
+```{r}
+face_moeda = c("K", "C")
+sample(face_moeda, size = 1, replace = T)
+```
+
+Primeiramente registramos os possíveis resultados no vetor ```face_moeda```. O comando ```sample``` realiza uma amostra do experimento ao selecionar aleatoriamente um dos valores ```K``` ou ```C```. O vetor ```face_moeda``` pode ser entendido como um chapéu com duas tiras de papel dentro dele: numa tira está escrito ```K``` e na outra ```C```. A função ```sample``` sorteia uma tira de dentro do chapéu e revela se ela é cara ou coroa.
+
+Execute o segundo comando listado acima várias vezes. Da mesma maneira que quando jogamos uma moeda, algumas vezes você obterá cara, algumas vezes você obterá coroa, mas a longo prazo você esperaria obter um número mais ou menos igual de cada possível resultado.
+
+Se você quisesse simular o lançamento de uma moeda honesta 100 vezes, você poderia rodar a função 100 vezes ou, de forma mais simples, ajustar o argumento ```size``` (tamanho), que regula quantas amostras retirar. O argumento ```replace``` indica se há (TRUE) ou não (FALSE) reposição dos possíveis valores. Voltando à analogia do chapéu, TRUE indica que nós recolocamos a tira de papel de volta no chapéu antes de retirar as amostras seguintes. Salve o vetor resultante de caras e coroas num novo objeto denominado sim_moeda_honesta.
+
+
+```{r}
+sim_moeda_honesta = sample(face_moeda, 100, replace = T)
+
+sim_moeda_honesta
+```
+
+Para visualizar os resultados desta simulação, digite o nome do objeto e então use o comando table pra contar o número de caras e coroas.
+
+```{r}
+table(sim_moeda_honesta)
+```
+
+Uma vez que há apenas dois elementos no vetor ```face_moeda```, a probabilidade de que um lançamento dê o resultado cara é 0,5. Digamos que estamos tentando simular uma moeda viciada, onde a probabilidade de sair cara é 20%. Podemos ajustar a amostra adicionando um argumento denominado ```prob```, que fornece um vetor com as respectivas probabilidades.
+
+
+```{r}
+sim_moeda_viciada = sample(face_moeda, size = 100, replace = T, prob = c(0.2, 0.8))
+```
+
+```prob = c(0.2, 0.8)``` indica que, para os dois elementos no vetor ```face_moeda```, nós queremos selecionar o primeiro (cara) com probabilidade 0,2, e o segundo (coroa), com probabilidade 0,8. Outra maneira de pensar sobre esse cenário é imaginar o espaço amostral como um saco contendo 10 fichas, sendo 2 marcadas como “cara” e 8 como “coroa”. Portanto, a cada seleção, a probabilidade de retirar uma ficha escrito “cara” é 20%, e “coroa” é 80%.
+
+> **Uma nota sobre sementes:** Especificar uma semente irá fazer com que o R obtenha a mesma amostra cada vez que você aperta o botão *Knit*. Isso garante a reprodutibilidade do seu trabalho, uma vez que os seus resultados serão os mesmos cada vez que você compilar os seus comandos. Você pode especificar uma semente com o comando abaixo:
+
+```{r}
+set.seed(123) #Podemos usar qualquer valor como semente, desde que 
+#utilizemos sempre o mesmo ao longo das nossas simulações.
+```
+
+
+```{r}
+set.seed(123)
+
+sim_moeda_viciada_reprod = sample(face_moeda, 100, replace = T, prob = c(0.2,0.8))
+
+sim_moeda_viciada_reprod
+
+table(sim_moeda_viciada_reprod)
+```
+
+Num certo sentido, nós reduzimos o tamanho da tira de papel que diz “cara”, tornando-o menos provável de ser escolhido, e nós aumentamos o tamanho da tira de papel que diz “coroa”, tornando-o mais provável de ser retirado. Quando simulamos a moeda honesta, ambas as tiras de papel tinham o mesmo tamanho. Isso acontece de maneira padrão se você não fornecer o argumento ```prob```; todos os elementos no vetor ```face_moeda``` terão igual probabilidade de serem escolhidos.
+
+
+## Simulando o arremessador independente
+
+Para simular um jogador de basquete que arremessa de forma independente, utilizamos o mesmo mecanismo que empregamos para simular o lançamento de uma moeda. Para simular um único arremesso de um arremessador independente, com um percentual de acerto de 50%, digitamos
+
+
+```{r}
+arremesso = c("H", "M")
+sim_cesta = sample(arremesso, 1, replace = T)
+```
+
+Para fazermos uma comparação válida entre Kobe e nosso arremessador independente simulado, precisamos alinhar tanto seus percentuais de arremesso quanto seus números de arremessos tentados.
+
+Considerando os 133 arremessos de Kobe nas finais de 2009 da NBA, bem como seu percentual histório de acertos, que era de 45%, podemos simular como seria sua versão independente da seguinte forma:
+
+
+```{r}
+set.seed(123)
+sim_cesta = sample(arremesso, size = 133, replace = T, prob = c(0.45, 0.55))
+```
+
+Observe que nomeamos o novo vetor como ```sim_cesta```, com o mesmo nome que demos ao vetor anterior correspondente a um percentual de arremesso de 50%. Nessa situação, o R sobrescreve o objeto antigo com o novo, portanto sempre se certifique que você não precisa da informação no vetor antigo antes de atribuir um novo objeto ao seu nome.
+
+Com os resultados da simulação salvos como `sim_cesta`, temos os dados necessários para comparar Kobe ao nosso arremessador independente. Podemos visualizar os dados de Kobe em conjunto com os nossos dados simulados.
+
+Ambos os conjuntos de dados representam o resultado de 133 tentativas de arremessos, cada uma com o mesmo percentual de acerto de 45%. Sabemos que nossos dados simulados são de um arremessador que arremessa de forma independente. Quer dizer, sabemos que o arremessador simulado não tem as mãos quentes.
+
+
+## Por sua conta
+
+1. Utilizando a função ```calc_streak```, calcule os comprimentos  das sequências de arremessos convertidos de ```sim_cesta``` e salve os resultados em um conjunto de dados chamado ```sim_streak```. Note que ```sim_streak``` é apenas um vetor e não uma variável de um conjunto de dados como o que utilizamos para calcular as sequências de Kobe. Desse modo, não é preciso selecionar a variável dentro de um conjunto de dados, bastando apenas aplicar a função ao vetor.
+
+
+```{r}
+sim_streak = calc_streak(sim_cesta)
+```
+
+2. Descreva a distribuição das sequências de arremessos. Qual é o comprimento de sequência típico para o arremessador independente simulado com um percentual de arremesso de 45%? Qual o comprimento da sequência mais longa de cestas em 133 arremessos? Não esqueça de incluir um gráfico à sua resposta.
+
+Para começar, vamos ver um resumo estatístico das sequências de Kobe e do arremessador independente:
+
+
+```{r}
+summary(kobe_streak)
+
+summary(sim_streak)
+```
+
+Vemos então que o tamanho máximo de uma sequência de Kobe foi igual a 4, ao passo que o arremessador independente alcançou um máximo de 7. As medianas são iguais e as médias muito parecidas.
+
+Podemos ainda executar o comando ```table```, combinado com o comando ```prop.table()```, a fim de verificar, em cada conjunto de dados, o tamanho de sequência que mais ocorre:
+
+```{r}
+prop.table(table(kobe_streak))
+
+prop.table(table(sim_streak))
+```
+Vemos, portanto, que as sequências ocorrem com frequências muito parecidas nos dois conjuntos de dados. Por exemplo, aproximadamente 51% das sequências de Kobe naquela final de temporada teve comprimento zero. No caso do simulador independente, esse percentual foi perto de 54%. Já as sequências de tamanho 2 ocorreram com frequência de aproximadamente 8% em ambos os casos. Por meio dessa análise, podemos concluir que os dois arremessadores são compatíveis.
+
+
+Por fim, vamos comparar os histogramas para os comprimentos dos arremessos de Kobe e do arremessador independente:
+
+
+```{r}
+hist_kobe = ggplot(kobe_streak, aes(x = length)) +
+  geom_histogram(col = "black", fill = "green", binwidth = 1) +
+  labs(
+    x = "Comprimento",
+    y = "N",
+    title = "Sequências de Kobe"
+  ) +
+  theme(text = element_text(size=18))
+
+hist_sim = ggplot(sim_streak, aes(x = length)) +
+  geom_histogram(col = "black", fill = "orange", binwidth = 1) +
+  labs(
+    x = "Comprimento",
+    y = "",
+    title = "Sequências simuladas"
+  ) +
+  theme(text = element_text(size=18))
+
+cowplot::plot_grid(hist_kobe, hist_sim, labels = "AUTO")
 ```
