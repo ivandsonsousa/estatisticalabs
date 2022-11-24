@@ -5994,7 +5994,7 @@ real</strong>.</p>
 <div id="começando" class="section level2">
 <h2>Começando</h2>
 <p>Nossa investigação terá como foco a performance de um jogador: Kobe
-Bryant do Los Angeles Lakers<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a>. Sua performance contra o Orlando Magic nas
+Bryant do Los Angeles Lakers. Sua performance contra o Orlando Magic nas
 finais de 2009 da NBA lhe deram o título de Jogador Mais Valioso (ou, em
 inglês, <em>Most Valuable Player</em>) e vários espectadores comentaram
 como ele parecia demonstrar a característica de mãos quentes. Vamos
@@ -6322,19 +6322,19 @@ coroas num novo objeto denominado sim_moeda_honesta.</p>
 <div class="sourceCode" id="cb150"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb150-1"><a href="#cb150-1" aria-hidden="true" tabindex="-1"></a>sim_moeda_honesta <span class="ot">=</span> <span class="fu">sample</span>(face_moeda, <span class="dv">100</span>, <span class="at">replace =</span> T)</span>
 <span id="cb150-2"><a href="#cb150-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb150-3"><a href="#cb150-3" aria-hidden="true" tabindex="-1"></a>sim_moeda_honesta</span></code></pre></div>
-<pre><code>##   [1] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot;
-##  [19] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot;
-##  [37] &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot;
-##  [55] &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot;
-##  [73] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot;
-##  [91] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot;</code></pre>
+<pre><code>##   [1] &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot;
+##  [19] &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot;
+##  [37] &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot;
+##  [55] &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot;
+##  [73] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot;
+##  [91] &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot;</code></pre>
 <p>Para visualizar os resultados desta simulação, digite o nome do
 objeto e então use o comando table pra contar o número de caras e
 coroas.</p>
 <div class="sourceCode" id="cb152"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb152-1"><a href="#cb152-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(sim_moeda_honesta)</span></code></pre></div>
 <pre><code>## sim_moeda_honesta
 ##  C  K 
-## 39 61</code></pre>
+## 46 54</code></pre>
 <p>Uma vez que há apenas dois elementos no vetor
 <code>face_moeda</code>, a probabilidade de que um lançamento dê o
 resultado cara é 0,5. Digamos que estamos tentando simular uma moeda
@@ -6511,8 +6511,6 @@ laboratórios estão disponíveis na página do OpenIntro: <a href="https://www.
 <strong>Estatística básica</strong>. Saraiva Educação SA, 2017.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
 <li id="fn4"><p><a href="https://pt.wikipedia.org/wiki/R_(linguagem_de_programa%C3%A7%C3%A3o" class="uri">https://pt.wikipedia.org/wiki/R_(linguagem_de_programa%C3%A7%C3%A3o</a><a href="#fnref4" class="footnote-back">↩︎</a></p></li>
 <li id="fn5"><p><a href="https://pt.wikipedia.org/wiki/Ambiente_de_desenvolvimento_integrado" class="uri">https://pt.wikipedia.org/wiki/Ambiente_de_desenvolvimento_integrado</a><a href="#fnref5" class="footnote-back">↩︎</a></p></li>
-<li id="fn6"><p>Todos os datasets utilizados nesse e em outros
-laboratórios estão disponíveis na página do OpenIntro: <a href="https://www.openintro.org/data/">DataSets</a>.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
 </div>

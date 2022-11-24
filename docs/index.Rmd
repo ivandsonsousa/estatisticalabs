@@ -1117,7 +1117,7 @@ Não temos a expectativa de resolver esta controvérsia hoje. Entretanto, neste 
 
 ## Começando
 
-Nossa investigação terá como foco a performance de um jogador: Kobe Bryant do Los Angeles Lakers[^datasets]. Sua performance contra o Orlando Magic nas finais de 2009 da NBA lhe deram o título de Jogador Mais Valioso (ou, em inglês, *Most Valuable Player*) e vários espectadores comentaram como ele parecia demonstrar a característica de mãos quentes. Vamos carregar alguns dados desses jogos que iremos utilizar durante este laboratório.
+Nossa investigação terá como foco a performance de um jogador: Kobe Bryant do Los Angeles Lakers. Sua performance contra o Orlando Magic nas finais de 2009 da NBA lhe deram o título de Jogador Mais Valioso (ou, em inglês, *Most Valuable Player*) e vários espectadores comentaram como ele parecia demonstrar a característica de mãos quentes. Vamos carregar alguns dados desses jogos que iremos utilizar durante este laboratório.
 
 
 ```{r}
