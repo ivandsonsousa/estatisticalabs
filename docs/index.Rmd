@@ -149,7 +149,7 @@ Podemos também fazer um gráfico de linhas, ao invés de plotar os pontos dispe
 ```{r}
 arbuthnot %>%
   ggplot(aes(x = year, y = girls)) + 
-  geom_line(size = 1, col = "red") +
+  geom_line(linewidth = 1, col = "red") +
   labs(
     title = "Registros de nascimento do dr. Arbuthnot"
   ) +
@@ -185,7 +185,7 @@ Assim, uma nova coluna chamada "total" foi incluída no banco de dados. Podemos 
 ```{r}
 arbuthnot %>%
   ggplot(aes(x = year, y = total)) + 
-  geom_line(size = 1, col = "orange") +
+  geom_line(linewidth = 1, col = "orange") +
   labs(
     title = "Registros de nascimento do dr. Arbuthnot"
   ) +
@@ -225,7 +225,7 @@ Podemos também fazer um gráfico da proporção de meninos batizados relativo a
 ```{r}
 arbuthnot %>%
   ggplot(aes(x = year, y = ratio_boys)) + 
-  geom_line(size = 1, col = "skyblue") +
+  geom_line(linewidth = 1, col = "skyblue") +
   labs(
     title = "Porporção de meninos batizados"
   ) +
@@ -314,7 +314,7 @@ present = mutate(present, ratio_boys_girls = present$boys/present$girls)
 ```{r}
 present %>%
   ggplot(aes(x = year, y = ratio_boys_girls)) + 
-  geom_line(size = 1, col = "orange") +
+  geom_line(linewidth = 1, col = "orange") +
   labs(
     title = "Razão entre o número de meninos e de meninas",
     subtitle = "Conjunto de dados atual."
@@ -539,7 +539,13 @@ Existem diversas possibilidades para alterar a estética dos seus gráficos e, p
 ```{r}
 cdc %>%
   ggplot(aes(x = age)) + 
-  geom_histogram(aes(y = ..density..), col = "black", fill = "orange", alpha = .4, bins = 30) + 
+  geom_histogram(
+    aes(y = after_stat(density)), 
+    col = "black", 
+    fill = "orange", 
+    alpha = .4, 
+    bins = 30
+    ) + 
   labs(
     x = "idade",
     y = "contagem",
@@ -553,8 +559,17 @@ Em todos os casos acima, `aes` indica ao R quais as variáveis correspondentes a
 ```{r}
 cdc %>%
   ggplot(aes(x = age)) + 
-  geom_histogram(aes(y = ..density..), col = "black", fill = "orange", alpha = .4, bins = 30) + 
-  geom_density(col = "red", size = 1) +
+  geom_histogram(
+    aes(y = after_stat(density)), 
+    col = "black", 
+    fill = "orange", 
+    alpha = .4, 
+    bins = 30
+    ) + 
+  geom_density(
+    col = "red", 
+    linewidth = 1
+    ) +
   labs(
     x = "idade",
     y = "contagem",
@@ -1023,7 +1038,7 @@ cdc %>%
 ```{r}
 cdc %>%
   ggplot(aes(x = pdif)) +
-  geom_histogram(aes(y = ..density..), 
+  geom_histogram(aes(y = after_stat(density)), 
                  fill = "orange", bins = 50, alpha = 0.8, color = "black") +
   labs(
     x = "P_dif", 
@@ -1084,7 +1099,7 @@ Como podemos ver, aproximadamente 70% dos valores dos pesos dos entrevistados es
 cdc %>%
   ggplot(aes(x = weight)) +
   geom_histogram(
-    aes(y = ..density..), 
+    aes(y = after_stat(density)), 
     fill = "blue",
     alpha = 0.5,
     col = "black"
@@ -1777,7 +1792,10 @@ Vamos agora investigar a idade típica das mães e pais na Carolina do Norte. Co
 ```{r}
 histogram = nc %>%
   ggplot(aes(x = mage)) + 
-  geom_histogram(col = "black", fill = "pink", binwidth = 1) + 
+  geom_histogram(
+    col = "black", 
+    fill = "pink", 
+    binwidth = 1) + 
   labs(
     title = "Mother's age",
     x = "age",
@@ -2280,7 +2298,7 @@ Assim, de acordo com o resultado do nosso teste, rejeitamos a hipótese nula de 
 
 
 
-# Lab08: Mais inferência para dados numéricos - comparando mais que duas amostras
+# Lab08: Mais inferência para dados numéricos - comparando várias amostras
 
 
 Neste laboratório, daremos continuidade aos exemplos de inferência estatística. Porém, aqui, levaremos também em consideração comparações entre mais de duas populações, situação em que teremos que utilizar método ainda não visto no laboratório anterior.
@@ -2459,6 +2477,7 @@ t.test(
 
 Como $p \approx 0$, rejeitamos a hipótese de iguldade das duas médias para qualquer um dos intervalos de significância comumente adotados, o que está em perfeito acordo com o intervalo de confiança já escrito no item anterior. Além disso, a função `t.test()` também retorna o intervalo de confiança de 95% para a diferença entre as médias, e o resultado é o mesmo já calculado anterioriormente de maneira "manual".
 
+
 ## Variáveis de confusão
 
 Há uma clara diferença entre os salários médios dos homens e das mulheres, mas poderia alguma, ou a totalidade, desta diferença ser atribuída a alguma outra variável que não seja o gênero? Nós chamamos tais variáveis como **variáveis de confusão**. Vamos avaliar se a variável `hrs_work` confunde a relação entre gênero e renda. Mas antes de fazermos isso, vamos primeiro converter a variável `hrs_work` a uma variável qualitativa (com níveis de "integral" e "parcial") para que possamos usar os métodos que aprendemos até agora na execução da análise.
@@ -2502,12 +2521,12 @@ Aqui, primeiramente, nós agrupamos os dados pela nova variável `emp_type`, e e
 acs_emp %>%
   ggplot(aes(x = emp_type, group = gender)) + 
   geom_bar(
-    aes(y = ..prop.., fill = gender), 
+    aes(y = after_stat(prop), fill = gender), 
     stat = "count", 
     position = "dodge"
     ) + 
   geom_text(
-    aes(label = scales::percent(..prop..), y = ..prop..),
+    aes(label = scales::percent(after_stat(prop)), y = after_stat(prop)),
     stat = "count",
     position = position_dodge(.9), 
     vjust = -0.5,
@@ -2807,6 +2826,7 @@ Concluímos então que:
 $$ \mu_1 < \mu_2 < \mu_3, $$
 
 em que $\mu_1$ se refere a quem tem ensino médio ou menor, $\mu_2$ é para quem está na faculdade e $\mu_3$ é para os graduados. O resultado corrobora com a ideia de que quem tem maior nível de escolaridade tem maior renda.
+
 
 
 

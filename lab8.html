@@ -2043,12 +2043,12 @@ representa os trabalhadores em tempo integral e tempo parcial?</p>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>acs_emp <span class="sc">%&gt;%</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> emp_type, <span class="at">group =</span> gender)) <span class="sc">+</span> </span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">y =</span> ..prop.., <span class="at">fill =</span> gender), </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">after_stat</span>(prop), <span class="at">fill =</span> gender), </span>
 <span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">stat =</span> <span class="st">&quot;count&quot;</span>, </span>
 <span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">position =</span> <span class="st">&quot;dodge&quot;</span></span>
 <span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span> </span>
 <span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> scales<span class="sc">::</span><span class="fu">percent</span>(..prop..), <span class="at">y =</span> ..prop..),</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> scales<span class="sc">::</span><span class="fu">percent</span>(<span class="fu">after_stat</span>(prop)), <span class="at">y =</span> <span class="fu">after_stat</span>(prop)),</span>
 <span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">stat =</span> <span class="st">&quot;count&quot;</span>,</span>
 <span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">position =</span> <span class="fu">position_dodge</span>(.<span class="dv">9</span>), </span>
 <span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.5</span>,</span>

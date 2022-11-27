@@ -260,12 +260,12 @@ Aqui, primeiramente, nós agrupamos os dados pela nova variável `emp_type`, e e
 acs_emp %>%
   ggplot(aes(x = emp_type, group = gender)) + 
   geom_bar(
-    aes(y = ..prop.., fill = gender), 
+    aes(y = after_stat(prop), fill = gender), 
     stat = "count", 
     position = "dodge"
     ) + 
   geom_text(
-    aes(label = scales::percent(..prop..), y = ..prop..),
+    aes(label = scales::percent(after_stat(prop)), y = after_stat(prop)),
     stat = "count",
     position = position_dodge(.9), 
     vjust = -0.5,
