@@ -56,7 +56,7 @@ set.seed(123)
 * Amostragem no R
 * Distribuição amostral da média
 * Teorema do Limite Central
-* Histigramas
+* Histogramas
 * Box plots
 
 
@@ -97,21 +97,31 @@ ames %>%
     y = "N",
     title = "Histograma para as áreas das casas em Ames, Iowa"
   ) + 
-  theme(text = element_text(size = 15))
+  theme(text = element_text(size = 18))
 ```
 
 
-Vamos obter, também, algumas medidas descritivas. Observe que podemos fazer isso por meio da função `summarise`. O número de estatísticas a serem calculadas fica a nosso critério. Algumas das funções abaixo já foram discutidas no primeiro laboratório (como `mean`, `median`, `sd`, `IQR`, `min`, e `max`). A função `quantile` aparece pela primeira vez em nossos laboratórios, correspondendo ao quantil especificado da distribuição de interesse. Por exemplo, a expressão `quantile(x, 0.25)` irá nos revelar o valor que acumula 25% (Q1) da distribuição da variável `X`. Como estudado em sala, esses valores são úteis na descrição da distribuição dos dados: como exemplo, poderíamos estar interessados na “região central que acumula 50% das casas com área dada em pés quadrados”.
+Vamos obter, também, algumas medidas descritivas. Observe que podemos fazer isso por meio da função `summarise`. O número de estatísticas a serem calculadas fica a nosso critério. Algumas das funções abaixo já foram discutidas no primeiro laboratório (como `mean`, `median`, `sd`, `IQR`, `min`, e `max`). A função `quantile` aparece pela primeira vez em nossos laboratórios, correspondendo ao quantil especificado da distribuição de interesse. Por exemplo, a expressão `quantile(x, 0.25)` irá nos revelar o valor que acumula 25% (Q1) da distribuição da variável `X`. Conforme pode ser acompanhado em qualquer livro-texto de estatística básica, esses valores são úteis na descrição da distribuição dos dados: como exemplo, poderíamos estar interessados na “região central que acumula 50% das casas com área dada em pés quadrados”. Na saída abaixo, usamos também a função `kable`, do pacote `kableExtra`, para apresentar a saída da função `summarise` na forma de uma tabela:
 
 
 ```{r}
 n = nrow(ames)
 ames %>%
-  summarise(mu = mean(area), pop_med = median(area),
-            sigma = ((n-1)/n)*sd(area), pop_iqr = IQR(area),
-            pop_min = min(area), pop_max = max(area),
-            pop_q1 = quantile(area, 0.25),# primeiro quartil, 25º percentil
-            pop_q3 = quantile(area, 0.75))# terceiro quartil, 75º percentil
+  summarise(
+    mu = mean(area), 
+    pop_med = median(area),
+    sigma = ((n-1)/n)*sd(area), 
+    pop_iqr = IQR(area),
+    pop_min = min(area), pop_max = max(area),
+    pop_q1 = quantile(area, 0.25),# primeiro quartil, 25º percentil
+    pop_q3 = quantile(area, 0.75) # terceiro quartil, 75º percentil
+    ) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  )
 ```
 
 
@@ -130,12 +140,13 @@ Como podemos notar a partir do histograma plotado e da saída do código logo ac
 ```{r}
 ames %>%
   ggplot(aes(x = "", y = area)) + 
-  geom_boxplot(width = 0.3) + 
-  theme(text = element_text(size = 16)) + 
+  geom_boxplot(width = 0.2, fill = "orange", outlier.color = "red") + 
   labs(
     title = "Boxplot para as áreas das casas em Ames, Iowa",
     x = "Area"
-  )
+  ) + 
+  theme_void() +
+  theme(text = element_text(size = 18))
 ```
 
 
@@ -143,7 +154,7 @@ ames %>%
 
 Neste laboratório nós temos acesso à população inteira, mas isso raramente acontece na vida real. Reunir informação sobre uma população inteira costuma ser muito custoso ou impossível. Por essa razão, frequentemente retiramos uma amostra da população e a utilizamos para compreender propriedades da população.
 
-Se estivermos interessados em estimar a área habitável média na cidade de Ames com base numa amostra, podemos utilizar o seguite comando para sondar a população.
+Se estivermos interessados em estimar a área habitável média na cidade de Ames com base numa amostra, podemos utilizar o seguinte comando para sondar a população.
 
 ```{r}
 set.seed(123)
@@ -151,7 +162,7 @@ amostra1 = slice_sample(ames, n = 50, replace = T)
 ```
 
 
-Esse comando retira uma amostra aleatória simples de tamanho 50 do vetor `area`, que é atribuída à variável `amostra1`. É como se fossemos ao banco de dados da Secretaria Municipal da Fazenda e retirássemos os arquivos de 50 vendas de casas aleatoriamente. Trabalhar com esses 50 arquivos seria consideravelmente mais simples do que lidar com todas as 2930 vendas de casas.
+Esse comando retira uma amostra aleatória simples de tamanho 50 do dataframe `ames`, que é atribuída à variável `amostra1`. É como se fossemos ao banco de dados da Secretaria Municipal da Fazenda e retirássemos os arquivos de 50 vendas de casas aleatoriamente. Trabalhar com esses 50 arquivos seria consideravelmente mais simples do que lidar com todas as 2930 vendas de casas.
 
 * **Exercício 2**: Descreva a distribuição desta amostra. Como ela se compara à distribuição da população? Dica A função `slice_sample` retira uma amostra das observações (i.e. linhas) no banco de dados. Você pode utilizar os mesmos nomes para as variáveis do banco de dados. Os códigos utilizados no exercício anterior podem ser muito úteis para visualizar e descrever a distribuição, mas tenha cuidado ao nomear as estatísticas uma vez que `mu` e `sigma` são parâmetros populacionais já definidos e o que você tem é uma amostra e, consequentemente, estatísticas amostrais. Você pode nomear à sua escolha as estatísticas calculadas, sendo muito útil indicar no nome atribuído que seus valores são oriundos de uma amostra.
 
@@ -198,16 +209,19 @@ Deixando de lado os aspectos técnicos de programação, vamos retomar a razão 
 ```{r}
 medias_amostra50 %>%
   ggplot(aes(x = x_bar)) + 
-  geom_histogram(aes(y = ..density..), 
-                 binwidth = 10, fill = "green", col = "black") + 
+  geom_histogram(
+    aes(y = after_stat(density)), 
+    binwidth = 10, 
+    fill = "green", 
+    col = "black") + 
   stat_function(
     fun = dnorm,
     args = 
-      list(mean = mean(medias_amostra50$x_bar), sd = sd(medias_amostra50$x_bar)
-           ), 
-    size = 1, color = "red"
+      list(mean = mean(medias_amostra50$x_bar), sd = sd(medias_amostra50$x_bar)), 
+    linewidth = 1, 
+    color = "red"
     ) + 
-  theme(text = element_text(size = 16)) + 
+  theme(text = element_text(size = 18)) + 
   labs(
     title = "Distribuição das médias amostrais",
     subtitle = "2000 amostras com n = 50 cada"
@@ -249,7 +263,7 @@ medias_amostra = rbind(medias_amostra10, medias_amostra50, medias_amostra100) %>
   mutate(tamanho_amostra = factor(rep(c(10,50,100), each = 2000)))
 ```
 
-* **Passo 2c**: Finalmente, construa os três gráficos representando estas três distribuições amostrais. Podemos fazer isso via *faceting*, i.e. criar faces separadas no gráfico para cada uma das distribuições. Lembre-se que nós identificamos cada distribuição a partir da variável `tamanho_amostra`, que acabamos de criar. A expressão `tamanho_amostra ~ .` é nova: ela separa o eixo-y do nosso gráfico em três faces segundo o `tamanho_amostra` e não separa o eixo-x, o que significa que os gráficos serão dispostos um acima do outro ao invés de um ao lado do outro. Decidimos por esta abordagem para facilitar a comparação entre a posição e a dispersão das distribuições.
+* **Passo 2c**: Finalmente, construa os três gráficos representando estas três distribuições amostrais. Podemos fazer isso via *faceting*, i.e. criar faces separadas no gráfico para cada uma das distribuições. Lembre-se que nós identificamos cada distribuição a partir da variável `tamanho_amostra`, que acabamos de criar. A expressão `~tamanho_amostra` é nova: ela separa o eixo-y do nosso gráfico em três faces segundo o `tamanho_amostra` e não separa o eixo-x, o que significa que os gráficos serão dispostos um acima do outro ao invés de um ao lado do outro. Decidimos por esta abordagem para facilitar a comparação entre a posição e a dispersão das distribuições.
 
 
 ```{r}
@@ -257,11 +271,15 @@ medias_amostra %>%
   ggplot(aes(x = x_bar)) + 
   geom_histogram(binwidth = 20, fill = "orange", col = "black") + 
   facet_wrap(~tamanho_amostra, ncol = 1, strip.position =  "right") +
-  theme(text = element_text(size = 16))
+  theme(text = element_text(size = 18))
 ```
 
 
 Vemos, portanto, que o aumento do tamanho da amostra tem pouca influência sobre o centro da distribuição (a média amostral, que é uma estimativa da média populacional). A dispersão, porém, diminui bastante com o aumento do tamanho da amostra.
+
+Isso mostra, na prática, o que diz o teorema do limite central: a distribuição amostral da média é normal com média igual à média populacional e variância igual a $\sigma/\sqrt{n}$, em que $n$ é o tamanho da amostra e $\sigma$ é o desvio padrão populacional[^bussab_morettin]. Em outras palavras, podemos dizer que, se sorteamos aleatoriamente um número grande de amostras suficientemente grande, a distribuição da média amostral será normal, centrada na média da população e com variância inversamente proporcional ao tamanho das amostras.
+
+
 
 # Por Sua Conta
 
@@ -293,17 +311,22 @@ medias_amostra15 = rdply(2000, slice_sample(ames, n = 15, replace = T), .id = "i
 
 medias_amostra15 %>%
   ggplot(aes(x = x_bar)) +
-  geom_histogram(aes(y = ..density..), 
-                 binwidth = 2000, fill = "orange", col = "black") + 
+  geom_histogram(
+    aes(y = after_stat(density)), 
+    binwidth = 2000, 
+    fill = "orange", 
+    col = "black"
+    ) + 
   labs(
     title = "Distribuição das médias amostrais dos preços",
     subtitle = "2000 amostras com n = 15 cada"
   ) + 
-  theme(text = element_text(size = 16)) + 
+  theme(text = element_text(size = 18)) + 
   stat_function(
     fun = dnorm, 
     args = list(mean = mean(medias_amostra15$x_bar), sd = sd(medias_amostra15$x_bar)),
-    size = 1, color = "red"
+    linewidth = 1, 
+    color = "red"
     )
 ```
 
@@ -322,23 +345,34 @@ medias_amostra150 = rdply(2000, slice_sample(ames, n = 150, replace = T), .id = 
 
 medias_amostra150 %>%
   ggplot(aes(x = x_bar)) +
-  geom_histogram(aes(y = ..density..), 
-                 binwidth = 2000, fill = "orange", col = "black") + 
+  geom_histogram(
+    aes(y = after_stat(density)), 
+    binwidth = 2000, 
+    fill = "orange", 
+    col = "black"
+    ) + 
   labs(
     title = "Distribuição das médias amostrais dos preços",
     subtitle = "2000 amostras com n = 150 cada"
   ) + 
-  theme(text = element_text(size = 16)) + 
+  theme(text = element_text(size = 18)) + 
   stat_function(
     fun = dnorm, 
     args = list(mean = mean(medias_amostra150$x_bar), sd = sd(medias_amostra150$x_bar)),
-    size = 1, color = "red"
+    linewidth = 1, 
+    color = "red"
     )
 ```
 
-Como podemos ver no histograma acima, a forma da distribuição das médias para amostras de tananho $n=150$ é também normal, como esperado. Além disso, vemos também que nossa melhor estimativa para a média populacional continua sendo em torno de 180.000 dólares. 
+Como podemos ver no histograma acima, a forma da distribuição das médias para amostras de tamanho $n=150$ é também normal, como esperado. Além disso, vemos também que nossa melhor estimativa para a média populacional continua sendo em torno de 180.000 dólares. 
 
-Comparando este caso com o da distribuição das médias dos preços para amostras de temanho $n = 15$, vemos que a maior diferença está na dispersão em torno da média populacional, que no presente caso é menor.
+Comparando este caso com o da distribuição das médias dos preços para amostras de tamanho $n = 15$, vemos que a maior diferença está na dispersão em torno da média populacional, que no presente caso é menor.
+
+
+4. Das distribuições amostrais calculadas nos exercícios 2 e 3, qual tem menor dispersão? Se estamos interessados em estimativas que estão mais próximas do valor verdadeiro, preferiríamos uma distribuição com uma dispersão pequena ou grande?
+
+
+Conforme já discutido no item acima, a distribuição amostral com menor dispersão é aquela com maior $n$, que nesse caso é aquela com $n = 150$. Se estamos interessados em fazer um inferência a respeito do valor da média populacional, por exemplo, deveríamos preferir amostras com maior $n$, a fim de ter maior precisão.
 
 
 ```{r}
@@ -348,14 +382,12 @@ medias_amostra_price = rbind(medias_amostra15, medias_amostra150) %>%
 
 medias_amostra_price %>%
   ggplot(aes(x = x_bar)) + 
-  geom_histogram(aes(y = ..density..), 
-                 fill = "green", col = "black", binwidth = 2000) +
+  geom_histogram(
+    aes(y = after_stat(density)), 
+    fill = "green", 
+    col = "black", 
+    binwidth = 2000
+    ) +
   facet_wrap(~tamanho_amostra, ncol = 1, strip.position = "right") +
-  theme(text= element_text(size = 16))
+  theme(text= element_text(size = 18))
 ```
-
-
-4. Das distribuições amostrais calculadas nos exercícios 2 e 3, qual tem menor dispersão? Se estamos interessados em estimativas que estão mais próximas do valor verdadeiro, preferiríamos uma distribuição com uma dispersão pequena ou grande?
-
-
-Conforme já discutido no item acima, a distribuição amostral com menor dispersão é aquela com maior $n$, que nesse caso é aquela com $n = 150$. Se estamos interessados em fazer um inferência a respeito do valor da média populacional, por exemplo, deveríamos preferir amostras com maior $n$, a fim de ter maior precisão.

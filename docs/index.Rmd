@@ -1368,3 +1368,1452 @@ hist_sim = ggplot(sim_streak, aes(x = length)) +
 
 cowplot::plot_grid(hist_kobe, hist_sim, labels = "AUTO")
 ```
+
+
+# Lab04: Distribuições Amostrais
+
+
+Neste laboratório, investigaremos os meios pelos quais as estatísticas de uma amostra aleatória de dados podem servir como estimativas pontuais de parâmetros populacionais. Estamos interessados em formular uma distribuição amostral de nossa estimativa para aprender sobre as propriedades da estimativa, como sua distribuição.
+
+
+## Conteúdos abordados neste laboratório
+
+* Amostragem no R
+* Distribuição amostral da média
+* Distribuição normal
+* Teorema do Limite Central
+* Histogramas
+* Box plots
+
+> **Especificando uma semente:** Nós iremos tomar amostras aleatórias e gerar algumas distribuições amostrais neste laboratório. Desse modo, você deverá especificar uma semente logo no início de seu relatório. Caso tenha dúvidas sobre como definir esta semente, retorne ao laboratório anterior onde explicamos este conceito.
+
+
+
+```{r}
+set.seed(123)
+```
+
+
+## Os dados
+
+
+Vamos analisar dados do setor imobiliário da cidade de Ames, no estado de Iowa, Estados Unidos. Os detalhes de cada transação imobiliária na cidade de Ames são registrados pelo escritório da Secretaria Municipal da Receita da cidade. Nosso foco particular para este laboratório será todas as vendas de casa em Ames entre 2006 e 2010. Essa coleção representa nossa população de interesse. Neste laboratório queremos aprender sobre essas vendas de casas retirando pequenas amostras da população completa. Vamos importar os dados.
+
+
+```{r}
+load("ames.rda")
+names(ames)
+```
+
+
+Como você pode observar, o banco de dados está em sua língua originária, inglês, e existe uma quantidade consideravelmente grande de variáveis. Para este laboratório, restringiremos nossa atenção para somente duas variáveis: a área habitável da casa acima do nível do solo em pés quadrados (```area```) e o preço da venda (```price```) em dólares.
+
+Nós podemos explorar a distribuição da área das casas em nossa população de vendas de casas calculando algumas estatísticas sumárias e criando um histograma. Vamos iniciar criando uma visualização por meio do histograma:
+
+
+```{r}
+ames %>%
+  ggplot(aes(x = area)) + 
+  geom_histogram(fill = "orange", col = "black", binwidth = 250) + 
+  labs(
+    x = "Area",
+    y = "N",
+    title = "Histograma para as áreas das casas em Ames, Iowa"
+  ) + 
+  theme(text = element_text(size = 18))
+```
+
+
+Vamos obter, também, algumas medidas descritivas. Observe que podemos fazer isso por meio da função `summarise`. O número de estatísticas a serem calculadas fica a nosso critério. Algumas das funções abaixo já foram discutidas no primeiro laboratório (como `mean`, `median`, `sd`, `IQR`, `min`, e `max`). A função `quantile` aparece pela primeira vez em nossos laboratórios, correspondendo ao quantil especificado da distribuição de interesse. Por exemplo, a expressão `quantile(x, 0.25)` irá nos revelar o valor que acumula 25% (Q1) da distribuição da variável `X`. Conforme pode ser acompanhado em qualquer livro-texto de estatística básica, esses valores são úteis na descrição da distribuição dos dados: como exemplo, poderíamos estar interessados na “região central que acumula 50% das casas com área dada em pés quadrados”. Na saída abaixo, usamos também a função `kable`, do pacote `kableExtra`, para apresentar a saída da função `summarise` na forma de uma tabela:
+
+
+```{r}
+n = nrow(ames)
+ames %>%
+  summarise(
+    mu = mean(area), 
+    pop_med = median(area),
+    sigma = ((n-1)/n)*sd(area), 
+    pop_iqr = IQR(area),
+    pop_min = min(area), pop_max = max(area),
+    pop_q1 = quantile(area, 0.25),# primeiro quartil, 25º percentil
+    pop_q3 = quantile(area, 0.75) # terceiro quartil, 75º percentil
+    ) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  )
+```
+
+
+* **Exercício 1**: Descreva a distribuição desta população usando visualizações e estatísticas descritivas. Você não precisa usar todas as estatísticas descritivas existentes, mas deve decidir quais delas são relevantes baseando-se na forma da distribuição. Não esqueça de incluir os gráficos e saídas das estatísticas calculadas no seu relatório juntamente com a sua narrativa.
+
+
+```{r}
+ames %>%
+  select(area) %>%
+  filter(abs(area - mean(area)) < ((n-1)/n)*sd(area)) %>%
+  nrow()/nrow(ames)
+```
+
+Como podemos notar a partir do histograma plotado e da saída do código logo acima, assim como através das estatísticas descritivas selecionadas na função `summarise`, a distribuição das áreas das habitações do nosso conjunto de dados é aproximadamente normal, porém, com uma leve assimetria à direita, devido aos poucos imóveis que possuem área muito maior que os demais (*outliers*). Isso pode ser reforçado pela visualização de um boxplot:
+
+```{r}
+ames %>%
+  ggplot(aes(x = "", y = area)) + 
+  geom_boxplot(width = 0.2, fill = "orange", outlier.color = "red") + 
+  labs(
+    title = "Boxplot para as áreas das casas em Ames, Iowa",
+    x = "Area"
+  ) + 
+  theme_void() +
+  theme(text = element_text(size = 18))
+```
+
+
+## A distribuição Amostral Desconhecida
+
+Neste laboratório nós temos acesso à população inteira, mas isso raramente acontece na vida real. Reunir informação sobre uma população inteira costuma ser muito custoso ou impossível. Por essa razão, frequentemente retiramos uma amostra da população e a utilizamos para compreender propriedades da população.
+
+Se estivermos interessados em estimar a área habitável média na cidade de Ames com base numa amostra, podemos utilizar o seguinte comando para sondar a população.
+
+```{r}
+set.seed(123)
+amostra1 = slice_sample(ames, n = 50, replace = T)
+```
+
+
+Esse comando retira uma amostra aleatória simples de tamanho 50 do dataframe `ames`, que é atribuída à variável `amostra1`. É como se fossemos ao banco de dados da Secretaria Municipal da Fazenda e retirássemos os arquivos de 50 vendas de casas aleatoriamente. Trabalhar com esses 50 arquivos seria consideravelmente mais simples do que lidar com todas as 2930 vendas de casas.
+
+* **Exercício 2**: Descreva a distribuição desta amostra. Como ela se compara à distribuição da população? Dica A função `slice_sample` retira uma amostra das observações (i.e. linhas) no banco de dados. Você pode utilizar os mesmos nomes para as variáveis do banco de dados. Os códigos utilizados no exercício anterior podem ser muito úteis para visualizar e descrever a distribuição, mas tenha cuidado ao nomear as estatísticas uma vez que `mu` e `sigma` são parâmetros populacionais já definidos e o que você tem é uma amostra e, consequentemente, estatísticas amostrais. Você pode nomear à sua escolha as estatísticas calculadas, sendo muito útil indicar no nome atribuído que seus valores são oriundos de uma amostra.
+
+Se estamos interessados em estimar a área habitável média nas casas da cidade de Ames utilizando esta amostra, nosso melhor palpite é a média da amostra.
+
+```{r}
+summarise(amostra1, x_bar = mean(area))
+```
+
+Dependendo de quais foram as 50 casas que foram sorteadas, sua estimativa pode estar um pouco acima ou abaixo da média populacional verdadeira de 1499,69 pés quadrados. De maneira geral, mesmo assim, a média da amostra costuma ser uma estimativa muito boa da média da área habitável, e nós a obtemos por meio de uma amostra de menos de 3% da população.
+
+
+Não é surpreendente que, a cada vez que retiramos uma nova amostra aleatória, obtemos uma média amostral diferente. É útil ter uma ideia de quanta variabilidade podemos esperar quando estimamos a média populacional desta maneira. A distribuição das médias amostrais, denominada de *distribuição amostral*, pode nos ajudar a compreeder essa variabilidade. Neste laboratório, uma vez que temos acesso à população, podemos elaborar a distribuição amostral para a média amostral repetindo os passos acima várias vezes. Agora iremos gerar 2000 amostras e calcularemos a média amostral de cada uma delas. Note que utilizamos o argumento `replace = TRUE` pelo simples fato de que amostras aleatórias simples são obtidas da distribuição original para cada réplica.
+
+
+```{r}
+set.seed(123)
+amostra50 = rdply(2000, slice_sample(ames, n = 50, replace = T), .id = "id_sample")
+```
+
+para determinar as médias de cada uma das 2000 amostras de 50 elementos, utilizamos as funções da biblioteca `dplyr`, além do operador `%>%`:
+
+```{r}
+medias_amostra50 = amostra50 %>%
+  group_by(id_sample) %>%
+  summarise(x_bar = mean(area))
+```
+
+
+## Interlúdio: A função `rdply`
+
+Na seção anterior, utilizamos a função `rdply`, do pacote `plyr`, para gerar `L = 2000` amostras de tamanho `n = 50` do nosso conjunto de dados `ames`. Para tanto, continuamos a utilizar a função `slice_sample`, da biblioteca `dplyr`. Contudo, como nesse caso não precisávemos apenas de uma amostra, mas de 2000, selecionadas aleatoriamente do nosso dataframe, foi necessário a utilização da função `rdply`.
+
+A função `rdply`permite replicar o cálculo de uma expressão sem a necessidade de utilizar uma estrutura de repetição (ou *loop*), de modo a tornar a programação mais limpa e rápida. Além disso, os resultados dos cálculos efetuados são alocados em um novo dataframe, associados a um identificador (argumento `.id`, inserido na função `rdply`). 
+
+Para separar o dataframe criado em 2000 amostras isoladas, podemos usar a função `split`, da biblioteca `plyr`. Poderíamos fazer, por exemplo, `amostra50 = split(amostra50, rep(1:2000, each = nrow(amostra50)/2000))`. Neste caso, seria criada uma lista com os 2000 dataframes. Essa talvez não seja a opção mais interessante, uma vez que irá ocupar muito espaço de memória. Uma alternativa, por exemplo, é fazer o *slice* do dataframe que é retornado da função `rdply`, por meio da coluna `.id`.
+
+
+## Tamanho da Amostra e a Distribuição Amostral
+
+Deixando de lado os aspectos técnicos de programação, vamos retomar a razão pela qual utilizamos a função `rdply`: calcular uma distribuição amostral, especificamente, esta aqui.
+
+
+```{r}
+medias_amostra50 %>%
+  ggplot(aes(x = x_bar)) + 
+  geom_histogram(
+    aes(y = after_stat(density)), 
+    binwidth = 10, 
+    fill = "green", 
+    col = "black") + 
+  stat_function(
+    fun = dnorm,
+    args = 
+      list(mean = mean(medias_amostra50$x_bar), sd = sd(medias_amostra50$x_bar)), 
+    linewidth = 1, 
+    color = "red"
+    ) + 
+  theme(text = element_text(size = 18)) + 
+  labs(
+    title = "Distribuição das médias amostrais",
+    subtitle = "2000 amostras com n = 50 cada"
+  )
+```
+
+
+A distribuição amostral que calculamos nos informa bastante sobre as estimativas da área habitável das casas na cidade de Ames. Uma vez que a média amostral é um estimador não viesado, a distribuição amostral estará centrada na verdadeira média da área habitável da população, e a dispersão da distribuição indica quanta variabilidade é possível ao se amostrar somente 50 vendas de casas.
+
+Para ter uma ideia melhor do efeito do tamanho da amostra na distribuição amostral, vamos construir distribuições a partir de amostras de diferentes tamanhos:
+
+**Passo 1**: Crie três distribuições amostrais, cada uma contendo 2000 médias amostrais, oriundas de amostras de tamanho $n=10$, $n=50$ e $n=100$.
+
+```{r}
+set.seed(123)
+medias_amostra10 = rdply(2000, slice_sample(ames, n = 10, replace = T), .id = "id_sample") %>%
+  group_by(id_sample) %>%
+  summarise(x_bar = mean(area))
+```
+
+```{r}
+set.seed(123)
+medias_amostra100 = rdply(2000, slice_sample(ames, n = 100, replace = T), .id = "id_sample") %>%
+  group_by(id_sample) %>%
+  summarise(x_bar = mean(area))
+```
+
+
+**Passo 2**: Construa o gráfico dessas três distribuições amostrais, uma seguida da outra e, na mesma escala, de modo que possamos comparar as formas, centros e dispersões de cada uma.
+
+* **Passo 2a**: Combine essas três distribuições amostrais (cada uma com 2000 valores) em um novo conjunto de dados contendo 6000 valores. Para combinar bancos de dados, linha por linha, nós usamos a função `rbind`.
+
+* **Passo 2b**: Adicione uma nova coluna chamada `tamanho_amostra` aos dados que você acabou de criar, indicando o tamanho da amostra utilizado ao obter cada entrada. Lembre-se que os primeiros 2000 valores foram obtidos de amostras de tamanho 10, os 2000 seguintes de amostras de tamanho 50 e, finalmente, os 2000 últimos valores foram obtidos de amostras de tamanho 100. Portanto, essa nova variável é simplesmente a repetição do valor 10 por 2000 vezes, seguida de 50 por 2000 vezes e, novamente, 100 por 2000 vezes. O uso da função `factor` indica ao R que a variável é qualitativa, e não numérica. Lembre-se também de usar a função `mutate` para adicionar a nova variável ao banco de dados. O argumento `rep(c(10,50,100), each=2000)` diz ao R que os valores 10, 50 e 100 serão repetidos cada um 2000 vezes.
+
+
+```{r}
+medias_amostra = rbind(medias_amostra10, medias_amostra50, medias_amostra100) %>%
+  select(-id_sample) %>%
+  mutate(tamanho_amostra = factor(rep(c(10,50,100), each = 2000)))
+```
+
+* **Passo 2c**: Finalmente, construa os três gráficos representando estas três distribuições amostrais. Podemos fazer isso via *faceting*, i.e. criar faces separadas no gráfico para cada uma das distribuições. Lembre-se que nós identificamos cada distribuição a partir da variável `tamanho_amostra`, que acabamos de criar. A expressão `~tamanho_amostra` é nova: ela separa o eixo-y do nosso gráfico em três faces segundo o `tamanho_amostra` e não separa o eixo-x, o que significa que os gráficos serão dispostos um acima do outro ao invés de um ao lado do outro. Decidimos por esta abordagem para facilitar a comparação entre a posição e a dispersão das distribuições.
+
+
+```{r}
+medias_amostra %>%
+  ggplot(aes(x = x_bar)) + 
+  geom_histogram(binwidth = 20, fill = "orange", col = "black") + 
+  facet_wrap(~tamanho_amostra, ncol = 1, strip.position =  "right") +
+  theme(text = element_text(size = 18))
+```
+
+
+Vemos, portanto, que o aumento do tamanho da amostra tem pouca influência sobre o centro da distribuição (a média amostral, que é uma estimativa da média populacional). A dispersão, porém, diminui bastante com o aumento do tamanho da amostra.
+
+Isso mostra, na prática, o que diz o teorema do limite central: a distribuição amostral da média é normal com média igual à média populacional e variância igual a $\sigma/\sqrt{n}$, em que $n$ é o tamanho da amostra e $\sigma$ é o desvio padrão populacional[^bussab_morettin]. Em outras palavras, podemos dizer que, se sorteamos aleatoriamente um número grande de amostras suficientemente grande, a distribuição da média amostral será normal, centrada na média da população e com variância inversamente proporcional ao tamanho das amostras.
+
+
+
+## Por Sua Conta
+
+Até agora, nós nos ocupamos em estimar a média da área habitável nas casas do município de Ames. Agora você tentará estimar a média dos preços das casas.
+
+
+1. Retire uma amostra aleatória de tamanho 15 da variável `price` e calcule a média. Com essa amostra, qual é sua melhor estimativa pontual para a média populacional?
+
+
+Como sabemos, um bom estimador para a média populacional é a média amostral $\bar{X}$, que é um estimador não viesado. Para esse caso, a média amostral seria:
+
+
+```{r}
+ames %>%
+  select(price) %>%
+  slice_sample(n = 15, replace = T) %>%
+  summarise(x_bar = mean(price))
+```
+
+
+2. Já que você tem acesso à população, simule a distribuição amostral de $\bar{X}_{price}$, retirando 2000 amostras de tamanho 15 da população e calculando 2000 médias amostrais. Armazene essas médias em um vetor com o nome `medias_amostra15`. Crie um gráfico com os resultados, e então descreva a forma dessa distribuição amostral. Baseado nessa distribuição amostral, qual seria seu palpite para a média dos preços das casas na população? Por fim, calcule e informe a média populacional.
+
+
+```{r}
+set.seed(123)
+medias_amostra15 = rdply(2000, slice_sample(ames, n = 15, replace = T), .id = "id_sample") %>%
+  group_by(id_sample) %>%
+  summarise(x_bar = mean(price))
+
+medias_amostra15 %>%
+  ggplot(aes(x = x_bar)) +
+  geom_histogram(
+    aes(y = after_stat(density)), 
+    binwidth = 2000, 
+    fill = "orange", 
+    col = "black"
+    ) + 
+  labs(
+    title = "Distribuição das médias amostrais dos preços",
+    subtitle = "2000 amostras com n = 15 cada"
+  ) + 
+  theme(text = element_text(size = 18)) + 
+  stat_function(
+    fun = dnorm, 
+    args = list(mean = mean(medias_amostra15$x_bar), sd = sd(medias_amostra15$x_bar)),
+    linewidth = 1, 
+    color = "red"
+    )
+```
+
+Conforme podemos ver no histograma plotado logo acima, a forma da distribuição da média para essas 2000 amostras de tamanho 15 é de uma normal, como seria de esperar pelo teorema do limite central. Segundo esse histograma, a melhor estimativa para a média populacional seria em torno de $ 180.000,00.
+
+Além disso, a média populacional dos preços dos imóveis do nosso conjunto de dados é igual a `r format(colMeans(select(ames, price)), scientific = F, decimal.mark = ",", big.mark = ".", nsmall = 2)` dólares.
+
+3. Mude o tamanho da sua amostra de 15 para 150, e então calcule a distribuição amostral utilizando o mesmo método descrito acima, e guarde as médias em um novo vetor com o nome `medias_amostra150`. Descreva a forma dessa distribuição amostral e compare-a com a distribuição amostral para a amostra de 15 elementos. Com base nessa distribuição amostral, qual seria seu palpite sobre a média dos preços de vendas de casas no município de Ames?
+
+
+```{r}
+set.seed(123)
+medias_amostra150 = rdply(2000, slice_sample(ames, n = 150, replace = T), .id = "id_sample") %>%
+  group_by(id_sample) %>%
+  summarise(x_bar = mean(price))
+
+medias_amostra150 %>%
+  ggplot(aes(x = x_bar)) +
+  geom_histogram(
+    aes(y = after_stat(density)), 
+    binwidth = 2000, 
+    fill = "orange", 
+    col = "black"
+    ) + 
+  labs(
+    title = "Distribuição das médias amostrais dos preços",
+    subtitle = "2000 amostras com n = 150 cada"
+  ) + 
+  theme(text = element_text(size = 18)) + 
+  stat_function(
+    fun = dnorm, 
+    args = list(mean = mean(medias_amostra150$x_bar), sd = sd(medias_amostra150$x_bar)),
+    linewidth = 1, 
+    color = "red"
+    )
+```
+
+Como podemos ver no histograma acima, a forma da distribuição das médias para amostras de tamanho $n=150$ é também normal, como esperado. Além disso, vemos também que nossa melhor estimativa para a média populacional continua sendo em torno de 180.000 dólares. 
+
+Comparando este caso com o da distribuição das médias dos preços para amostras de tamanho $n = 15$, vemos que a maior diferença está na dispersão em torno da média populacional, que no presente caso é menor.
+
+
+4. Das distribuições amostrais calculadas nos exercícios 2 e 3, qual tem menor dispersão? Se estamos interessados em estimativas que estão mais próximas do valor verdadeiro, preferiríamos uma distribuição com uma dispersão pequena ou grande?
+
+
+Conforme já discutido no item acima, a distribuição amostral com menor dispersão é aquela com maior $n$, que nesse caso é aquela com $n = 150$. Se estamos interessados em fazer um inferência a respeito do valor da média populacional, por exemplo, deveríamos preferir amostras com maior $n$, a fim de ter maior precisão.
+
+
+```{r}
+medias_amostra_price = rbind(medias_amostra15, medias_amostra150) %>%
+  select(-id_sample) %>%
+  mutate(tamanho_amostra = factor(rep(c(15, 150), each = 2000)))
+
+medias_amostra_price %>%
+  ggplot(aes(x = x_bar)) + 
+  geom_histogram(
+    aes(y = after_stat(density)), 
+    fill = "green", 
+    col = "black", 
+    binwidth = 2000
+    ) +
+  facet_wrap(~tamanho_amostra, ncol = 1, strip.position = "right") +
+  theme(text= element_text(size = 18))
+```
+
+
+# Lab07: Inferência para dados numéricos
+
+
+Neste laboratório, realizaremos testes de hipóteses e construíremos intervalos de confiança (IC's) para médias e diferenças de médias. Vamos fazer esses cálculos "manualmente" e através do uso de uma função nativa do R chamada `t.test()`, que é uma função extremamente útil e flexível quando a amostra bruta é dada. Às vezes, porém, só temos acesso a estatísticas da amostra (por exemplo, $\bar{x}, s_x, n$), o que exige que realizemos cálculos "manualmente" - ou seja, a função `t.test()` requer os dados brutos.
+
+
+## Conteúdos abordados neste laboratório
+
+
+* Intervalo de confiança
+* Teste t para a média de uma população supostamente normal
+* Teste t pareado e não pareado para a diferença entre duas médias
+
+
+
+## Nascimentos na Carolina do Norte
+
+Em 2004, o estado da Carolina do Norte, Estados Unidos, disponibilizou um grande conjunto de dados contendo informações sobre os nascimentos registrados no estado. Esse conjunto de dados é útil para pesquisadores que estudam a relação entre hábitos e práticas de gestantes e o nascimento de seus filhos. Nós trabalharemos com uma amostra aleatória das observações deste conjunto de dados.
+
+
+## Análise Exploratória
+
+Carregue o conjunto de dados `nc` em seu espaço de trabalho[^datasets].
+
+```{r}
+load("nc.RData")
+```
+
+Temos dados de 13 variáveis diferentes, algumas qualitativas e outras quantitativas. O significado de cada variável é o seguinte:
+
+
+<center>
+
+<table style="border-collapse:collapse;border-color:#aaa;border-spacing:0" class="tg"><thead><tr><th style="background-color:#f38630;border-color:#aaa;border-style:solid;border-width:1px;color:#fff;font-family:Arial, sans-serif;font-size:14px;font-weight:bold;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:middle;word-break:normal"><span style="font-weight:700">variable</span></th><th style="background-color:#f38630;border-color:#aaa;border-style:solid;border-width:1px;color:#fff;font-family:Arial, sans-serif;font-size:14px;font-weight:bold;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:middle;word-break:normal"><span style="font-weight:700">description</span></th></tr></thead><tbody><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`fage`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">father’s age in years.</td></tr><tr><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`mage`</span></td><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">mother’s age in years.</td></tr><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`mature`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">maturity status of mother.</td></tr><tr><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`weeks`</span></td><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">length of pregnancy in weeks.</td></tr><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`premie`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">whether the birth was classified as premature (premie) or full-term.</td></tr><tr><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`visits`</span></td><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">number of hospital visits during pregnancy.</td></tr><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`marital`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">whether mother is <span style="color:inherit">married</span> or <span style="color:inherit">not married</span> at birth.</td></tr><tr><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`gained`</span></td><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">weight gained by mother during pregnancy in pounds.</td></tr><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`weight`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">weight of the baby at birth in pounds.</td></tr><tr><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`lowbirthweight`</span></td><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">whether baby was classified as low birthweight (<span style="color:inherit">low</span>) or not (<span style="color:inherit">not low</span>).</td></tr><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`gender`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">gender of the baby, <span style="color:inherit">female</span> or <span style="color:inherit">male</span>.</td></tr><tr><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`habit`</span></td><td style="background-color:#fff;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">status of the mother as a <span style="color:inherit">nonsmoker</span> or a <span style="color:inherit">smoker</span>.</td></tr><tr><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal"><span style="color:inherit">`whitemom`</span></td><td style="background-color:#FCFBE3;border-color:#aaa;border-style:solid;border-width:1px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:middle;word-break:normal">whether mom is <span style="color:inherit">white</span> or <span style="color:inherit">not white</span>.</td></tr></tbody></table>
+
+</center>
+
+<br>
+
+Primeiro, vamos fazer um breve resumo desse conjunto de dados:
+
+```{r, echo=FALSE}
+cat("Número de Registros:",
+    nrow(nc),
+    "\nResumo Estatístico:\n"
+    )
+
+summary(nc)
+```
+Com a ajuda da função `glimpse()`, vamos ver quais dados são numéricos e quais são do tipo categórico:
+
+```{r}
+glimpse(nc)
+```
+
+Vamos agora investigar a idade típica das mães e pais na Carolina do Norte. Comecemos construindo histogramas, boxplots e verificando o resumo de cinco números para cada caso:
+
+
+```{r}
+histogram = nc %>%
+  ggplot(aes(x = mage)) + 
+  geom_histogram(col = "black", fill = "pink", binwidth = 1) + 
+  labs(
+    title = "Mother's age",
+    x = "age",
+    y = "N"
+  ) + 
+  theme(text = element_text(size = 18))
+
+box_plot = nc %>%
+  ggplot(aes(y = mage, x = "")) + 
+  geom_boxplot(
+    fill = "pink",
+    outlier.colour = "red",
+    alpha = 0.95,
+    width = 0.4
+  ) + 
+  labs(
+    x = "",
+    y = ""
+  ) +
+  theme(text = element_text(size = 18))
+
+cowplot::plot_grid(histogram, box_plot)
+```
+
+
+
+```{r}
+histogram = nc %>%
+  ggplot(aes(x = fage)) + 
+  geom_histogram(col = "black", fill = "skyblue", binwidth = 1) + 
+  labs(
+    title = "Father's age",
+    x = "age",
+    y = "N"
+  ) + 
+  theme(text = element_text(size = 18))
+
+box_plot = nc %>%
+  ggplot(aes(y = fage, x = "")) + 
+  geom_boxplot(
+    fill = "skyblue",
+    outlier.colour = "red",
+    alpha = 0.95,
+    width = 0.4
+  ) + 
+  labs(
+    x = "",
+    y = ""
+  ) +
+  theme(text = element_text(size = 18))
+
+cowplot::plot_grid(histogram, box_plot)
+```
+
+
+```{r, echo=FALSE}
+cat("Resumo de 5 números para a idade da mãe:\n")
+
+summary(nc$mage)
+
+cat("Resumo de 5 números para a idade do pai:\n")
+
+summary(nc$fage)
+
+cat("\nVariabilidade da idade da mãe:\n")
+
+nc %>% 
+  summarise(dq = IQR(mage, na.rm = T), s = sd(mage, na.rm = T))
+
+cat("\nVariabilidade da idade do pai:\n")
+
+nc %>% 
+  summarise(dq = IQR(fage, na.rm = T), s = sd(fage, na.rm = T))
+```
+
+>Note que `sd(fage)` e `IQR(fage)` não retorna resultados válidos. O resumo de 5 números indica que existem 171 nascimentos para os quais a idade do pai não foi informada. Por padrão, a maioria das funções do R não retorna resultados válidos quando o dado está ausente. Isto pode ser resolvido adicionando-se o argumento `na.rm = TRUE` na chamada da função.
+
+
+## Introdução à inferência
+
+Suponha que queremos testar a hipótese de que a idade média para as mães que dão à luz na Carolina do Norte é 26,5 anos. Calculando "manualmente", temos[^bussab_morettin]:
+
+
+```{r}
+# Dados amostrais
+
+xbar = mean(nc$mage)
+std = sd(nc$mage)
+n = length(nc$mage)
+
+# Teste de hipótese -- Calculando o p-valor
+
+dof = n - 1 #Graus de liberdade
+std_err = std/sqrt(n) #erro padrão do estimador
+test_stat = (xbar - 26.5)/std_err #Estatística do teste
+p_value = 2*pt(-abs(test_stat), df = dof)
+p_value
+
+#Construindo um intervalo de confiança de 95% para a média:
+
+q = qt(0.975, df = dof)
+IC = xbar + c(-1, 1)*q*std_err
+IC
+```
+
+Como o nosso p-valor é menor que o nível de significância $\alpha$ (0,05), temos evidências suficientes para rejeitar a hipótese de que a idade média das mulheres que dão à luz na Carolina do Norte é de 26,5 anos. Observe que 26,5 anos não está contido no intervalo de confiança de 95% construído. Os testes de hipóteses para a média com nível de significância $\alpha$ são logicamente equivalentes a um intervalo de confiança de $100(1 - \alpha)\%$ - essa é a grande sacada.
+
+Vamos agora fazer o mesmo procedimento com o uso da função `t.test()`:
+
+```{r}
+# Mother's mean age -- HT and 95% CI
+
+t.test(
+  x = nc$mage, 
+  alternative = "two.sided", 
+  mu = 26.5, 
+  conf.level = 0.95
+  )
+```
+
+> Suponha agora que queiramos testar se a idade média dos pais da NC é 30 anos. Use $\alpha = 0.01$. Construa também um intervalo de confiança de 99% para a média. Calcule "manualmente" e usando `t.test()`. **Dica**: quando calculamos "manualmente", os valores ausentes podem ser um problema, de modo que primeiro precisamos extrair e armazenar as informações úteis. A função `t.test()`, por outro lado, já cuida disso automaticamente.
+
+
+```{r}
+# Dados Amostrais
+
+# f_age = nc %>%
+#   select(fage) %>%
+#   drop_na()
+
+xbar = mean(nc$fage, na.rm = T)
+std = sd(nc$fage, na.rm = T)
+n = sum(!is.na(nc$fage))
+
+# Teste de hipótese - calculando o p-valor
+
+dof = n - 1 #Graus de liberdade
+std_err = std/sqrt(n) #Erro padrão do estimador
+test_stat = (xbar - 30)/std_err #Estatística do teste
+
+2*pt(-abs(test_stat), df = dof)
+
+# Construindo um intervalo de confiança de 99% para a média:
+
+q = qt(0.995, df = dof)
+IC = xbar + c(-1, 1)*q*std_err
+IC
+```
+
+Fazendo o mesmo cálculo usando a função `t.test()`, temos:
+
+```{r}
+t.test(
+  x = nc$fage, 
+  mu = 30, 
+  alternative = "two.sided",
+  conf.level = 0.99
+  )
+```
+
+Suponha que um pesquisador quer testar a hipótese de que a média da idade dos pais na NC é diferente da média da idade das mães que deram à luz - suponha um $\alpha$ de 0,01. Este é um teste para a diferença entre as duas médias populacionais, o que nos obriga a perguntar se os dados para os dois grupos (mães e pais) são pareados ou não. Claramente, os dados são pareados, uma vez que as idades do pai e da mãe guardam relação de interdependência. Fazendo o cálculo primeiro "manualmente", temos:
+
+```{r}
+# Teste pareado - apenas é necessária a diferença nas idades
+
+age_diff = nc$mage - nc$fage
+summary(age_diff)
+
+# Dados amostrais
+
+xbar = mean(age_diff, na.rm = T)
+std  = sd(age_diff, na.rm = T)
+n = sum(!is.na(age_diff))
+
+# Teste de hipótese - calculando o p-valor
+
+dof = n - 1 #graus de liberdade
+std_err = std/sqrt(n) #erro padrão do estimador
+test_stat = (xbar - 0)/std_err #estatística do teste
+2*pt(-abs(test_stat), df = dof)
+
+# Construindo um intervalo de confiança de 99% para a média
+
+q = qt(0.995, df = dof)
+IC = xbar + c(-1, 1)*q*std_err
+IC
+```
+
+E usando a função `t.test()`, nosso resultado sai muito mais rápido:
+
+
+```{r}
+# Opção 1: Calcular a diferença entre as duas variáveis externamente e
+# inserí-la na função t.test()
+
+t.test(x = age_diff, alternative = "two.sided", mu = 0, conf.level = 0.99)
+
+# Opção 2: Faça a própria função calcular as diferenças, utilizando
+# o argumento paired = TRUE
+
+t.test(
+  x = nc$mage, 
+  y = nc$fage, 
+  paired = T, 
+  alternative = "two.sided",
+  mu = 0,
+  conf.level = 0.99
+  )
+```
+
+
+> Conforme já discutido no texto, o teste t pareado é usado quando os dois conjuntos de dados cujas médias queremos comparar guardam relação de interdependência. Vimos o exemplo das idades de mães e pais de recém nascidos. Outro caso interessante é quando consideramos medidas de uma mesma grandeza e em um mesmo indivíduo em momentos diferentes - por exemplo, a pressão arterial do mesmo grupo de indivíduos antes e depois de administrar-se determinada droga.
+
+
+Agora considere a relação entre o hábito de fumar de uma mãe e o peso de seu bebê. Plotar os dados é um primeiro passo útil, uma vez que nos ajuda a visualizar tendências rapidamente, identificar associações fortes e desenvolver questões de pesquisa.
+
+> Faça um box plot lado-a-lado para `habit` e `weight`. O que o gráfico destaca sobre a relação entre essas duas variáveis?
+
+```{r}
+nc %>%
+  drop_na() %>%
+  ggplot(aes(x = "", y = weight, fill = habit)) + 
+  geom_boxplot(
+    width = 0.6,
+    outlier.colour = "red",
+    alpha = 0.95
+    ) + 
+  scale_fill_manual(values = c("green", "yellow")) + 
+  theme_void() + 
+  labs(
+    title = "Peso dos recém-nascidos"
+  ) +
+  theme(text = element_text(size = 20))
+```
+
+Vemos, portanto, que as crianças filhos de mães não fumantes tendem a ter maior peso, embora existam muitos *outliers* com valores muito baixos.
+
+Podemos ainda olhar para os pesos médios dos bebês dentro de cada grupo:
+
+```{r}
+nc %>%
+  select(habit, weight) %>%
+  drop_na() %>%
+  group_by(habit) %>%
+  summarise(media_peso = mean(weight)) %>%
+  kable %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
+```
+
+Corroborando aquilo que já dissemos acima, a média de peso para os bebês filhos de mães não fumantes parece ser maior do que a média para os filhos de mães fumantes. Mas será que essa diferença é significativa? Para responder a essa pergunta, faremos um teste de hipóteses.
+
+> Verifique se as condições necessárias para a inferência são satisfeitas. Observe que você precisará obter tamanhos de amostra para verificar as condições. Você pode calcular o tamanho do grupo usando o mesmo comando acima, mas substituindo `mean` por `n()`.
+
+```{r}
+nc %>%
+  group_by(habit) %>%
+  summarise(n = n()) %>%
+  drop_na() %>%
+  kable %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
+```
+
+Uma dsa condições para se fazer inferência estatística é o tamanho da amostra ser suficientemente grande, a qual garante a validade do teorema do limite central. Quanto maior o tamanho da amostra, melhor, mas em geral, uma amostra de tamanho $n = 100$ já é válida para inferências. Aqui, como estamos fazendo um teste t, é preciso também supor que os dados populacionais têm distribuição normal.
+
+
+> Escreva as hipóteses para testar se os pesos médios dos bebês nascidos de mães fumantes e não fumantes são diferentes.
+
+$$H_0: \mu_F = \mu_{NF}$$
+
+$$H_1: \mu_F \neq \mu_{NF}$$
+
+Novamente, este é um teste de hipótese para uma diferença entre duas médias, porém, neste caso, os dados não são pareados - não há uma maneira razoável de comparar membros de um grupo (fumantes) com o outro grupo (não fumantes). Não há razão para acreditar que os grupos sejam dependentes, uma vez que os registros foram amostrados aleatoriamente.
+
+Primeiro, vamos fazer os cálculos "manualmente":
+
+
+```{r}
+# Estatísticas para os pesos dos bebês de mães fumantes:
+
+grp1 = nc %>%
+  subset(habit == "smoker", select = weight)
+xbar1 = mean(grp1$weight, na.rm = T)
+std1 = sd(grp1$weight, na.rm = T)
+n1 = sum(!is.na(grp1))
+
+# Estatísticas para os pesos dos bebês de mães não fumantes:
+
+grp2 = nc %>%
+  subset(habit == "nonsmoker", select = weight)
+xbar2 = mean(grp2$weight, na.rm = T)
+std2 = sd(grp2$weight, na.rm = T)
+n2 = sum(!is.na(grp2))
+
+# Teste de hipóteses - calculando o p-valor
+
+A = std1^2/n1
+B = std2^2/n2
+
+dof = ((A+B)^2)/(A^2/(n1-1) + B^2/(n2-1)) #Graus de liberdade
+std_err = sqrt(std1^2/n1 + std2^2/n2)
+test_stat = (xbar1 - xbar2 - 0)/std_err #Estatística do teste
+p_value = 2*pt(-abs(test_stat), df = dof)
+p_value
+
+# Construindo um intervalo de confiança de 95% para a diferença entre as
+# médias:
+
+q = qt(0.975, dof)
+IC = xbar1 - xbar2 + c(-1, 1)*q*std_err
+IC
+```
+
+Com a função `t.test()`, obtemos
+
+```{r}
+t.test(
+  x = grp1$weight, 
+  y = grp2$weight, 
+  alternative = "two.sided",
+  var.equal = F,
+  paired = F,
+  mu = 0,
+  conf.level = 0.95
+  )
+```
+
+Nesse último caso, o parâmetro `var.equal = F` é usado para indicar se estamos dispostos a assumir que os dois grupos têm variância igual. Na maioria dos casos, é mais seguro não fazer essa suposição.
+
+
+## Por sua conta
+
+1. Calcule um intervalo de confiança de 95% para a duração média das gestações (weeks) e interprete-o no contexto.
+
+
+```{r}
+duration = nc %>%
+  select(weeks) %>%
+  drop_na()
+
+xbar = mean(duration$weeks)
+n = nrow(duration)
+std = sd(duration$weeks)
+std_err = std/sqrt(n)
+dof = n - 1
+q = qt(0.975, df = dof)
+IC = xbar + c(-1, 1)*q*std_err
+
+cat(
+  "Intervalo de Confiança p/ a duração média da gestação:",
+  IC,
+  "\nAmplitude do IC(95%):",
+  abs(IC[1] - IC[2])
+  )
+```
+
+
+2. Calcule um novo intervalo de confiança para o mesmo parâmetro no nível de confiança de 90%.
+
+
+```{r}
+q = qt(0.95, df = dof)
+IC = xbar + c(-1, 1)*q*std_err
+cat(
+  "Intervalo de Confiança p/ a duração média da gestação:",
+  IC,
+  "\nAmplitude do IC(90%):",
+  abs(IC[1] - IC[2])
+  )
+```
+
+
+3. Agora, uma tarefa de não inferência: determine a idade de corte para mães mais jovens e maduras. Use um método de sua escolha e explique como seu método funciona.
+
+Vamos escolher o terceiro quartil como critério para definir a idade das mães mais jovens e mais maduras:
+
+
+```{r}
+q3 = as.double(quantile(nc$mage, 0.75))
+q3
+```
+
+
+4. Faça um teste de hipóteses avaliando se o peso médio ganho pelas mães mais jovens é diferente do peso médio ganho pelas mães maduras.
+
+Primeiro, vamos definir as hipóteses nula e alternativa:
+
+$$ H_0: \mu_{young} = \mu_{older} $$
+$$ H_1: \mu_{young} \neq \mu_{older} $$
+Agora, vamos fazer o teste de hipóteses propriamente dito. Primeiro, vamos dividir o conjunto de dados em dois grupos: o das mães mais jovens e o das mães mais velhas, os quais estão separados pelo terceiro quartil da idade. Após isso, de posse dos valores de peso ganho para os dois grupos, vamos fazer o teste estatístico.
+
+
+```{r}
+# Subdividindo o conjunto segundo as idades das mães mais velhas
+older = nc %>%
+  filter(mage >= q3) %>%
+  select(gained) %>%
+  drop_na()
+
+# Estatísticas da amostra de mães mais velhas
+xbar1 = mean(older$gained)
+std1 = sd(older$gained)
+n1 = nrow(older)
+
+# Subdividindo o conjunto segundo as idades das mães mais jovens
+younger = nc %>%
+  filter(mage < q3) %>%
+  select(gained) %>%
+  drop_na()
+
+# Estatísticas da amostra de mães mais jovens
+xbar2 = mean(younger$gained)
+std2 = sd(younger$gained)
+n2 = nrow(younger)
+
+# Vamos testar a igualdade das variâncias
+var.test(older$gained, younger$gained)
+
+# O resultado para o teste de igualdade das variâncias indica que as 
+# variâncias dos dois grupos são iguais. Essa informação será levada
+# em conta no teste t.
+
+t.test(
+  older$gained, 
+  younger$gained, 
+  var.equal = T,
+  paired = F,
+  alternative = "two.sided")
+```
+Conforme o resultado do teste t realizado aponta, há indícios de que o peso médio ganho pelas mães mais jovens e maduras são diferentes. Ainda, como a estatística do teste resultou ser negativa, concluímos também que o peso médio ganho pelas mães mais jovens é maior do que o ganho pelas mães mais maduras.
+
+Por fim, sempre é bom lembrar que, quando estamos fazendo um teste t (que é um teste paramétrico), estamos supondo que conhecemos a distribuição das populações, que, neste caso, tem que ser normal. Para um resultado mais fidedigno, precisaríamos fazer um teste não paramétrico, como por exemplo, o teste de Mann-Whitney.
+
+5. Escolha um par de variáveis numéricas e categóricas e crie uma questão de pesquisa avaliando a relação entre essas variáveis. Formule a questão de forma que possa ser respondida usando um teste de hipótese e/ou um intervalo de confiança. Responda sua pergunta usando a função `t.test()`, relate os resultados estatísticos e também forneça uma explicação em linguagem simples.
+
+
+Podemos investigar a relação existente entre o número de visistas ao hospital que as mães fizeram durante a gestação (`visits`) e a cor da pele. Primeiro, vamos ver essa relação por meio de um boxplot:
+
+```{r}
+nc %>%
+  select(visits, whitemom) %>%
+  drop_na() %>%
+  ggplot(aes(x = "", y = visits, fill = whitemom)) + 
+  geom_boxplot(
+    outlier.color = "red",
+    alpha = 0.95,
+    width = 0.4
+    ) + 
+  theme_void() + 
+  theme(text = element_text(size = 20))
+```
+
+Aparentemente, não há grande diferenças entre o número de visitas feitas ao hospital durante a gravidez entre mulheres brancas e não brancas, ao menos do ponto de vista da mediana dos dados. 
+
+Vamos fazer um teste baseado no número médio de visitas ao hospital feitas pelos dois grupos de mães - brancas e não brancas, supondo, claro, que as populações são normais. Vamos formular as hipóteses:
+
+
+$$ H_0: \mu_{white} = \mu_{notwhite} $$
+
+$$ H_1: \mu_{white} \neq \mu_{notwhite} $$
+
+
+```{r}
+# Separando os dois grupos: mães brancas e não brancas
+white = nc %>%
+  filter(whitemom == "white") %>%
+  select(visits) %>%
+  drop_na()
+
+nwhite = nc %>%
+  filter(whitemom != "white") %>%
+  select(visits) %>%
+  drop_na()
+
+# Testando a igualdade das variâncias dos dois grupos
+
+var.test(white$visits, nwhite$visits)
+
+# Conforme o resultado do teste F para igualdade das variâncias, feito acima, concluímos que as variâncias dos dois grupos são diferentes.
+
+# Testando a igualdade das médias dos dois grupos:
+
+t.test(
+  white$visits, 
+  nwhite$visits, 
+  var.equal = F, 
+  paired = F, 
+  alternative = "two.sided"
+  )
+```
+
+Assim, de acordo com o resultado do nosso teste, rejeitamos a hipótese nula de que o número médio de visitas ao hospital é igual para os dois grupos de mães. Em outras palavras, concluímos que há indícios de que as mães brancas, em média, visitaram o hospital mais vezes que as mães não brancas durante a gravidez.
+
+
+
+# Lab08: Mais inferência para dados numéricos - comparando mais que duas amostras
+
+
+Neste laboratório, daremos continuidade aos exemplos de inferência estatística. Porém, aqui, levaremos também em consideração comparações entre mais de duas populações, situação em que teremos que utilizar método ainda não visto no laboratório anterior.
+
+
+## Conteúdos abordados neste laboratório
+
+
+* Intervalo de confiança
+* Teste t para a diferença entre duas médias
+* Teste F para a igualdade entre as variâncias de duas populações normais
+* ANOVA
+* Correção de Bonferroni
+
+
+## Salários Americanos
+
+
+Neste laboratório, nós iremos trabalhar com uma amostra aleatória de 2000 observações do ACS (American Community Survey, ou Pesquisa da Comunidade Americana) 2012. Este conjunto de dados contém informações sobre a força de trabalho e os salários americanos. Você deve carregar esse banco de dados à partir do comando abaixo[^datasets].
+
+
+```{r}
+load("acs12.RData")
+```
+
+
+Temos dados de 13 variáveis diferentes, algumas qualitativas e outras quantitativas. Cada variável representa uma das seguintes informações:
+
+
+<center>
+
+<table style="border-collapse:collapse;border-color:#9ABAD9;border-spacing:0" class="tg"><thead><tr><th style="background-color:#409cff;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#fff;font-family:Arial, sans-serif;font-size:14px;font-weight:bold;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">Variable</th><th style="background-color:#409cff;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#fff;font-family:Arial, sans-serif;font-size:14px;font-weight:bold;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">Description</th></tr></thead><tbody><tr><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`income`</td><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">Annual income</td></tr><tr><td style="background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`employment`</td><td style="background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">Employment status</td></tr><tr><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`hrs_work`</td><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">Hours worked per week</td></tr><tr><td style="background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`race`</td><td style="background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">Race</td></tr><tr><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`age`</td><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">Age, in years</td></tr><tr><td style="background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`gender`</td><td style="background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">Gender</td></tr><tr><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`citizen` </td><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">Whether the person is a U.S. citizen</td></tr><tr><td style="background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`time_to_work`</td><td style="background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">Travel time to work, in minutes</td></tr><tr><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`lang`</td><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">Language spoken at home</td></tr><tr><td style="background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`married`</td><td style="background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">Whether the person is married</td></tr><tr><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`edu`</td><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">Education level</td></tr><tr><td style="background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`disability`</td><td style="background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">Whether the person is disabled</td></tr><tr><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">`birth_qrtr`</td><td style="background-color:#D2E4FC;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:left;vertical-align:top;word-break:normal">The quarter of the year that the person was born, e.g. Jan thru Mar</td></tr></tbody></table>
+
+</center>
+
+</br>
+
+Note que este conjunto de dados contém algumas pessoas que não estão na força de trabalho ou estão desempregadas, como podemos ver por meio dos comandos abaixo:
+
+
+```{r}
+glimpse(acs12$employment)
+
+levels(acs12$employment)
+```
+
+
+```{r}
+acs12 %>%
+  select(employment) %>%
+  group_by(employment) %>%
+  summarise(
+    n = n(), 
+    percent = scales::percent(n()/nrow(acs12), accuracy = NULL)
+    ) %>%
+  kable() %>%
+   kable_styling(
+     full_width = F, 
+     bootstrap_options = c("striped", "hover", "condensed", "responsive")
+     )
+```
+
+Primeiramente, vamos filtrar os entrevistados que estão empregados. Vamos chamar este banco de dados como `acs_emp`.
+
+
+```{r}
+acs_emp = acs12 %>%
+  filter(employment == "employed")
+```
+
+Podemos ver assim que o percentual de empredados na nossa amostra é de `r scales::percent(nrow(acs_emp)/nrow(acs12))`.
+
+Agora, vamos dar um olhada na distribuição da renda de acordo com o gênero. O primeiro passo é criar uma visualização:
+
+```{r}
+acs_emp %>%
+  ggplot(aes(y = income, x = "", fill = gender)) + 
+  geom_boxplot(
+    outlier.colour = "red",
+    width = 0.4,
+    alpha = 0.95
+  ) + 
+  theme_void() + 
+  theme(text = element_text(size = 18)) + 
+  scale_fill_manual(values = c("skyblue", "pink"))
+```
+
+Como podemos ver nos boxplots, os homens parecem ganhar mais que as mulheres.
+
+Podemos também obter algumas estatísticas descritivas como a média, desvio padrão e tamanho das amostras.
+
+```{r}
+acs_emp %>%
+  group_by(gender) %>%
+  summarise(
+    media = mean(income),
+    dp = sd(income),
+    n = n()
+  ) %>%
+   kable() %>%
+   kable_styling(
+     full_width = F, 
+     bootstrap_options = c("striped", "hover", "condensed", "responsive")
+     )
+```
+
+Assim, à primeira vista, os homens parecem ganhar muito mais que as mulheres, em média.
+
+> Construa um intervalo de confiança de 95% para a diferença entre os rendimentos médios dos homens e mulheres e interprete este intervalo.
+
+Supondo a normalidade dos dados nas respectivas populações, podemos escrever um intervalo de confiança de 95% para a diferença entre as rendas médias de homens e mulheres, por meio da distribuição t de Student:
+
+
+```{r}
+# Renda dos homens
+income_male = acs_emp %>%
+  filter(gender == "male") %>%
+  select(income) %>%
+  drop_na()
+
+xbar1 = mean(income_male$income)
+std1 = sd(income_male$income)
+n1 = nrow(income_male)
+
+# Renda das mulheres
+income_female = acs_emp %>%
+  filter(gender == "female") %>%
+  select(income) %>%
+  drop_na()
+
+xbar2 = mean(income_female$income)
+std2 = sd(income_female$income)
+n2 = nrow(income_female)
+
+# Testando a igualdade das variâncias
+var.test(income_male$income, income_female$income)
+
+# Portanto, como o teste F para igualdade das variâncias indicou que as variâncias dos dois gêneros são diferentes, o número de graus de liberdade para o teste t será dado por:
+A = std1^2/n1
+B = std2^2/n2
+
+dof = ((A+B)^2)/(A^2/(n1-1) + B^2/(n2-1)) #Graus de liberdade
+std_err = sqrt(std1^2/n1 + std2^2/n2) #Erro padrão do estimador
+q = qt(0.975, df = dof) #Quantil que define o IC de 95%
+
+IC = xbar1 - xbar2 + c(-1,1)*q*std_err
+
+cat(
+  "Intervalo de confiança para a diferença entre as médias:\n",
+  IC
+  )
+```
+
+Como o intervalo de confiança para a diferença entre as rendas médias dos homens e das mulheres não contêm o zero, concluímos que as duas médias são diferentes. Além disso, o sinal da diferença também indica que a renda média dos homens é de fato maior que a das mulheres.
+
+
+> Qual é o nível de significância para o teste de hipóteses equivalente ao intervalo de confiança construído que avalia se existe uma diferença significativa entre os rendimentos médios de homens e mulheres?
+
+Como sabemos, um intervalo de confiança de $100 \cdot \gamma \%$ equivale a um nível se significância $\alpha = 1 - \gamma$, Assim, se estamos escrevendo um intervalo de confiança de 95%, isso equivale a um teste de hipóteses com nível de significância $\alpha = 0.05$.
+
+> Realize este teste de hipóteses e interprete seus resultados no contexto dos dados e da questão de pesquisa. Seus resultados do intervalo de confiança e do teste de hipóteses concordam?
+
+Podemos fazer um teste t para a diferença entre a renda média de homens e mulheres, supondo populações normais:
+
+```{r}
+# Como sabemos que as variâcias dos dois grupos são muito diferentes, podemos supor diretamente que essas diferenças também ocorrem nas populações. 
+
+# Fazendo o teste t não pareado para a diferença entre as duas médias
+t.test(
+  income_male$income, 
+  income_female$income, 
+  paired = F,
+  alternative = "two.sided"
+  )
+```
+
+Como $p \approx 0$, rejeitamos a hipótese de iguldade das duas médias para qualquer um dos intervalos de significância comumente adotados, o que está em perfeito acordo com o intervalo de confiança já escrito no item anterior. Além disso, a função `t.test()` também retorna o intervalo de confiança de 95% para a diferença entre as médias, e o resultado é o mesmo já calculado anterioriormente de maneira "manual".
+
+## Variáveis de confusão
+
+Há uma clara diferença entre os salários médios dos homens e das mulheres, mas poderia alguma, ou a totalidade, desta diferença ser atribuída a alguma outra variável que não seja o gênero? Nós chamamos tais variáveis como **variáveis de confusão**. Vamos avaliar se a variável `hrs_work` confunde a relação entre gênero e renda. Mas antes de fazermos isso, vamos primeiro converter a variável `hrs_work` a uma variável qualitativa (com níveis de "integral" e "parcial") para que possamos usar os métodos que aprendemos até agora na execução da análise.
+
+
+## Convertendo variáveis
+
+Queremos criar uma nova variável, digamos `emp_type`, com níveis de "integral" ou "partial", relacionados ao fato do empregado trabalhar 40 horas ou mais por semana ou menos do que 40 horas, respectivamente. Lembre-se que nós podemos adicionar uma nova variável ao conjunto de dados por meio da função `mutate`.
+
+
+```{r}
+acs_emp = acs_emp %>%
+  mutate(
+    emp_type = ifelse(hrs_work >= 40, "integral", "partial")
+  )
+```
+
+A função `ifelse()` tem três argumentos: um teste lógico, retorna valores `TRUE` para os elementos verdadeiros do teste, e valores `FALSE` para elementos falsos do teste. Neste caso, `emp_type` será codificado como "integral" para observações onde `hrs_work` é maior ou igual a 40, e "partial" para o caso contrário.
+
+Para descobrir a proporção de cada caso, nós retornamos às estatísticas descritivas:
+
+
+```{r}
+acs_emp %>%
+  group_by(emp_type) %>%
+  summarise(
+    time_ratio = scales::percent(n()/nrow(acs_emp))
+  ) %>%
+  kable() %>%
+   kable_styling(
+     full_width = F, 
+     bootstrap_options = c("striped", "hover", "condensed", "responsive")
+     )
+```
+
+Aqui, primeiramente, nós agrupamos os dados pela nova variável `emp_type`, e então calculamos as proporções de trabalhadores a tempo integral e parcial ao contar quantos elementos existem em cada grupo (com a função `n()`), e em seguida dividimos esse número pelo total de linhas do conjunto de dados.
+
+> Contrua um gráfico de barras da distribuição da variável `emp_type`, e também inclua as estatísticas descritivas que você calculou acima em sua resposta. Qual o percentual da amostra representa os trabalhadores em tempo integral e tempo parcial?
+
+```{r}
+acs_emp %>%
+  ggplot(aes(x = emp_type, group = gender)) + 
+  geom_bar(
+    aes(y = ..prop.., fill = gender), 
+    stat = "count", 
+    position = "dodge"
+    ) + 
+  geom_text(
+    aes(label = scales::percent(..prop..), y = ..prop..),
+    stat = "count",
+    position = position_dodge(.9), 
+    vjust = -0.5,
+    size = 4.5
+    ) + 
+  # scale_y_continuous(labels = scales::percent) + 
+  theme_minimal() + 
+  labs(
+    x = "",
+    y = ""
+  ) + 
+  theme(
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank()
+    ) + 
+  theme(
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank()
+    ) + 
+  theme(text = element_text(size = 18)) + 
+  scale_fill_manual(values = c("skyblue", "pink"))
+```
+
+
+Aqui, temos uma pista para o motivo de as mulheres ganharem menos que os homens, em média. Quando olhamos para a variável `emp_type`, vemos que 29% da força de trabalho nesse dataframe trabalham em período parcial. Quando olhamos o gráfico de barras para a mesma variável, agrupado pelo gênero, vemos que, dentre as mulheres, cerca de metade trabalham em período parcial, enquanto que nos homens, esse percentual é menor que 20%.
+
+Assim, concluímos que a menor renda das mulheres quando comparada à dos homens PODE ser devido à diferença nos regimes de trabalho, uma vez que, dentre os homens, apenas 19% trbalham em período parcial, ao passo que, dentre as mulheres, esse percentual é de 43%.
+
+
+## Por sua conta
+
+1. Crie dois subconjuntos do conjunto de dados `acs_emp`: um para trabalhadores a tempo integral e um outro para os trabalhadores a tempo parcial. Nenhuma interpretação é necessária para esta questão, apenas o código é suficiente.
+
+
+```{r}
+partial = acs_emp %>%
+  filter(emp_type == "partial")
+
+integral = acs_emp %>%
+  filter(emp_type == "integral")
+```
+
+2. Use um teste de hipóteses para avaliar se existe diferença na renda média dos trabalhados masculinos e femininos que trabalham em tempo integral. Se a diferença for significativa, inclua um intervalo de confiança (equivalente ao nível de significância do teste) estimando a magnitude da diferença na renda média.
+
+Podemos fazer um teste t, supondo a normalidade dos dados:
+
+```{r}
+# Renda dos homens
+income_male_integral = integral %>%
+  filter(gender == "male") %>%
+  select(income) %>%
+  drop_na()
+
+# Renda das mulheres
+income_female_integral = integral %>%
+  filter(gender == "female") %>%
+  select(income) %>%
+  drop_na()
+
+teste_t = t.test(
+  income_male_integral$income, 
+  income_female_integral$income,
+  paired = F,
+  var.equal = F,
+  alternative = "two.sided")
+
+teste_t
+```
+
+
+Como $p << 0.05$, concluímos que, provavelmente, existe diferença nas rendas médias de homens e mulheres que compõem a força de trabalho americana.
+
+
+```{r}
+cat(
+  "Intervalo de confiança de 95% para a diferença nas rendas médias de homens e mulheres que trabalham em tempo integral:\n",
+  teste_t$conf.int[1:2])
+```
+
+Portanto, vemos que, mesmo entre as pessoas que trabalham em tempo integral, existe uma diferença estatisticamente significativa entre as rendas médias de homens e mulheres.
+
+3. Use um teste de hipóteses para avaliar se existe diferença na renda média dos trabalhados masculinos e femininos que trabalham em tempo parcial. Se a diferença for significativa, inclua um intervalo de confiança (equivalente ao nível de significância do teste) estimando a magnitude da diferença na renda média.
+
+Novamente, podemos fazer um teste t, supondo a normalidade dos dados:
+
+```{r}
+# Renda dos homens
+income_male_partial = partial %>%
+  filter(gender == "male") %>%
+  select(income) %>%
+  drop_na()
+
+# Renda das mulheres
+income_female_partial = partial %>%
+  filter(gender == "female") %>%
+  select(income) %>%
+  drop_na()
+
+teste_t = t.test(
+  income_male_partial$income, 
+  income_female_partial$income,
+  paired = F,
+  var.equal = F,
+  alternative = "two.sided")
+
+teste_t
+```
+
+Como $p \approx 0.19 > 0.05$, concluímos que a diferença nas rendas médias de homens e mulheres que trabalham em tempo parcial não é significativa. Portanto, as rendas média são provavelmente iguais para aqueles que trabalham menos que 40 horas semanais.
+
+4. O que os resultados do seu teste de hipóteses sugerem sobre as horas trabalhadas (em tempo integral ou parcial) constituirem ou não uma variável de confusão na relação entre gênero e renda?
+
+Conforme comentado acima, concluímos que a quantidade de horas trabalhadas é de fato uma variável de confusão, uma vez que o resultado do teste de hipóteses muda quando consideramos apenas aqueles que trabalham menos de 40 horas semanais. Quando consideramos os que trabalham 40 horas ou mais, por outro lado, o resultado permanece o mesmo.
+
+5. Que tipo de teste deveríamos utilizar para compararmos os salários médios em torno dos vários grupos de raça/etnia neste conjunto de dados? Explique seu raciocínio.
+
+Primeiro, vamos ver quantos grupos existem para o fator raça no conjunto de dados completo:
+
+
+```{r}
+levels(acs12$race)
+```
+
+Portanto, vemos que temos 4 grupos dentro do fator raça. Quando queremos comparar as médias de mais que dois grupos, podemos usar um teste ANOVA (*Analysis of Variance*). Esse teste se baseia na variabilidade dentro dos grupos e entre os grupos e utiliza a distribuição F para testar a hipótese de igualdade entre as médias de todos os grupos contra a hipótese alternativa de que a média de pelo menos um grupo é diferente das demais.
+
+6. Realize este teste de hipóteses utilizando a função inference. Note que a variável resposta é a renda e a variável explicativa é raça. Você terá que descobrir os argumentos restantes para a função. Use uma abordagem de tentativa e erro, e deixe que os erros o informe sobre o que mais precisa ser especificado, e como. (Nota: Utilize o conjunto de dados que contém os registros de todos os funcionários participantes: nomeie acs_map) Escreva suas hipóteses, e interprete a sua conclusão no contexto dos dados e da questão de pesquisa. Note que a função inference, por padrão, usa um nível de significância de 0,05 para a ANOVA, serão executados pares de testes t e p-valores serão reportados para eles, se a ANOVA for significativa. (Note também que você pode mudar o nível de significância definindo sig_level igual a algum outro valor.)
+
+Aqui, podemos combinar as funções `aov()` e `anova()` para gerar o resultado do teste.
+
+
+```{r}
+anova1 = aov(income ~ race, acs12)
+result = anova(anova1)
+result
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente de explicação do modelo utilizado",
+  rsq
+)
+```
+
+Com o resultado do teste acima, vemos que devemos rejeitar a hipótese nula de igualdade das rendas médias para os 4 diferentes grupos, já que p < 0,05. Porém, devemos também notar que os diferentes grupos só respondem por cerca de 1,5% da variabilidade dos dados como um todo. Sendo assim, a maior parte da variância desse conjunto de dados é devida a outros fatores.
+
+Agora que rejeitamos a hipótese de igualdade das médias, podemos compará-las duas a duas, por meio da construção de intervalos de confiança para cada comparação, utilizando o fator de correção de Bonferroni[^bussab_morettin]. Esse fator corrige o nível de significância para as comparações dois a dois, considerando o nível de significância global. Caso a correção não fosse considerada, o nível de significância global não seria mantido ao fazer as comparações dois a dois, e poderíamos obter diferenças espúrias entre as médias.
+
+
+O fator de correção de Bonferroni considera que o nível de significância que deve ser usado em cada comparação deve ser igual a $\alpha^*/m$, em que $\alpha^*$ é o nível de significância global do teste e $m$ é o número de comparações a ser feitas. Vamos considerar aqui o número máximo de comparações, que é igual a $C_{4,2}$, já que temos 4 níveis para o fator `race`.
+
+Vamos primeiro listar as possíveis comparações, utilizando para isso a biblioteca `combinat`:
+
+
+```{r}
+config = combn(levels(acs12$race), 2)
+config #configurações possíveis
+m = ncol(config) #número de comparações possíveis
+I = length(levels(acs12$race)) #número de grupos
+```
+
+Agora, vamos calcular as estatísticas de cada grupo, para então podermos escrever os IC's:
+
+
+```{r}
+grupos = acs12 %>%
+  group_by(race) %>%
+  summarise(
+    n = n(),
+    xbar = mean(income, na.rm = T),
+    s = sd(income, na.rm = T)
+  )
+grupos %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
+```
+
+Agora, vamos calcular o desvio padrão dentro dos grupos $S_e$, o qual pode ser determinado a partir do resultado da ANOVA ($QMDen$) e o erro padrão para cada comparação:
+
+
+```{r}
+#Tamanho de cada grupo
+n1 = grupos$n[1]
+n2 = grupos$n[2]
+n3 = grupos$n[3]
+n4 = grupos$n[4]
+
+#Tamanho do conjunto de dados
+n = nrow(acs12)
+
+#Devio padrão dos resíduos
+se = sqrt(result$`Mean Sq`[2])
+
+#white-black
+ep12 = se*sqrt(1/n1 + 1/n2)
+#white-asian
+ep13 = se*sqrt(1/n1 + 1/n3)
+#white-other
+ep14 = se*sqrt(1/n1 + 1/n4)
+#black-asian
+ep23 = se*sqrt(1/n2 + 1/n3)
+#black-other
+ep24 = se*sqrt(1/n2 + 1/n4)
+#asian-other
+ep34 = se*sqrt(1/n3 + 1/n4)
+
+#quantil para o IC de 95%, com fator de correção
+qb = qt(1-(1/m)*0.05/2, df = n-I)
+```
+
+
+Finalmente, vamos determinar os IC's para cada comparação:
+
+
+```{r}
+cat(
+  "IC(mu1 - mu2; 95%) =",
+  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep12,
+  "\nIC(mu1 - mu3; 95%) =",
+  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep13,
+  "\nIC(mu1 - mu4; 95%) =",
+  grupos$xbar[1] - grupos$xbar[4] + c(-1,1)*qb*ep14,
+  "\nIC(mu2 - mu3; 95%) =",
+  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep23,
+  "\nIC(mu2 - mu4; 95%) =",
+  grupos$xbar[2] - grupos$xbar[4] + c(-1,1)*qb*ep24,
+  "\nIC(mu3 - mu4; 95%) =",
+  grupos$xbar[3] - grupos$xbar[4] + c(-1,1)*qb*ep34
+)
+```
+
+$$ \mu_{white} = \mu_{other} > \mu_{black} < \mu_{asian} $$
+
+
+Poderíamos também fazer todas essas comparações entre pares de médias por meio da função `PostHocTest`, da biblioteca `Desctools`, o que pouparia muito trabalho:
+
+```{r}
+PostHocTest(anova1, method = "bonferroni", conf.level = 0.95)
+```
+
+
+7. Escolha outra variável numérica à partir do conjunto de dados para ser a variável resposta, e também escolha uma variável explicativa qualitativa (pode ser uma que usamos antes). Realize o teste de hipóteses apropriado, utilizando a função inference, para comparar as médias da variável resposta entre os diferentes casos da variável explicativa. Certifique-se de indicar a sua questão de pesquisa, e interpretar a sua conclusão no contexto do conjunto de dados. Note que você pode usar o banco de dados correspondente à força de trabalho ativa, `acs_emp`, ou qualquer outro subconjunto que você selecionar.
+
+Para decidir quais variáveis utilizar, vamos ver as possibilidades dentro do conjunto de dados original:
+
+
+```{r}
+acs_emp %>%
+  head() %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
+```
+
+Olhando para o dataframe, percebemos que a única variável que faz sentido usar como variável resposta é a renda (`income`) dos participantes do estudo. Porém, neste caso, vamos utilizar o nível de escolaridade da pessoa como variável explicativa. 
+
+Primeiro, vamos ver quantos níveis tem a variável `edu`:
+
+
+```{r}
+levels(acs_emp$edu)
+```
+
+Vemos, portanto, que essa variável possui 3 níveis: "hs or lower", "college" e "grad", que se referem a pessoas com escolaridade menor ou igual a ensino médio, cursando faculdade e já graduados, respectivamente.
+
+O problema de pesquisa aqui é testar se a renda média dos entrevistados é a mesma para os 3 níveis analisados. Para verificar, vamos usar ANOVA:
+
+
+```{r}
+anova2 = aov(income ~ edu, acs_emp)
+result = anova(anova2)
+result
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente de explicação do modelo:",
+  rsq
+)
+```
+
+Vemos assim que cerca de 15% da variância dos dados é devido aos diferentes níveis de escolaridade. Além disso, esse resultado é significativo para qualquer nível de significância usualmente utilizado. Dessa forma, concluímos por rejeitar a hipótese nula de que as rendas médias são iguais para os 3 grupos de escolaridade.
+
+Vamos agora testar a igualdade das médias salariais duas a duas. Desta vez, vamos fazer isso diretamente através da função `PostHocTest`:
+
+
+```{r}
+PostHocTest(anova2, method = "bonferroni", conf.level = 0.95)
+```
+
+Concluímos então que:
+
+$$ \mu_1 < \mu_2 < \mu_3, $$
+
+em que $\mu_1$ se refere a quem tem ensino médio ou menor, $\mu_2$ é para quem está na faculdade e $\mu_3$ é para os graduados. O resultado corrobora com a ideia de que quem tem maior nível de escolaridade tem maior renda.
+
+
+
+# Lab09: Inferência para dados categóricos
+
+
+# Lab10: Regressão linear simples
+
+
+# Lab11: Regressão linear múltipla
