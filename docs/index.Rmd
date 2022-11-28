@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
 
 Este curso é uma adaptação dos laboratórios de estatística disponíveis no livro **OpenIntro Statistics: Labs for R** [@openintro]. Aqui, usamos as principais biliotecas do R para desenvolver aquilo que é proposto nos capítulos (laboratórios) do livro. Em cada caso, usamos também gráficos e tabelas para auxiliar no aprendizado dos conceitos estatísticos  envolvidos.
 
-Todas as análises realizadas nesta página são subsidiadas por bases de dados reais, públicas, disponibilizadas pelos autores do livro [@datasets]. Além disso, como bibliografia complementar, utilizamos o livro-texto de Estatística Básica dos autores Bussab & Morettin [@bussab_morettin].
+Todas as análises realizadas neste livro são subsidiadas por bases de dados reais, públicas, disponibilizadas pelos autores do livro [@datasets]. Além disso, como bibliografia complementar, utilizamos o livro-texto de Estatística Básica dos autores Bussab & Morettin [@bussab_morettin].
 
 
 # Lab01: Introdução ao R e ao Rstudio
