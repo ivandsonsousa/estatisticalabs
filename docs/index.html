@@ -2879,7 +2879,7 @@ Praeiro de Sousa</p>
 <div id="main">
 <div id="sobre-o-projeto" class="section level1">
 <h1>Sobre o projeto</h1>
-<p>Esse curso é uma adaptação dos laboratórios de estatística
+<p>Este curso é uma adaptação dos laboratórios de estatística
 disponíveis no livro <strong>OpenIntro Statistics: Labs for R</strong>
 <span class="citation">(BRAY; ÇETINKAYA-RUNDEL; KUYPER, 2019)</span>.
 Aqui, usamos as principais biliotecas do R para desenvolver aquilo que é
@@ -2887,7 +2887,7 @@ proposto nos capítulos (laboratórios) do livro. Em cada caso, usamos
 também gráficos e tabelas para auxiliar no aprendizado dos conceitos
 estatísticos envolvidos.</p>
 <p>Todas as análises realizadas nesta página são subsidiadas por bases
-de dados reais, públicas, disponibilidas pelos autores do livro <span class="citation">(OPENINTRO, [<em>s. d.</em>])</span>. Além disso, como
+de dados reais, públicas, disponibilizadas pelos autores do livro <span class="citation">(OPENINTRO, [<em>s. d.</em>])</span>. Além disso, como
 bibliografia complementar, utilizamos o livro-texto de Estatística
 Básica dos autores Bussab &amp; Morettin <span class="citation">(MORETTIN; BUSSAB, 2017)</span>.</p>
 </div>
@@ -6360,7 +6360,7 @@ Como um exemplo simples, vamos simular o lançamento de uma moeda honesta
 onde <code>K</code> simboliza cara e <code>C</code> simboliza coroa:</p>
 <div class="sourceCode" id="cb148"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb148-1"><a href="#cb148-1" aria-hidden="true" tabindex="-1"></a>face_moeda <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;K&quot;</span>, <span class="st">&quot;C&quot;</span>)</span>
 <span id="cb148-2"><a href="#cb148-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sample</span>(face_moeda, <span class="at">size =</span> <span class="dv">1</span>, <span class="at">replace =</span> T)</span></code></pre></div>
-<pre><code>## [1] &quot;C&quot;</code></pre>
+<pre><code>## [1] &quot;K&quot;</code></pre>
 <p>Primeiramente registramos os possíveis resultados no vetor
 <code>face_moeda</code>. O comando <code>sample</code> realiza uma
 amostra do experimento ao selecionar aleatoriamente um dos valores
@@ -6384,19 +6384,19 @@ coroas num novo objeto denominado sim_moeda_honesta.</p>
 <div class="sourceCode" id="cb150"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb150-1"><a href="#cb150-1" aria-hidden="true" tabindex="-1"></a>sim_moeda_honesta <span class="ot">=</span> <span class="fu">sample</span>(face_moeda, <span class="dv">100</span>, <span class="at">replace =</span> T)</span>
 <span id="cb150-2"><a href="#cb150-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb150-3"><a href="#cb150-3" aria-hidden="true" tabindex="-1"></a>sim_moeda_honesta</span></code></pre></div>
-<pre><code>##   [1] &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot;
-##  [19] &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot;
-##  [37] &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot;
-##  [55] &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot;
-##  [73] &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot;
-##  [91] &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot;</code></pre>
+<pre><code>##   [1] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot;
+##  [19] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot;
+##  [37] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot;
+##  [55] &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot;
+##  [73] &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot;
+##  [91] &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot;</code></pre>
 <p>Para visualizar os resultados desta simulação, digite o nome do
 objeto e então use o comando table pra contar o número de caras e
 coroas.</p>
 <div class="sourceCode" id="cb152"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb152-1"><a href="#cb152-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(sim_moeda_honesta)</span></code></pre></div>
 <pre><code>## sim_moeda_honesta
 ##  C  K 
-## 58 42</code></pre>
+## 44 56</code></pre>
 <p>Uma vez que há apenas dois elementos no vetor
 <code>face_moeda</code>, a probabilidade de que um lançamento dê o
 resultado cara é 0,5. Digamos que estamos tentando simular uma moeda
