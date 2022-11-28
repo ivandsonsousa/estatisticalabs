@@ -10,6 +10,8 @@ output:
   #   toc_float: yes
   #   theme: cerulean
   #   df_print: paged
+bibliography: bibliografia.bib
+csl: abnt.csl
 ---
 
 ```{r setup, include=FALSE}
@@ -20,16 +22,9 @@ knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
 # Sobre o projeto 
 
 
-Esse curso é uma adaptação dos laboratórios de estatística disponíveis no livro **OpenIntro Statistics: Labs for R**[^openintrolabs]. Aqui, usamos as principais biliotecas do R para desenvolver aquilo que é proposto nos capítulos (laboratórios) do livro. Em cada caso, usamos também gráficos e tabelas para auxiliar no aprendizado dos conceitos estatísticos  envolvidos.
+Esse curso é uma adaptação dos laboratórios de estatística disponíveis no livro **OpenIntro Statistics: Labs for R** [@openintro]. Aqui, usamos as principais biliotecas do R para desenvolver aquilo que é proposto nos capítulos (laboratórios) do livro. Em cada caso, usamos também gráficos e tabelas para auxiliar no aprendizado dos conceitos estatísticos  envolvidos.
 
-Todas as análises realizadas nesta página são subsidiadas por bases de dados reais, públicas, disponibilidas pelos autores do livro[^datasets]. Além disso, como bibliografia complementar, utilizamos o livro-texto de Estatística Básica dos autores Bussab & Morettin[^bussab_morettin].
-
-
-[^openintrolabs]: Os laboratórios de estatística estudados aqui neste relatório se baseiam no e-book **OpenIntro Statistics: Labs for R**, disponíveis nas páginas  [openintro-labs-rguroo](https://openintrostat.github.io/openintro-labs-rguroo/) e [openintro-book](https://nulib.github.io/kuyper-stat202/).
-
-[^datasets]: Todos os datasets utilizados nesse e em outros laboratórios estão disponíveis na página do OpenIntro: [DataSets](https://www.openintro.org/data/).
-
-[^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
+Todas as análises realizadas nesta página são subsidiadas por bases de dados reais, públicas, disponibilidas pelos autores do livro [@datasets]. Além disso, como bibliografia complementar, utilizamos o livro-texto de Estatística Básica dos autores Bussab & Morettin [@bussab_morettin].
 
 
 # Lab01: Introdução ao R e ao Rstudio
@@ -37,18 +32,14 @@ Todas as análises realizadas nesta página são subsidiadas por bases de dados 
 
 O R é um poderoso software estatístico. Com ele, é possível fazer desde cálculos simples envolvendo distribuições de probabilidades e estatística descritiva até o desenvolvimento de modelos de machine learning. 
 
-A linguagem R foi desenvolvida na década de 90 por dois estatísticos Neozelandêses, Ross Ihaka e Robert Gentleman (daí o nome R). O R é um software livre e de código aberto. Atualmente possui uma vasta biblioteca de funções para cálculos estatísticos e possui uma grande comunidade que contribui com o projeto[^wikipedia_R].
+A linguagem R foi desenvolvida na década de 90 por dois estatísticos Neozelandêses, Ross Ihaka e Robert Gentleman (daí o nome R). O R é um software livre e de código aberto. Atualmente possui uma vasta biblioteca de funções para cálculos estatísticos e possui uma grande comunidade que contribui com o projeto [@rproject].
 
 As distribuições linux geralmente já contêm o R. Para as demais, o software pode ser baixado através da página do projeto: <https://cran.r-project.org/>.
 
-O Rstudio, por sua vez, é uma IDE (Integrated Development Enviroment) ou Ambiente de Desenvolvimento Integrado. Genericamente falando, uma IDE é um programa que, com sua interface gráfica amigável (mais parecida com os programas voltados ao usuário comum), traz uma série de ferramentas que facilitam o desenvolvimento de aplicações. Algumas dessas ferramentas são compilador e um editor de código-fonte capaz de apontar erros e sugerir a sintáxe correta das funções[^wilipedia_IDE]. 
+O Rstudio, por sua vez, é uma IDE (Integrated Development Enviroment) ou Ambiente de Desenvolvimento Integrado. Genericamente falando, uma IDE é um programa que, com sua interface gráfica amigável (mais parecida com os programas voltados ao usuário comum), traz uma série de ferramentas que facilitam o desenvolvimento de aplicações. Algumas dessas ferramentas são compilador e um editor de código-fonte capaz de apontar erros e sugerir a sintáxe correta das funções [@wikipediaIDE]. 
 
 O Rstudio, a exemplo do R, também é um software gratuito e de código aberto. Porém, diferentemente do R, esta IDE possui também uma versão paga. Para baixar a ferramenta, basta acessar a página oficial: <https://posit.co/download/rstudio-desktop/>.
 
-
-[^wikipedia_R]: https://pt.wikipedia.org/wiki/R_(linguagem_de_programa%C3%A7%C3%A3o
-
-[^wilipedia_IDE]: https://pt.wikipedia.org/wiki/Ambiente_de_desenvolvimento_integrado
 
 
 ## Conteúdos abordados neste laboratório
@@ -1615,7 +1606,7 @@ medias_amostra %>%
 
 Vemos, portanto, que o aumento do tamanho da amostra tem pouca influência sobre o centro da distribuição (a média amostral, que é uma estimativa da média populacional). A dispersão, porém, diminui bastante com o aumento do tamanho da amostra.
 
-Isso mostra, na prática, o que diz o teorema do limite central: a distribuição amostral da média é normal com média igual à média populacional e variância igual a $\sigma/\sqrt{n}$, em que $n$ é o tamanho da amostra e $\sigma$ é o desvio padrão populacional[^bussab_morettin]. Em outras palavras, podemos dizer que, se sorteamos aleatoriamente um número grande de amostras suficientemente grande, a distribuição da média amostral será normal, centrada na média da população e com variância inversamente proporcional ao tamanho das amostras.
+Isso mostra, na prática, o que diz o teorema do limite central: a distribuição amostral da média é normal com média igual à média populacional e variância igual a $\sigma/\sqrt{n}$, em que $n$ é o tamanho da amostra e $\sigma$ é o desvio padrão populacional[@bussab_morettin]. Em outras palavras, podemos dizer que, se sorteamos aleatoriamente um número grande de amostras suficientemente grande, a distribuição da média amostral será normal, centrada na média da população e com variância inversamente proporcional ao tamanho das amostras.
 
 
 
@@ -1753,7 +1744,7 @@ Em 2004, o estado da Carolina do Norte, Estados Unidos, disponibilizou um grande
 
 ## Análise Exploratória
 
-Carregue o conjunto de dados `nc` em seu espaço de trabalho[^datasets].
+Carregue o conjunto de dados `nc` em seu espaço de trabalho [@datasets].
 
 ```{r}
 load("nc.RData")
@@ -1876,7 +1867,7 @@ nc %>%
 
 ## Introdução à inferência
 
-Suponha que queremos testar a hipótese de que a idade média para as mães que dão à luz na Carolina do Norte é 26,5 anos. Calculando "manualmente", temos[^bussab_morettin]:
+Suponha que queremos testar a hipótese de que a idade média para as mães que dão à luz na Carolina do Norte é 26,5 anos. Calculando "manualmente", temos[@bussab_morettin]:
 
 
 ```{r}
@@ -2317,7 +2308,7 @@ Neste laboratório, daremos continuidade aos exemplos de inferência estatístic
 ## Salários Americanos
 
 
-Neste laboratório, nós iremos trabalhar com uma amostra aleatória de 2000 observações do ACS (American Community Survey, ou Pesquisa da Comunidade Americana) 2012. Este conjunto de dados contém informações sobre a força de trabalho e os salários americanos. Você deve carregar esse banco de dados à partir do comando abaixo[^datasets].
+Neste laboratório, nós iremos trabalhar com uma amostra aleatória de 2000 observações do ACS (American Community Survey, ou Pesquisa da Comunidade Americana) 2012. Este conjunto de dados contém informações sobre a força de trabalho e os salários americanos. Você deve carregar esse banco de dados à partir do comando abaixo[@datasets].
 
 
 ```{r}
@@ -2671,7 +2662,7 @@ cat(
 
 Com o resultado do teste acima, vemos que devemos rejeitar a hipótese nula de igualdade das rendas médias para os 4 diferentes grupos, já que p < 0,05. Porém, devemos também notar que os diferentes grupos só respondem por cerca de 1,5% da variabilidade dos dados como um todo. Sendo assim, a maior parte da variância desse conjunto de dados é devida a outros fatores.
 
-Agora que rejeitamos a hipótese de igualdade das médias, podemos compará-las duas a duas, por meio da construção de intervalos de confiança para cada comparação, utilizando o fator de correção de Bonferroni[^bussab_morettin]. Esse fator corrige o nível de significância para as comparações dois a dois, considerando o nível de significância global. Caso a correção não fosse considerada, o nível de significância global não seria mantido ao fazer as comparações dois a dois, e poderíamos obter diferenças espúrias entre as médias.
+Agora que rejeitamos a hipótese de igualdade das médias, podemos compará-las duas a duas, por meio da construção de intervalos de confiança para cada comparação, utilizando o fator de correção de Bonferroni[@bussab_morettin]. Esse fator corrige o nível de significância para as comparações dois a dois, considerando o nível de significância global. Caso a correção não fosse considerada, o nível de significância global não seria mantido ao fazer as comparações dois a dois, e poderíamos obter diferenças espúrias entre as médias.
 
 
 O fator de correção de Bonferroni considera que o nível de significância que deve ser usado em cada comparação deve ser igual a $\alpha^*/m$, em que $\alpha^*$ é o nível de significância global do teste e $m$ é o número de comparações a ser feitas. Vamos considerar aqui o número máximo de comparações, que é igual a $C_{4,2}$, já que temos 4 níveis para o fator `race`.
@@ -2837,3 +2828,7 @@ em que $\mu_1$ se refere a quem tem ensino médio ou menor, $\mu_2$ é para quem
 
 
 # Lab11: Regressão linear múltipla
+
+
+
+# Referências

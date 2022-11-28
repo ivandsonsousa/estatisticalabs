@@ -2861,6 +2861,7 @@ R</a></h2>
       simples</a></li>
       <li><a href="#lab11-regressão-linear-múltipla" id="toc-lab11-regressão-linear-múltipla">Lab11: Regressão linear
       múltipla</a></li>
+      <li><a href="#referências" id="toc-referências">Referências</a></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
@@ -2879,15 +2880,16 @@ Praeiro de Sousa</p>
 <div id="sobre-o-projeto" class="section level1">
 <h1>Sobre o projeto</h1>
 <p>Esse curso é uma adaptação dos laboratórios de estatística
-disponíveis no livro <strong>OpenIntro Statistics: Labs for R</strong><a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. Aqui,
-usamos as principais biliotecas do R para desenvolver aquilo que é
+disponíveis no livro <strong>OpenIntro Statistics: Labs for R</strong>
+<span class="citation">(BRAY; ÇETINKAYA-RUNDEL; KUYPER, 2019)</span>.
+Aqui, usamos as principais biliotecas do R para desenvolver aquilo que é
 proposto nos capítulos (laboratórios) do livro. Em cada caso, usamos
 também gráficos e tabelas para auxiliar no aprendizado dos conceitos
 estatísticos envolvidos.</p>
 <p>Todas as análises realizadas nesta página são subsidiadas por bases
-de dados reais, públicas, disponibilidas pelos autores do livro<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>. Além
-disso, como bibliografia complementar, utilizamos o livro-texto de
-Estatística Básica dos autores Bussab &amp; Morettin<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>.</p>
+de dados reais, públicas, disponibilidas pelos autores do livro <span class="citation">(OPENINTRO, [<em>s. d.</em>])</span>. Além disso, como
+bibliografia complementar, utilizamos o livro-texto de Estatística
+Básica dos autores Bussab &amp; Morettin <span class="citation">(MORETTIN; BUSSAB, 2017)</span>.</p>
 </div>
 <div id="lab01-introdução-ao-r-e-ao-rstudio" class="section level1">
 <h1>Lab01: Introdução ao R e ao Rstudio</h1>
@@ -2899,7 +2901,7 @@ learning.</p>
 Neozelandêses, Ross Ihaka e Robert Gentleman (daí o nome R). O R é um
 software livre e de código aberto. Atualmente possui uma vasta
 biblioteca de funções para cálculos estatísticos e possui uma grande
-comunidade que contribui com o projeto<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a>.</p>
+comunidade que contribui com o projeto <span class="citation">(R-PROJECT, [<em>s. d.</em>])</span>.</p>
 <p>As distribuições linux geralmente já contêm o R. Para as demais, o
 software pode ser baixado através da página do projeto: <a href="https://cran.r-project.org/" class="uri">https://cran.r-project.org/</a>.</p>
 <p>O Rstudio, por sua vez, é uma IDE (Integrated Development Enviroment)
@@ -2908,7 +2910,7 @@ ou Ambiente de Desenvolvimento Integrado. Genericamente falando, uma IDE
 os programas voltados ao usuário comum), traz uma série de ferramentas
 que facilitam o desenvolvimento de aplicações. Algumas dessas
 ferramentas são compilador e um editor de código-fonte capaz de apontar
-erros e sugerir a sintáxe correta das funções<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a>.</p>
+erros e sugerir a sintáxe correta das funções <span class="citation">(WIKIPÉDIA, [<em>s. d.</em>])</span>.</p>
 <p>O Rstudio, a exemplo do R, também é um software gratuito e de código
 aberto. Porém, diferentemente do R, esta IDE possui também uma versão
 paga. Para baixar a ferramenta, basta acessar a página oficial: <a href="https://posit.co/download/rstudio-desktop/" class="uri">https://posit.co/download/rstudio-desktop/</a>.</p>
@@ -6358,7 +6360,7 @@ Como um exemplo simples, vamos simular o lançamento de uma moeda honesta
 onde <code>K</code> simboliza cara e <code>C</code> simboliza coroa:</p>
 <div class="sourceCode" id="cb148"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb148-1"><a href="#cb148-1" aria-hidden="true" tabindex="-1"></a>face_moeda <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;K&quot;</span>, <span class="st">&quot;C&quot;</span>)</span>
 <span id="cb148-2"><a href="#cb148-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sample</span>(face_moeda, <span class="at">size =</span> <span class="dv">1</span>, <span class="at">replace =</span> T)</span></code></pre></div>
-<pre><code>## [1] &quot;K&quot;</code></pre>
+<pre><code>## [1] &quot;C&quot;</code></pre>
 <p>Primeiramente registramos os possíveis resultados no vetor
 <code>face_moeda</code>. O comando <code>sample</code> realiza uma
 amostra do experimento ao selecionar aleatoriamente um dos valores
@@ -6382,19 +6384,19 @@ coroas num novo objeto denominado sim_moeda_honesta.</p>
 <div class="sourceCode" id="cb150"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb150-1"><a href="#cb150-1" aria-hidden="true" tabindex="-1"></a>sim_moeda_honesta <span class="ot">=</span> <span class="fu">sample</span>(face_moeda, <span class="dv">100</span>, <span class="at">replace =</span> T)</span>
 <span id="cb150-2"><a href="#cb150-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb150-3"><a href="#cb150-3" aria-hidden="true" tabindex="-1"></a>sim_moeda_honesta</span></code></pre></div>
-<pre><code>##   [1] &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot;
-##  [19] &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot;
-##  [37] &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot;
-##  [55] &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot;
-##  [73] &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot;
-##  [91] &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot;</code></pre>
+<pre><code>##   [1] &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot;
+##  [19] &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot;
+##  [37] &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot;
+##  [55] &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot;
+##  [73] &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot;
+##  [91] &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;K&quot; &quot;C&quot; &quot;C&quot;</code></pre>
 <p>Para visualizar os resultados desta simulação, digite o nome do
 objeto e então use o comando table pra contar o número de caras e
 coroas.</p>
 <div class="sourceCode" id="cb152"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb152-1"><a href="#cb152-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(sim_moeda_honesta)</span></code></pre></div>
 <pre><code>## sim_moeda_honesta
 ##  C  K 
-## 42 58</code></pre>
+## 58 42</code></pre>
 <p>Uma vez que há apenas dois elementos no vetor
 <code>face_moeda</code>, a probabilidade de que um lançamento dê o
 resultado cara é 0,5. Digamos que estamos tentando simular uma moeda
@@ -6948,11 +6950,12 @@ estimativa da média populacional). A dispersão, porém, diminui bastante
 com o aumento do tamanho da amostra.</p>
 <p>Isso mostra, na prática, o que diz o teorema do limite central: a
 distribuição amostral da média é normal com média igual à média
-populacional e variância igual a <span class="math inline">\(\sigma/\sqrt{n}\)</span>, em que <span class="math inline">\(n\)</span> é o tamanho da amostra e <span class="math inline">\(\sigma\)</span> é o desvio padrão populacional<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a>. Em outras
-palavras, podemos dizer que, se sorteamos aleatoriamente um número
-grande de amostras suficientemente grande, a distribuição da média
-amostral será normal, centrada na média da população e com variância
-inversamente proporcional ao tamanho das amostras.</p>
+populacional e variância igual a <span class="math inline">\(\sigma/\sqrt{n}\)</span>, em que <span class="math inline">\(n\)</span> é o tamanho da amostra e <span class="math inline">\(\sigma\)</span> é o desvio padrão
+populacional<span class="citation">(MORETTIN; BUSSAB, 2017)</span>. Em
+outras palavras, podemos dizer que, se sorteamos aleatoriamente um
+número grande de amostras suficientemente grande, a distribuição da
+média amostral será normal, centrada na média da população e com
+variância inversamente proporcional ao tamanho das amostras.</p>
 </div>
 <div id="por-sua-conta-2" class="section level2">
 <h2>Por Sua Conta</h2>
@@ -7118,7 +7121,8 @@ amostra aleatória das observações deste conjunto de dados.</p>
 <div id="análise-exploratória" class="section level2">
 <h2>Análise Exploratória</h2>
 <p>Carregue o conjunto de dados <code>nc</code> em seu espaço de
-trabalho<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a>.</p>
+trabalho <span class="citation">(OPENINTRO, [<em>s.
+d.</em>])</span>.</p>
 <div class="sourceCode" id="cb195"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb195-1"><a href="#cb195-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&quot;nc.RData&quot;</span>)</span></code></pre></div>
 <p>Temos dados de 13 variáveis diferentes, algumas qualitativas e outras
 quantitativas. O significado de cada variável é o seguinte:</p>
@@ -7374,7 +7378,8 @@ está ausente. Isto pode ser resolvido adicionando-se o argumento
 <h2>Introdução à inferência</h2>
 <p>Suponha que queremos testar a hipótese de que a idade média para as
 mães que dão à luz na Carolina do Norte é 26,5 anos. Calculando
-“manualmente”, temos<a href="#fn8" class="footnote-ref" id="fnref8"><sup>8</sup></a>:</p>
+“manualmente”, temos<span class="citation">(MORETTIN; BUSSAB,
+2017)</span>:</p>
 <div class="sourceCode" id="cb210"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb210-1"><a href="#cb210-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dados amostrais</span></span>
 <span id="cb210-2"><a href="#cb210-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb210-3"><a href="#cb210-3" aria-hidden="true" tabindex="-1"></a>xbar <span class="ot">=</span> <span class="fu">mean</span>(nc<span class="sc">$</span>mage)</span>
@@ -8000,7 +8005,7 @@ normais</li>
 2000 observações do ACS (American Community Survey, ou Pesquisa da
 Comunidade Americana) 2012. Este conjunto de dados contém informações
 sobre a força de trabalho e os salários americanos. Você deve carregar
-esse banco de dados à partir do comando abaixo<a href="#fn9" class="footnote-ref" id="fnref9"><sup>9</sup></a>.</p>
+esse banco de dados à partir do comando abaixo<span class="citation">(OPENINTRO, [<em>s. d.</em>])</span>.</p>
 <div class="sourceCode" id="cb256"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb256-1"><a href="#cb256-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&quot;acs12.RData&quot;</span>)</span></code></pre></div>
 <p>Temos dados de 13 variáveis diferentes, algumas qualitativas e outras
 quantitativas. Cada variável representa uma das seguintes
@@ -8702,11 +8707,12 @@ a outros fatores.</p>
 <p>Agora que rejeitamos a hipótese de igualdade das médias, podemos
 compará-las duas a duas, por meio da construção de intervalos de
 confiança para cada comparação, utilizando o fator de correção de
-Bonferroni<a href="#fn10" class="footnote-ref" id="fnref10"><sup>10</sup></a>. Esse fator corrige o nível de
-significância para as comparações dois a dois, considerando o nível de
-significância global. Caso a correção não fosse considerada, o nível de
-significância global não seria mantido ao fazer as comparações dois a
-dois, e poderíamos obter diferenças espúrias entre as médias.</p>
+Bonferroni<span class="citation">(MORETTIN; BUSSAB, 2017)</span>. Esse
+fator corrige o nível de significância para as comparações dois a dois,
+considerando o nível de significância global. Caso a correção não fosse
+considerada, o nível de significância global não seria mantido ao fazer
+as comparações dois a dois, e poderíamos obter diferenças espúrias entre
+as médias.</p>
 <p>O fator de correção de Bonferroni considera que o nível de
 significância que deve ser usado em cada comparação deve ser igual a
 <span class="math inline">\(\alpha^*/m\)</span>, em que <span class="math inline">\(\alpha^*\)</span> é o nível de significância
@@ -9296,30 +9302,34 @@ maior nível de escolaridade tem maior renda.</p>
 <div id="lab11-regressão-linear-múltipla" class="section level1">
 <h1>Lab11: Regressão linear múltipla</h1>
 </div>
-<div class="footnotes footnotes-end-of-document">
-<hr />
-<ol>
-<li id="fn1"><p>Os laboratórios de estatística estudados aqui neste
-relatório se baseiam no e-book <strong>OpenIntro Statistics: Labs for
-R</strong>, disponíveis nas páginas <a href="https://openintrostat.github.io/openintro-labs-rguroo/">openintro-labs-rguroo</a>
-e <a href="https://nulib.github.io/kuyper-stat202/">openintro-book</a>.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
-<li id="fn2"><p>Todos os datasets utilizados nesse e em outros
-laboratórios estão disponíveis na página do OpenIntro: <a href="https://www.openintro.org/data/">DataSets</a>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
-<li id="fn3"><p>MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira.
-<strong>Estatística básica</strong>. Saraiva Educação SA, 2017.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
-<li id="fn4"><p><a href="https://pt.wikipedia.org/wiki/R_(linguagem_de_programa%C3%A7%C3%A3o" class="uri">https://pt.wikipedia.org/wiki/R_(linguagem_de_programa%C3%A7%C3%A3o</a><a href="#fnref4" class="footnote-back">↩︎</a></p></li>
-<li id="fn5"><p><a href="https://pt.wikipedia.org/wiki/Ambiente_de_desenvolvimento_integrado" class="uri">https://pt.wikipedia.org/wiki/Ambiente_de_desenvolvimento_integrado</a><a href="#fnref5" class="footnote-back">↩︎</a></p></li>
-<li id="fn6"><p>MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira.
-<strong>Estatística básica</strong>. Saraiva Educação SA, 2017.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
-<li id="fn7"><p>Todos os datasets utilizados nesse e em outros
-laboratórios estão disponíveis na página do OpenIntro: <a href="https://www.openintro.org/data/">DataSets</a>.<a href="#fnref7" class="footnote-back">↩︎</a></p></li>
-<li id="fn8"><p>MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira.
-<strong>Estatística básica</strong>. Saraiva Educação SA, 2017.<a href="#fnref8" class="footnote-back">↩︎</a></p></li>
-<li id="fn9"><p>Todos os datasets utilizados nesse e em outros
-laboratórios estão disponíveis na página do OpenIntro: <a href="https://www.openintro.org/data/">DataSets</a>.<a href="#fnref9" class="footnote-back">↩︎</a></p></li>
-<li id="fn10"><p>MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira.
-<strong>Estatística básica</strong>. Saraiva Educação SA, 2017.<a href="#fnref10" class="footnote-back">↩︎</a></p></li>
-</ol>
+<div id="referências" class="section level1 unnumbered">
+<h1 class="unnumbered">Referências</h1>
+<div id="refs" class="references csl-bib-body" entry-spacing="1">
+<div id="ref-openintro" class="csl-entry">
+BRAY, Andrew; ÇETINKAYA-RUNDEL, Mine; KUYPER, Arend. <strong>OpenIntro
+statistics: Labs for r</strong>. [<em>S. l.</em>]: Creative Commons
+Attribution ShareAlike, 2019.
+</div>
+<div id="ref-bussab_morettin" class="csl-entry">
+MORETTIN, Pedro A; BUSSAB, Wilton O. <strong>Estat<span>ı́</span>stica
+b<span>á</span>sica</strong>. [<em>S. l.</em>]: Saraiva
+Educa<span>ç</span><span>ã</span>o SA, 2017.
+</div>
+<div id="ref-datasets" class="csl-entry">
+OPENINTRO. <strong>Textbook data sets plus more</strong>. [<em>S.
+l.</em>]: <a href="https://www.openintro.org/data/" class="uri">https://www.openintro.org/data/</a>.  Acesso em: 27 de
+novembro 2022, [<em>s. d.</em>].
+</div>
+<div id="ref-rproject" class="csl-entry">
+R-PROJECT. <strong>What is r?</strong> [<em>S. l.</em>]: <a href="https://www.r-project.org/about.html" class="uri">https://www.r-project.org/about.html</a>.  Acesso em: 27 de
+novembro 2022, [<em>s. d.</em>].
+</div>
+<div id="ref-wikipediaIDE" class="csl-entry">
+WIKIPÉDIA. <strong>Ambiente de desenvolvimento integrado</strong>.
+[<em>S. l.</em>]: <a href="https://pt.wikipedia.org/wiki/Ambiente_de_desenvolvimento_integrado" class="uri">https://pt.wikipedia.org/wiki/Ambiente_de_desenvolvimento_integrado</a>.
+ Acesso em: 27 de novembro 2022, [<em>s. d.</em>].
+</div>
+</div>
 </div>
 </div>
 
