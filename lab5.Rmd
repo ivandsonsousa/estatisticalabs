@@ -74,7 +74,7 @@ Para ter uma ideia da relação entre as duas variáveis, podemos usar um gráfi
     title = "gráfico de dispersão",
     subtitle = "Pontos marcados como função de vezes ao taco"
   ) + 
-  theme(text = element_text(size = 16))
+  theme(text = element_text(size = 18))
 ```
 
 
@@ -109,7 +109,7 @@ A maneira mais comum de se fazer uma regressão linear é selecionar a linha que
 
 
 ```{r eval=FALSE}
-plot_ss(x = at_bats, y = runs, data = mlb11, showSquares = T)
+plot_ss(x = mlb11$at_bats, y = mlb11$runs, showSquares = T)
 ```
 
 Note que o resultado da função `plot_ss` fornece a inclinação (coeficiente angular) e o intercepto da sua reta, bem como a soma dos quadrados.
@@ -124,7 +124,7 @@ Note que o resultado da função `plot_ss` fornece a inclinação (coeficiente a
 m1 = lm(formula = runs ~ at_bats, data = mlb11)
 ```
 
-O primeiro argumento da função lm é a fórmula descrita como `y ~ x`. O que a função faz é obter o modelo linear de `runs` (pontos marcados) em função de `at_bats` (vezes ao taco). Aqui, cabe um destaque para o operador `~` (tilde), que é usado para separar as variáveis dependentes e independentes em um modelo. Neste caso, a fórmula diz: *`runs` depende de `at_bats`*. O segundo argumento especifica que o R deve buscar no banco de dados `mlb11` as variáveis `runs` e `at_bats`.
+O primeiro argumento da função lm é a fórmula, descrita como `y ~ x`. O que a função faz é obter o modelo linear de `runs` (pontos marcados) em função de `at_bats` (vezes ao taco). Aqui, cabe um destaque para o operador `~` (tilde), que é usado para separar as variáveis dependentes e independentes em um modelo. Neste caso, a fórmula diz: *`runs` depende de `at_bats`*. O segundo argumento especifica que o R deve buscar no banco de dados `mlb11` as variáveis `runs` e `at_bats`.
 
 A saída da função `lm` é um objeto que contém todas as informações que precisamos sobre o modelo linear que acabamos de ajustar. Podemos acessar essa informação utilizando a função `summary`.
 
@@ -162,7 +162,7 @@ ggplot(data = mlb11, aes(x = homeruns, y = runs)) +
     title = "Gráfico de dispersão",
     subtitle = "pontos marcados como função das rebatidas fora do campo"
   ) + 
-  theme(text = element_text(size = 16))
+  theme(text = element_text(size = 18))
 ```
 
 
@@ -187,7 +187,7 @@ ggplot(data = mlb11, aes(x = at_bats, y = runs)) +
     title = "Modelo linear ajustado",
     subtitle = "vezes ao taco como preditora dos pontos"
   ) + 
-  theme(text = element_text(size = 16))
+  theme(text = element_text(size = 18))
 ```
 
 Aqui nós estamos literalmente adicionando uma camada ao topo de nosso gráfico. A função `stat_smooth` cria uma reta ao ajustar um modelo linear. Ela também pode nos mostrar o erro padrão `se` associado à nossa reta, mas iremos omitir essa saída por enquanto.
@@ -255,23 +255,25 @@ Para avaliar se um modelo linear é confiável, precisamos verificar (1) a linea
 ```{r}
 ggplot(data = m1, aes(x = .fitted, y = .resid)) +
   geom_point(col = "red", size = 2) +
-  geom_hline(yintercept = 0, linetype = "dashed", size = 1, col = "blue") + 
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1, col = "blue") + 
   labs(
     x = "valores ajustados",
     y = "Resíduos",
     title = "Modelo linear para runs x at_bats",
     subtitle = "Avaliação de viés nos resíduos"
   ) + 
-  theme(text = element_text(size = 16))
+  theme(text = element_text(size = 18))
 ```
 
+
+Neste último gráfico, esperamos uma nuvem de pontos uniformemente distribuídos em torno da reta $x = 0$, o que indicaria resíduos com média aproximadamente igual a zero e ausência de vieses.
 
 Note que o nosso objeto `m1` também funciona como um conjunto de dados, pois nele estão armazenados os valores ajustados ($\hat{y}$) e os resíduos. Observe tembém que nós utilizamos um código bem elegante aqui: depois de criar o gráfico de dispersão na primeira camada (primeira linha de código), nós adicionamos uma linha tracejada em $y=0$ (para nos ajudar a checar se os resíduos estão distribuiídos em torno de 0), e também nomeamos os eixos de modo a tornar o gráfico mais informativo.
 
 
 > Há algum padrão aparente no gráfico de resíduos? O que isso indica sobre a linearidade da relação entre pontos (`runs`) e vezes ao taco (`at_bats`)?
 
-Conforme podemos ver no gráfico de resíduos plotado, não há um padrão aparente (viés) na dispersão dos dados. Portanto, os resíduos estão dispostos aleatoriamente em torno de zero, o que é uma suposição incial em modelos de regressão.
+Conforme podemos ver no gráfico de resíduos plotado, não há um padrão aparente (viés) na dispersão dos dados. Aparentemente, os resíduos estão dispostos aleatoriamente em torno de zero, o que é uma suposição incial em modelos de regressão. Contudo, a baixa quantidade de pontos dificulta um pouco a análise, já que alguns dos pontos estão muito afastados da reta tracejada.
 
 
 **Resíduos aproximadamente normais**: Para verificar essa condição, podemos conferir o histograma dos resíduos:
@@ -279,7 +281,7 @@ Conforme podemos ver no gráfico de resíduos plotado, não há um padrão apare
 ```{r}
 ggplot(data = m1, aes(x = .resid)) +
   geom_histogram(
-    aes(y = ..density..), 
+    aes(y = after_stat(density)), 
     binwidth = 20, 
     col = "black", 
     fill = "orange"
@@ -288,35 +290,71 @@ ggplot(data = m1, aes(x = .resid)) +
     fun = dnorm, 
     args = 
       list(mean = mean(m1$residuals), sd = sd(m1$residuals)),
-    col = "red", size = 1
+    col = "red", 
+    linewidth = 1
   ) + 
-  theme(text = element_text(size = 16)) + 
   labs(
     x = "Residuals",
     title = "Distribuição dos resíduos"
-  )
+  ) + 
+  theme(text = element_text(size = 20))
 ```
 
-ou um QxQ-plot (quantis teóricos da normal vs quantis dos resíduos). Nesse caso, esperamos que se os quantis seguirem a mesma distribuição (normal) eles devem estar posicionados sobre uma reta com intercepto na origem e orientação positiva.
+ou um QxQ-plot (quantis dos resíduos vs quantis teóricos da normal padrão). Nesse caso, esperamos que se os quantis seguirem a mesma distribuição (normal) eles devem estar posicionados sobre uma reta com orientação positiva.
 
 ```{r}
 ggplot(data = m1, aes(sample = .resid)) + 
   geom_qq(col = "red", size = 2) + 
-  geom_qq_line(linetype = "dashed", color = "blue", size = 1) +
+  geom_qq_line(linetype = "dashed", color = "blue", linewidth = 1) +
   labs(
     x = "Quantis teóricos",
     y = "Quantis amostrais",
     title = "Estudo da normalidade dos resíduos",
     subtitle = "q-q plot para os resíduos"
   ) + 
-  theme(text = element_text(size = 16))
+  theme(text = element_text(size = 20))
 ```
 
 Note que a sintaxe para a construção deste gráfico é um pouco diferente do que você está aconstumado: nós indicamos `sample` para os resíduos aos invés de `x` (pois os dados provém de uma amostra, ou sample em inglês), e indicamos também o método estatístico `geom_qq()`, que significa “quantil-quantil” (QxQ), outro nome bem comum para este tipo de gráfico.
 
 Conforme podemos obsersar no qXq plot e no histograma esboçado, os resíduos estão razoavlemente afastados da normalidade.
 
-**Variância constante**: Com base no gráfico dos resíduos versus valores ajustados, não consigo saber se a variância é de fato constante. Acredito que é preciso fazer uma análise complementar.
+**Variância constante**: Essa condição pode ser verificada através da curva dos resíduos padronizados em função dos valores ajustados. Aqui, é importante ressaltar que essa condição também é conhecida como *homocedasticidade*.
+
+Para verificar se um modelo de regressão linear ajustado atende aos pressupostos, podemos aplicar a função `plot()` à saída de `lm()`. Para entendermos qual será o resultado, podemos rodar o comando `?plot.lm`.
+
+
+- A função `par()` é usada para definir parâmetros de gráficos
+
+- O argumento `mfrow` divide o gráfico conforme uma matriz $n_r \times c_c$, plotando primeiro os quadros horizontais.
+
+- A função `plot()`, quando aplicada a um objeto do tipo `lm()`, dispõe de 6 saídas:
+
+
+1 - gráfico de dispersão para resíduos contra valores ajustados
+
+2 - gráfico de localização da escala da raíz dos resíduos versus valores ajustados
+
+3 - q-q plot para a distribuição normal
+
+4 - gráfico de distâncias de Cook versus rótulos de linha
+
+5 - resíduos versus alavancagem
+
+6 - distâncias de Cook versus alavancagem
+
+
+Por padrão, a saída apresenta as 3 primeiras e a quinta opções. Porém, outras podem ser selecionadas com o argumento `which`.
+
+
+```{r}
+par(mfrow = c(2, 2))
+plot(m1, which = c(1:4), pch = 16)
+```
+
+
+Olhando para o terceiro quadro acima, vemos que a hipótese de homocedasticidade aproximada dos resíduos está verificada.
+
 
 # Por sua conta
 
@@ -330,11 +368,11 @@ Vamos escolher a variável `hits` (rebatidas) como preditora. Deste modo, temos:
 ggplot(data = mlb11, aes(x = hits, y = runs)) + 
   geom_point(col = "red", size = 2) + 
   stat_smooth(method = "lm", formula = y ~ x, se = T) + 
-  theme(text = element_text(size = 16)) + 
   labs(
     title = "Ajuste para pontos em função da média de rebatidas",
     subtitle = "modelo de regressão linear, ajuste linear"
-  )
+  ) + 
+  theme(text = element_text(size = 18))
 
 mlb11 %>%
   summarise(cor(hits, runs))
@@ -375,10 +413,20 @@ m10 = lm(data = mlb11, formula = runs ~ new_obs)
 
 
 ```{r}
-resultado1 = data.frame(var_predit = c("at_bats", "hits", "home_runs", "bat_avg", "strikeouts", "stolen_bases", "wins"), r_square_mult = c(0.3729, 0.6419, 0.6266, 0.6561, 0.1694, 0.0029, 0.3610), cor_coef = c(0.6106, 0.8012, 0.7916, 0.8010, -0.4115, 0.0540, 0.6008))
+resultado1 = data.frame(
+  var_predit = c("at_bats", "hits", "home_runs", "bat_avg", "strikeouts", "stolen_bases", "wins"), 
+  r_square_mult = c(summary(m1)$r.squared, summary(m2)$r.squared, summary(m3)$r.squared, summary(m4)$r.squared, summary(m5)$r.squared, summary(m6)$r.squared, summary(m7)$r.squared), 
+  cor_coef = c(cor(mlb11$runs, mlb11$at_bats), cor(mlb11$runs, mlb11$hits), cor(mlb11$runs, mlb11$homeruns), cor(mlb11$runs, mlb11$bat_avg), cor(mlb11$runs, mlb11$strikeouts), cor(mlb11$runs, mlb11$stolen_bases), cor(mlb11$runs, mlb11$wins))
+  )
 
-  kable(resultado1, col.names = c("Variável Preditora", "R^2-múltiplo", "Coef. de Correlação")) %>% 
-  kable_styling(full_width = F, bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+  kable(
+    resultado1, 
+    col.names = c("Variável Preditora", "R^2-múltiplo", "Coef. de Correlação")
+    ) %>% 
+    kable_styling(
+      full_width = F, 
+      bootstrap_options = c("striped", "hover", "condensed", "responsive")
+      )
 ```
 
 <br>
@@ -391,11 +439,11 @@ De acordo com a tabela apresentada acima, a melhor variável preditora para a va
 ggplot(data = mlb11, aes(x = bat_avg, y = runs)) +
   geom_point(col = "red", size = 2) + 
   stat_smooth(method = "lm", formula = y ~ x, se = T) + 
-  theme(text = element_text(size = 16)) + 
   labs(
     title = "Ajuste para runs como função de bat_avg",
     subtitle = "modelo de regressão linear, ajuste linear"
-  )
+  ) + 
+  theme(text = element_text(size = 18))
 ```
 
 
@@ -403,14 +451,23 @@ ggplot(data = mlb11, aes(x = bat_avg, y = runs)) +
 
 
 ```{r}
-resultado2 = data.frame(var_predit = c("new_onbase", "new_slug", "new_obs"), r_square_mult = c(0.8491, 0.8969, 0.9394), cor_coef = c(0.9215, 0.9470, 0.9669))
+resultado2 = data.frame(
+  var_predit = c("new_onbase", "new_slug", "new_obs"), 
+  r_square_mult = c(summary(m8)$r.squared, summary(m9)$r.squared, summary(m10)$r.squared), 
+  cor_coef = c(cor(mlb11$runs, mlb11$new_onbase), cor(mlb11$runs, mlb11$new_slug), cor(mlb11$runs, mlb11$new_obs)))
 
-  kable(resultado2, col.names = c("Variável Preditora", "R^2-múltiplo", "Coef. de Correlação")) %>% 
-  kable_styling(full_width = F, bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+  kable(
+    resultado2, 
+    col.names = c("Variável Preditora", "R^2-múltiplo", "Coef. de Correlação")
+    ) %>% 
+    kable_styling(
+      full_width = F, 
+      bootstrap_options = c("striped", "hover", "condensed", "responsive")
+      )
 ```
 
 
-Conforme podemos ver na tabela acima, as estatísticas usadas no Filme [Moneyball](https://en.wikipedia.org/wiki/Moneyball_(film)) são melhores que todas as outras 7 tradicionalmente utilizadas para prever o número de pontos marcados por um time naquela temporada analisada. Dentre as novas estaísticas introduzidas, a variável `new_obs`é a que tem maior sucesso em predizer o número de pontos marcados por um time, considerando o $R^2$ múltiplo e o coeficiente de correlação entre a variável `runs` e a respectiva variável preditora.
+Conforme podemos ver na tabela acima, as estatísticas usadas no Filme [Moneyball](https://en.wikipedia.org/wiki/Moneyball_(film)) são melhores que todas as outras 7 tradicionalmente utilizadas para prever o número de pontos marcados por um time naquela temporada analisada. Dentre as novas estatísticas introduzidas, a variável `new_obs`é a que tem maior sucesso em predizer o número de pontos marcados por um time, considerando o $R^2$ múltiplo e o coeficiente de correlação entre a variável `runs` e a respectiva variável preditora.
 
 De fato, podemos ver como fica a linha de regressão para esse caso:
 
@@ -419,11 +476,11 @@ De fato, podemos ver como fica a linha de regressão para esse caso:
 ggplot(data = mlb11, aes(x = new_obs, y = runs)) + 
   geom_point(col = "red", size = 2) +
   stat_smooth(method = "lm", formula = y ~ x, se = T) +
-  theme(text = element_text(size = 16)) +
   labs(
     title = "Ajuste para runs como função de new_obs",
     subtitle = "modelo de regressão linear, ajuste linear"
-  )
+  ) + 
+  theme(text = element_text(size = 18))
 ```
 
 
@@ -431,69 +488,28 @@ ggplot(data = mlb11, aes(x = new_obs, y = runs)) +
 5. Faça uma análise de diagnóstico do modelo de regressão a partir da variável que você escolheu como melhor preditora dos pontos (variável `runs`).
 
 
+Para subsidiar a nossa análise, vamos aplicar a função `plot()` ao nosso modelo ajustado, `m10`, a fim de obter a avaliação dos resíduos do modelo.
+
+```{r}
+par(mfrow = c(2, 2))
+plot(m10, which = c(1:4), pch = 16)
+```
+
 **Linearidade**
 
 
-```{r}
-ggplot(data = m10, aes(x = .fitted, y = .resid)) +
-  geom_point(col = "red", size = 2) +
-  geom_hline(yintercept = 0, linetype = "dashed", size = 1, col = "blue") + 
-  labs(
-    x = "valores ajustados",
-    y = "Resíduos",
-    title = "Modelo linear para runs x new_obs",
-    subtitle = "Avaliação de viés nos resíduos"
-  ) + 
-  theme(text = element_text(size = 16))
-```
-
-Como podemos ver no gráfico acima, os resíduos não apresentam qualquer viés aparente.
+Como podemos ver no gráfico acima, os resíduos não apresentam um viés claro aparente. Porém, a hipótese de que a média dos resíduos é zero parece estar violada.
 
 
 **Resíduos aproximadamente normais**
 
 
-```{r}
-ggplot(data = m10, aes(x = .resid)) +
-  geom_histogram(
-    aes(y = ..density..), 
-    binwidth = 10, 
-    col = "black", 
-    fill = "orange"
-    ) + 
-  stat_function(
-    fun = dnorm, 
-    args = 
-      list(mean = mean(m10$residuals), sd = sd(m10$residuals)),
-    col = "red", size = 1
-  ) + 
-  theme(text = element_text(size = 16)) + 
-  labs(
-    x = "Residuals",
-    title = "Distribuição dos resíduos",
-    subtitle = "runs em função de new_obs"
-  )
-```
-
-
-```{r}
-ggplot(data = m10, aes(sample = .resid)) + 
-  geom_qq(col = "red", size = 2) + 
-  geom_qq_line(linetype = "dashed", color = "blue", size = 1) +
-  labs(
-    x = "Quantis teóricos",
-    y = "Quantis amostrais",
-    title = "Estudo da normalidade dos resíduos",
-    subtitle = "q-q plot para os resíduos (runs em função de new_obs)"
-  ) + 
-  theme(text = element_text(size = 16))
-```
-
 Conforme podemos ver no qq-plot mostrado acima, os resíduos amostrais se ajustam razoavelmente bem a uma distribuição normal.
-
-
 
 
 **Variância constante**
 
-Com base no gráfico dos resíduos versus valores ajustados, não consigo saber se a variância é de fato constante. Acredito que é preciso fazer uma análise complementar.
+Com base no resultado do terceiro quadro mostrado acima, vemos que a hipótese de homocedasticidade é aproximadamente válida, sendo que a variância parece diminuir levemente com o aumento dos valores ajustados.
+
+
+Finalmente, dados o gráfico do modelo ajustado e a análise de resíduos feita acima, podemos concluir que o modelo linear adotado (percentual de alcance de base como preditora para os pontos marcados) parece razoavelmente adequado. Contudo, devemos ter um pouco de cautela, já que duas das hipóteses utilizadas para a construção do modelo parecem ser ligeiramente violadas. Tal fato pode decorrer do reduzido número de pontos para análise (30). 
