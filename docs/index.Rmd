@@ -2255,7 +2255,7 @@ Temos dados de 13 variáveis diferentes, algumas qualitativas e outras quantitat
 
 Primeiro, vamos fazer um breve resumo desse conjunto de dados:
 
-```{r, echo=FALSE}
+```{r}
 cat("Número de Registros:",
     nrow(nc),
     "\nResumo Estatístico:\n"
@@ -2334,7 +2334,7 @@ cowplot::plot_grid(histogram, box_plot)
 ```
 
 
-```{r, echo=FALSE}
+```{r}
 cat("Resumo de 5 números para a idade da mãe:\n")
 
 summary(nc$mage)
