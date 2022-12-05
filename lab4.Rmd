@@ -293,6 +293,7 @@ Como sabemos, um bom estimador para a média populacional é a média amostral $
 
 
 ```{r}
+set.seed(123)
 ames %>%
   select(price) %>%
   slice_sample(n = 15, replace = T) %>%

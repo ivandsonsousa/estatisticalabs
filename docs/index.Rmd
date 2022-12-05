@@ -1624,6 +1624,7 @@ Como sabemos, um bom estimador para a média populacional é a média amostral $
 
 
 ```{r}
+set.seed(123)
 ames %>%
   select(price) %>%
   slice_sample(n = 15, replace = T) %>%
@@ -2211,7 +2212,287 @@ Finalmente, dados o gráfico do modelo ajustado e a análise de resíduos feita 
 
 
 
-# Lab06:
+# Lab06: Intervalos de confiança
+
+
+Se você tem acesso aos dados de um população inteira, por exemplo o tamanho de cada casa na cidade de Ames, Iowa, Estado Unidos, é fácil e direto responder a questões como “Qual é o tamanho de uma casa típica na cidade de Ames?” e “Quanta variação existe no tamanho das casas?”. Se você tem acesso somente a uma amostra da população, como costuma ser o caso, responder a essas perguntas fica um pouco mais complicado. Qual é a sua melhor estimativa para o tamanho típico de uma casa se você só sabe o tamanho de algumas dezenas de casas? Esse tipo de situação requer que você use sua amostra para fazer inferências à respeito da população em geral.
+
+
+## Conteúdos abordados neste laboratório
+
+
+* Teorema do Limite Central
+* Distribuição Normal
+* Distribuição normal padrão
+* Intervalo de confiança
+
+
+> **Especificando um semente**: Nós iremos tomar algumas amostras aleatórias e calcular intervalos de confiança com base nessas amostras para este laboratório. Por esta razão, você deve especificar uma semente no topo do seu relatório. Caso tenha dúvidas sobre este tópico, retorne aos laboratórios anteriores.
+
+
+```{r}
+set.seed(123)
+```
+
+## Os dados
+
+No quarto laboratório, “Distribuições Amostrais”, nós exploramos os dados populacionais das casas da cidade de Ames, Iowa. Vamos começar carregando este conjunto de dados.
+
+```{r}
+load("ames.rda")
+```
+
+Neste laboratório, começaremos com uma amostra aleatória simples de 60 elementos da população. Perceba que o conjunto de dados contém informações sobre várias variáveis relativas às casas, mas para a primeira parte do laboratório focaremos no tamanho da casa, representada pela variável `area`.
+
+
+```{r}
+n = 60
+set.seed(123)
+amostra = slice_sample(ames, n = 60, replace = T) 
+
+cat(
+  "Média Populacional:",
+  mean(ames$area),
+  "\nMédia Amostral:",
+  mean(amostra$area)
+)
+```
+
+```{r}
+amostra %>%
+  ggplot(aes(x = area)) + 
+  geom_histogram(binwidth = 200, col = "black", fill = "orange") + 
+  labs(
+    y = "N",
+    title = "Histograma para as áreas das casas em Ames",
+    subtitle = "Amostra aleatória simples com 60 elementos"
+  ) + 
+  theme(text = element_text(size = 18))
+```
+
+
+Conforme podemos ver na saída dos comandos acima, a média populacional das áreas dos imóveis na cidade de Ames e a média da amostra aleatória simples de 60 casas que retiramos do conjunto original são muito parecidas. De fato, elas diferem por apenas `r format(round( 100*abs( as.double(colMeans(select(ames, area))) - as.double(colMeans(select(amostra, area)))) / as.double(colMeans(select(ames, area))), digits = 2 ), decimal.mark = ",")`%. 
+
+Esse é um resultado importante da estatística, que é uma consequência do teorema do limite central (**TLC**), o qual diz que as médias de amostras aleatórias simples de tamanho $n$ terão distribuição aproximadamente normal quando $n \rightarrow \infty$, e a média dessa distribição será igual à média da população subjacente. Por esse motivo, espera-se que outras pessoas que façam o mesmo procedimento amostral acima obtenham uma média amostral semelhante à média da população. Contudo, não é esperado que o valor que outra pessoa obtenha seja igual ao meu (se ela usar uma semente diferente durante o procedimento amostral), já que a média amostral é uma variável aleatória, que deve variar de uma amostra para outra.
+
+
+
+## Intervalos de Confiança
+
+
+Retornemos, por um momento, à pergunta que motivou este laboratório: baseado nesta amostra, o que podemos inferir sobre a população? Baseado apenas nesta única amostra, a melhor estimativa da área habitacional das casas vendidas em Ames seria a média amostral, geralmente representada como $\bar{x}$ (aqui denominaremos x_bar). A média amostral serve como uma boa **estimativa pontual**, mas seria interessante também comunicar quanta incerteza temos à respeito desta estimativa. Isso pode ser feito pelo uso de um **intervalo de confiança**.
+
+Conforme pode ser acompanhado em qualquer livro-texto de estatística básica [@bussab_morettin], um intervalo de confiança para a média de uma população com variância conhecida tem a seguinte forma
+
+$$ \left( \bar{x} - z_{1-\alpha/2} \dfrac{\sigma}{\sqrt{n}}, \bar{x} + z_{1-\alpha/2} \dfrac{\sigma}{\sqrt{n}} \right). $$
+
+Por questões didáticas, queremos trabalhar primeiramente com a distribuição normal. Contudo, é preciso deixar claro que a ideia de intervalo de confiança vale para qualquer distribuição de probabilidades. Por exemplo, se $T$ for um estimador do parâmetro $\theta$, e, se conhecemos a distribuição de $T$, sempre será possível achar dois valores $t_1$ e $t_2$ que satisfaçam a relação [@bussab_morettin]
+
+
+$$ P(t_1 < \theta < t_2) = \gamma $$,
+
+
+sendo $\gamma$ uma probabilidade, ou seja, $0 < \gamma < 1$. No caso específico das distribuições normais e da t-Student, os dois quantis são simétricos, já que a prória distribuição é simétrica, em ambos os casos.
+
+Uma vez que queremos usar as medidas amostrais e não calculamos a verdadeira variância da população, em nosso exemplo iremos supor normalidade dos dados e considerar que o tamanho da amostra é suficientemente grande para utilizarmos o desvio padrão amostral $s$ no lugar de $\sigma$. Assim não teremos que, obrigatoriamente, utilizar a distribuição t-Student. Nosso intervalo de confiança terá, então, a forma
+
+$$ \left( \bar{x} - z_{1-\alpha/2} \dfrac{s}{\sqrt{n}}, \bar{x} + z_{1-\alpha/2} \dfrac{s}{\sqrt{n}} \right). $$
+
+> Aqui, é preciso fazer um parêntesis: Teoricamente, ao usar o desvio padrão amostral $S$ em vez do desvio padrão populacional $\sigma$, que é o que fazemos na prática, pois não conhecemos os parâmetros populacionais quando estamos fazendo inferência, a distribuição da estatística do teste muda para uma distribuição t de Student. Porém, também sabemos que, quanto maior o número de graus de liberdade da t de Student (que está relacionado ao tamanho da amostra), mais essa distribuição se aproxima de uma normal padrão. Por isso, esta aproximação está sendo usada aqui, já que o autor não queria introduzir a distribuição t de Student neste momento do estudo.
+
+
+
+Neste ponto do curso você já deve se sentir confortável para calcular a média e o desvio padrão amostrais no R, e sabemos que o tamanho da amostra é 60. Desse modo, o único ponto que nos falta é determinar o valor crítico (quantil) associado a um nível de confiança dado. Lembre-se que níveis de confiança e quantis não são equivalentes. Por exemplo, um nível de confiança de 95% se refere a 95% da região central da distribuição, e o valor crítico associado a essa área na distribuição normal é o quantil de 97,5% da distribuição. Como a distribuição é simétrica, o outro quantil é o negativo deste.
+
+
+<center>
+
+![Intervalo de confiança de 95% para a média, incluindo os respectivos quantis da normal padrão.](intervalo-de-confiança_95%.png)
+
+</center>
+
+Nós podemos encontrar o valor crítico para um intervalo com confiança de 95% usando
+
+```{r}
+z_gamma = qnorm(0.975)
+```
+que é o valor 1,96 com o qual você já está bastante familiarizado.
+
+Vamos finalmente calcular o intervalo de confiança:
+
+```{r}
+amostra %>%
+  summarise(inf = mean(area) - z_gamma*sd(area)/sqrt(n), sup = mean(area) + z_gamma*sd(area)/sqrt(n))
+```
+
+Ou, como é mostrado nos livros-textos:
+
+```{r}
+cat("IC(mu, 95%) = ",
+    "[",
+    mean(amostra$area) - z_gamma*sd(amostra$area)/sqrt(n),
+    ",",
+    mean(amostra$area) + z_gamma*sd(amostra$area)/sqrt(n),
+    "]"
+    )
+```
+
+
+Recapitulando: mesmo que não saibamos como a população inteira se distribui, temos 95% de confiança de que a verdadeira média do tamanho das casas em Ames se encontre entre os valores *inf* (limite inferior do intervalo de confiança) e *sup* (limite superior do intervalo de confiança). Contudo, existem algumas condições que precisam ser atendidas para esse intervalo ser válido.
+
+
+> Para que esse resultado seja válido, a população (que nesse caso é composta pelas áreas das casas na cidade de Ames) precisa ter distribuição normal, já que, para determinar um intervalo de confiança para a média com variância desconhecida, precisamos considerar a variável aleatória $\frac{\sqrt{n}(\bar{X}-\mu)}{S}$, a qual terá distribuição t de Student se a população já tiver distribuição normal. Além disso, estamos considerando o fato de que, quando $n \rightarrow \infty$, a distribuição t de Student com $n$ graus de liberdade tende para uma normal padrão. Nesse caso, com $n = 60$, a aproximação é razoável, dando uma diferença de cerca de 2% no quantil relativamente ao resultado exato.
+
+
+
+## Níveis de Confiança
+
+
+> O que significa 95% de confiança? Em poucas palavras, significa que, se repetirmos esse procedimento e determinarmos a média amostral um número grande de vezes, cerca de 95% deles conterá o valor da média da população.
+
+Em nosso caso, temos o luxo de sabermos a verdadeira média populacional, uma vez que temos os dados da população inteira. Vamos calcular este valor para determinar se nosso intervalo de confiança realmente captura a média. Vamos armazenar este valor com o nome `param` (abreviação para parâmetro populacional), e nomeá-lo `mu`.
+
+```{r}
+param = ames %>%
+  summarise(mu = mean(area))
+param
+```
+Assim, vemos que o nosso intervalo de confiança de 95% nesse caso contêm a média $\mu$ da população. Além disso, se muitas pessoas fizessem esse mesmo procedimento amostral feito aqui, espera-se que cerca de 95% dos intervalos de confiança gerados contenham o valor real de $\mu$.
+
+
+Utilizando o R, vamos criar várias amostras para aprender um pouco mais a respeito de como as médias amostrais e os intervalos de confiança variam de uma amostra para outra.
+
+Eis o esboço do processo:
+
+a. Obter uma amostra aleatória.
+
+b. Calcular a média e o desvio padrão da amostra.
+
+c. Utilizar estas estatísticas para calcular um intervalo de confiança.
+
+d. Repetir estas etapas 50 vezes.
+
+
+Nós podemos alcançar este objetivo por meio da função `rdply` do pacote `plyr`. As seguintes linhas de comando tomam 50 amostras aleatórias simples de tamanho n da população (lembre-se que definimos n=60 mais cedo), e calcula os intervalos de confiança para cada uma das amostras.
+
+```{r}
+set.seed(123)
+ic = rdply(50, slice_sample(ames, n = n, replace = T), .id = "Amostra") %>%
+  group_by(Amostra) %>%
+  summarise(inf = mean(area) - z_gamma*sd(area)/sqrt(n), sup = mean(area) + z_gamma*sd(area)/sqrt(n))
+```
+
+Vamos dar uma olhada nos cinco primeiros intervalos:
+
+```{r}
+ic %>%
+  slice(1:5) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
+```
+
+Em seguida iremos criar um gráfico bastante ilustrativo: representaremos cada intervalo de confiança que captura a média pela cor azul e cada intervalo que não captura a média pela cor vermelha. Note que capturar a média significa que o limite inferior (inf) está abaixo do valor da média e o limite superior (sup) está acima do valor da média. O primeiro passo na construção deste gráfico é atualizar a variável `ic`, adicionando a seguinte informação: ele captura ou não a média? Faremos isso por meio da função `mutate`.
+
+
+```{r}
+ic = ic %>%
+  mutate(captura_mu = ifelse(inf < param$mu & sup > param$mu, "sim", "não"))
+```
+
+A função `ifelse` é nova. Ela carrega três argumentos: primeiro uma declaração lógica, em segundo lugar vem o valor que desejamos apresentar se a resposta à declaração lógica for verdadeira, e em terceiro lugar vem o valor que desejamos apresentar se a resposta à declaração por falsa.
+
+Agora possuímos toda a informação necessária para a criação do gráfico, mas necessitamos reorganizar nossos dados um pouquinho para facilitar o “desenho” do gráfico. Especificamente, nós queremos organizar os dados em um novo banco de dados onde cada linha represente um limite relacionado a um intervalo, ou seja, uma variável chamada `ic_id` irá identificar a qual intervalo nos referimos (isso tanto para o inf como para o sup), a variável `ic_limites` irá guardar os limites inferior e superior de cada intervaldo indexado pela `ic_id` e a variável `captura_mu` irá nos dizer se aquela linha corresponde a um limite que captura ou não a verdadeira média populacional. Podemos alcançar esse objetivo por meio do código abaixo:
+
+
+```{r}
+ic_dados = data.frame(
+  ic_id = c(1:50, 1:50), 
+  ic_limites = c(ic$inf, ic$sup), 
+  captura_mu = c(ic$captura_mu, ic$captura_mu)
+  )
+```
+
+
+E, finalmente, podemos criar o gráfico usando o seguinte:
+
+
+```{r}
+ic_dados %>%
+  ggplot(aes(x = ic_limites, y = ic_id, group = ic_id, color = captura_mu)) + 
+  geom_point(size = 3) +
+  geom_line() +
+  geom_vline(xintercept = param$mu, color = "darkgray") +
+  labs(
+    x = "IC(95%)",
+    y = "Amostra",
+    title = "Intervalos de confiança para a média",
+    subtitle = "amostras de tamanho n = 60"
+  ) + 
+  theme(text = element_text(size = 18))
+```
+
+
+> Qual a proporção de intervalos de confiança que capturam a verdadeira média da população? Essa proporção é exatamente igual ao nível de confiança? Se não, explique o motivo. Não se esqueça de incluir seu gráfico à sua resposta.
+
+
+Conforme podemos ver no gráfico acima, apenas 1/50, ou seja, 2% dos intervalos de confiança gerados, não contêm o verdadeiro valor da média. Teoricamente, esse valor deveria ser igual a 5%, já que estamos usando um intervalo de confiança de 95%. Contudo, o processo de amostragem possui natureza aleatória e, portanto, a depender do número de amostras que estivermos considerando, o número de intervalos que não conterão a verdadeira média naturalmente irá oscilar, mas certamente sua fração correspondente não se distanciará muito de $1 - \gamma$, que nesse caso é igual a 5%.
+
+
+
+## Por sua conta
+
+
+1. Escolha um nível de confiança de sua preferência, desde que não seja 95%. Qual é o valor crítico apropriado?
+
+
+Vamos escolher, por exemplo, dois níveis de confiança tipicamente presente nos livros-textos ou nos trabalhos científicos, que são os de 90% e 99%:
+
+```{r}
+qnorm(c(0.95, 0.995))
+```
+
+Nesse caso, geramos os valores críticos (quantis), já bastante conhecidos na literatura, que são $z_1 \approx 1.64$ e $z_2 \approx 2.57$.
+
+
+2. Calcule 50 intervalos de confiança utilizando o nível de confiança que você escolheu na questão anterior, e construa um gráfico similar ao que acabamos de criar, e calcule a proporção de intervalos que incluem a verdadeira média da população. Como se compara essa proporção com o nível de confiança que você escolheu para os intervalos? Não se esqueça de incluir seu gráfico à sua resposta.
+
+
+```{r}
+set.seed(123)
+z_gamma2 = qnorm(0.95) # Quantil de referência para o intervalo de 90%
+ic2 = rdply(50, slice_sample(ames, n = n, replace = T), .id = "Amostra") %>%
+  group_by(Amostra) %>%
+  summarise(
+    inf = mean(area) - z_gamma2*sd(area)/sqrt(n), 
+    sup = mean(area) + z_gamma2*sd(area)/sqrt(n)) %>% 
+  mutate(captura_mu = ifelse(inf < param$mu & sup > param$mu, "sim", "não"))
+
+ic_dados2 = data.frame(
+  ic_id = c(1:50, 1:50), 
+  ic_limites = c(ic2$inf, ic2$sup), 
+  captura_mu = c(ic2$captura_mu, ic2$captura_mu)
+  )
+
+ic_dados2 %>%
+  ggplot(aes(x = ic_limites, y = ic_id, group = ic_id, color = captura_mu)) +
+  geom_point(size = 3) +
+  geom_line() +
+  geom_vline(xintercept = param$mu, color = "darkgray") +
+  labs(
+    x = "IC(90%)",
+    y = "Amostra",
+    title = "Intervalos de confiança para a média",
+    subtitle = "amostras de tamanho n = 60"
+  ) + 
+  theme(text = element_text(size = 18))
+```
+
+Conforme podemos ver no gráfico gerado, apenas três intervalos em cinquenta, ou seja, 6% dos intervalos de confiança gerados não incluem a média da população. Novamente, se repetirmos esse experimento com um grande número de amostras, esperamos que aproximadamente 10% dos intervalos de confiança gerados não incluam a verdadeira média da população, já que o nível de confiança foi fixado em 90%. Portanto, o nível de significância, $1-\gamma = 10\%$, representa o percentual de amostras que não incluirão a média da população.
+
 
 
 # Lab07: Inferência para dados numéricos
