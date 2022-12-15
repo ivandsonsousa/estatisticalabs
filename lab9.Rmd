@@ -1,0 +1,118 @@
+---
+title: 'Lab09: Inferência para dados categóricos'
+author: "Ivandson Praeiro de Sousa"
+date: "2022-12-15"
+output:
+  rmdformats::readthedown
+  # html_document:
+  # number_sections: no
+  #   toc: yes
+  #   toc_float: yes
+  #   theme: cerulean
+  #   df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+## Introdução
+
+
+Em agosto de 2012, agências de notícias que vão do [Washington Post](https://www.washingtonpost.com/national/on-faith/poll-shows-atheism-on-the-rise-in-the-us/2012/08/13/90020fd6-e57d-11e1-9739-eef99c5fb285_story.html) ao [Huffington Post](https://www.huffpost.com/entry/atheism-rise-religiosity-decline-in-america_n_1777031) publicaram um texto sobre a ascensão do ateísmo na América. A fonte do artigo foi uma pesquisa que perguntou às pessoas: “Independentemente de você frequentar um local de culto ou não, você diria que é uma pessoa religiosa, não religiosa ou ateu convicto?” Esse tipo de pergunta, que pede que as pessoas se classifiquem de uma forma ou de outra, é comum em enquetes e gera dados categóricos. Neste laboratório, damos uma olhada na pesquisa de ateísmo e exploramos o que está em jogo ao fazer inferências sobre proporções populacionais usando dados categóricos.
+
+
+```{r}
+library(ggplot2)
+library(plyr)
+library(tidyr)
+library(dplyr)
+library(DescTools)
+library(htmltools)
+library(knitr)
+library(rmarkdown)
+library(combinat)
+library(kableExtra) #Para gerar tabelas com um layout agradável
+```
+
+## Conteúdos abordados neste laboratório
+
+
+* Teorema do Limite Central
+* Distribuição Normal Padrão
+* Intervalo de Confiança para a Proporção
+* Amostragem
+
+
+## A pesquisa
+
+Para baixar uma cópia da *release* da pesquisa, realizada pela WIN-Gallup International, clique no seguinte link:
+
+[release to Global index of religiosity and atheism](https://www.webpages.uidaho.edu/~stevel/251/Global_INDEX_of_Religiosity_and_Atheism_PR__6.pdf)
+
+Reserve um momento para revisar o relatório e, em seguida, responda às seguintes perguntas.
+
+
+> Exercício 1: No primeiro parágrafo, várias descobertas importantes são relatadas. Essas porcentagens parecem ser estatísticas amostrais (derivadas dos dados amostrais) ou parâmetros populacionais?
+
+Essas porcentagens são estatísticas amostrais, as quais estão sendo usadas, no resultado da pesquisa, para fazer inferência acerca dos respectivos parâmetros populacionais.
+
+> Exercício 2: O título do relatório é “Índice Global de Religiosidade e Ateísmo”. Para generalizar as descobertas do relatório para a população humana global, o que devemos supor sobre o método de amostragem? Isso parece uma suposição razoável?
+
+Para fazer essa generalização, precisamos supor que a amostra coletada reflete o comportamento das populações de interesse. Para isso, o processo de amostragem precisa ser aleatório, bem como englobar todos os estratos da população.
+
+No caso da pesquisa em análise, essa suposição parece ser válida apenas parcialmente, uma vez que foi selecionada uma amostra de tamanho $n \approx 50000$ pessoas em 57 diferentes países. Porém, não foi especificado no texto se foi considerado algum tipo de estratificação no processo de amostragem.
+
+
+## Os dados
+
+Volte sua atenção para a Tabela 6 (páginas 15 e 16), que relata o tamanho da amostra e as porcentagens de resposta para todos os 57 países. Embora este seja um formato útil para resumir os dados, basearemos nossa análise no conjunto de dados original de respostas individuais à pesquisa. Carregue este conjunto de dados no R com o seguinte comando.
+
+
+```{r}
+download.file("http://www.openintro.org/stat/data/atheism.RData", destfile = "atheism.RData")
+load("atheism.RData")
+```
+
+Para investigar a ligação entre essas duas formas de organizar esses dados, dê uma olhada na proporção estimada de ateus nos Estados Unidos. No final da Tabela 6, vemos que isso é 5%. Devemos ser capazes de chegar ao mesmo número usando o conjunto de dados `atheism`, o que pode ser conseguido facilmente com as funções da biblioteca `dplyr` ou com a função `subset()`, que é nativa do R:
+
+
+```{r}
+atheism %>%
+  filter(nationality == "United States", year == 2012) %>%
+  select(response) %>%
+  table() %>%
+  prop.table()
+```
+
+
+Nesse caso, usamos também a função `table()`, já introduzida em outros laboratórios, para calcular a proporção desejada, que vemos que está de acordo com a proporção dada na tabela da release.
+
+
+## Inferência sobre proporções
+
+
+Como foi sugerido no Exercício 1, a Tabela 6 fornece estatísticas , ou seja, cálculos feitos a partir da amostra de 51.927 pessoas. O que gostaríamos, porém, é de uma visão dos parâmetros da população . Você responde à pergunta: *“Qual proporção de pessoas em sua amostra relatou ser ateia?”* com uma estatística; enquanto a pergunta *“Qual a proporção de pessoas na Terra diriam ser ateus”* é respondida com uma estimativa do parâmetro.
+
+As ferramentas inferenciais para estimar a proporção da população são análogas àquelas usadas para médias no último capítulo: o intervalo de confiança e o teste de hipótese. Aqui, igualmente como no caso citado, também se aplica o teorema de limite central, já que a proporção é também uma média!
+
+
+> Exercício 3: Escreva as condições de inferência para construir um intervalo de confiança de 95% para a proporção de ateus nos Estados Unidos em 2012. Você tem certeza de que todas as condições foram atendidas?
+
+
+Se as condições para inferência forem razoáveis, podemos calcular o erro padrão e construir o intervalo “manualmente”, conforme descrito em nosso livro. Observe que, como o objetivo é construir uma estimativa de intervalo para uma proporção, é necessário especificar o que constitui um “sucesso”, que aqui é uma resposta de "atheist".
+
+Primeiro, vamos salvar as respostas da pesquisa de 2012 para as pessoas dos Estados Unidos. Em seguida, vamos calcular a estatística desejada, que é $\hat{p}$:
+
+
+```{r}
+us12 = atheism %>%
+  filter(nationality == "United States", year == 2012) %>%
+  select(response)
+
+atheist_yes_no = us12$response == "atheist"
+
+p_hat = mean(atheist_yes_no)
+```
+
+
