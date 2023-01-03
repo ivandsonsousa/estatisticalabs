@@ -64,6 +64,9 @@ Para fazer essa generalização, precisamos supor que a amostra coletada reflete
 No caso da pesquisa em análise, essa suposição parece ser válida apenas parcialmente, uma vez que foi selecionada uma amostra de tamanho $n \approx 50000$ pessoas em 57 diferentes países. Porém, não foi especificado no texto se foi considerado algum tipo de estratificação no processo de amostragem.
 
 
+Além disso, outro possível problema com o método de amostragem utilizado é o fato de parte da pesquisa ter sido realizada por meio de telefone e/ou internet. Esse tipo de seleção do público alvo pode gerar um viés de seleção, uma vez que, uma pequena parcela da população possui telefone e nem todos possuem acesso à internet.
+
+
 ## Os dados
 
 Volte sua atenção para a Tabela 6 (páginas 15 e 16), que relata o tamanho da amostra e as porcentagens de resposta para todos os 57 países. Embora este seja um formato útil para resumir os dados, basearemos nossa análise no conjunto de dados original de respostas individuais à pesquisa. Carregue este conjunto de dados no R com o seguinte comando.
@@ -106,13 +109,557 @@ Primeiro, vamos salvar as respostas da pesquisa de 2012 para as pessoas dos Esta
 
 
 ```{r}
+#Filtrando os dados da pesquisa para Estados Unidos
 us12 = atheism %>%
   filter(nationality == "United States", year == 2012) %>%
   select(response)
 
+#Transformando a resposta em binária
 atheist_yes_no = us12$response == "atheist"
 
+#Cálculo da proporção de sucessos na amostra
 p_hat = mean(atheist_yes_no)
+
+#Construção do IC
+n = length(atheist_yes_no)
+std_err = sqrt(p_hat*(1-p_hat)/n)
+z = qnorm(0.975)
+IC = p_hat + c(-1,1)*z*std_err
 ```
 
 
+Embora intervalos de confiança formais e testes de hipóteses não apareçam na release, sugestões de inferência aparecem no final da página 7: “Em geral, a margem de erro para pesquisas desse tipo é de $\pm 3-5 \%$, com 95% de nível confiança”.
+
+
+> Exercício 4: Com base no trabalho acima, qual é a margem de erro para a estimativa da proporção de ateus nos EUA em 2012?
+
+
+A margem de erro é matematicamente igual àquilo que vem após o +/- na expressão do IC. Dessa forma, no atual caso, é igual a `r z*std_err`, ou seja, cerca de 1,3%.
+
+
+> Exercício 5: Calcule intervalos de confiança para a proporção de ateus em 2012 em dois outros países de sua escolha e relate as margens de erro associadas. Certifique-se de observar se as condições para inferência são atendidas. Pode ser útil criar primeiro novos conjuntos de dados para cada um dos dois países e, em seguida, usar esses conjuntos de dados durante os cálculos.
+
+
+Para responder a esse item, vamos replicar os cálculos feitos logo acima para os dois países escolhidos: Brazil e India.
+
+
+```{r}
+#Primeira escolha: Brazil
+#Filtrando os dados da pesquisa para o Brasil
+br12 = atheism %>%
+  filter(nationality == "Brazil", year == 2012) %>%
+  select(response)
+
+#Transformando a resposta em binária
+atheist_yes_no = br12$response == "atheist"
+
+#Cálculo da proporção de sucessos na amostra
+p_hat = mean(atheist_yes_no)
+
+#Construção do IC
+n = length(atheist_yes_no)
+std_err = sqrt(p_hat*(1-p_hat)/n)
+z = qnorm(0.975)
+IC = p_hat + c(-1,1)*z*std_err
+margin_err = z*std_err
+```
+
+
+```{r}
+#Relatando os dados para o Brazil:
+cat(
+  " Dados para o Brasil:\n\n",
+  "Tamanho da amostra:",
+  n,
+  "\n",
+  "IC:",
+  IC,
+  "\n",
+  "Margem de erro:",
+  margin_err
+    )
+```
+
+
+```{r}
+#Segunda escolha: India
+#Filtrando os dados da pesquisa para a India
+ind12 = atheism %>%
+  filter(nationality == "India", year == 2012) %>%
+  select(response)
+
+#Transformando a resposta em binária
+atheist_yes_no = ind12$response == "atheist"
+
+#Cálculo da proporção de sucessos na amostra
+p_hat = mean(atheist_yes_no)
+
+#Construção do IC
+n = length(atheist_yes_no)
+std_err = sqrt(p_hat*(1-p_hat)/n)
+z = qnorm(0.975)
+IC = p_hat + c(-1,1)*z*std_err
+margin_err = z*std_err
+```
+
+
+```{r}
+#Relatando os dados para a India:
+cat(
+  " Dados para a India:\n\n",
+  "Tamanho da amostra:",
+  n,
+  "\n",
+  "IC:",
+  IC,
+  "\n",
+  "Margem de erro:",
+  margin_err
+    )
+```
+
+
+Surpreendentemente, de acordo com os resultados da pesquisa de 2012, o percentual de ateus é maior na Índia que no Brasil. O tamanho da amostra é equivalente. Levando em consideração apenas o tamanho da amostra utilizada nos dois casos, a condição básica de inferência é atendida: tamanho da amostra da ordem de 2000. Quanto estamos tratando de proporções, o intervalo de confiança conservador, que é aquele associado a maior erro padrão possível, é cerca de 2400 para uma margem de erro de 2%.
+
+Um exercício interessante aqui é replicar o trecho de código acima e escolher outros países.
+
+
+## Como a proporção afeta a margem de erro?
+
+
+Imagine que você decidiu fazer uma pesquisa com 1.000 pessoas sobre duas perguntas: *você é mulher?* e *você é canhoto?* Como ambas as proporções amostrais foram calculadas a partir do mesmo tamanho de amostra, elas devem ter a mesma margem de erro, certo? Errado! Embora a margem de erro mude com o tamanho da amostra, ela também é afetada pela proporção.
+
+
+Pense na fórmula do erro padrão: 
+
+
+$$ SE = \sqrt{p*(1-p)/n}. $$
+
+Esse resultado é então usado na fórmula para a margem de erro que, para um intervalo de confiança de 95%, será dada por:
+
+
+$$ ME = 1.96*SE = 1.96*\sqrt{p*(1-p)/n}. $$
+
+Vemos então que a margem de erro depende da proporção da população. Podemos visualizar essa relação criando um gráfico de $ME$ contra $p$.
+
+
+O primeiro passo é fazer um vetor `p` que seja uma sequência de 0 a 1, com cada número separado por 0,01. Podemos então criar um vetor da margem de erro (`ME`) associado a cada um desses valores usando a conhecida fórmula aproximada ($ME \approx 1.96*SE$). Por fim, plotamos os dois vetores um contra o outro para revelar sua relação.
+
+
+```{r}
+n = 1000 #Tamanho simulado da amostra
+p = seq(0, 1, 0.01)
+ME = 1.96*sqrt(p*(1-p)/n)
+
+plot(
+  p,
+  ME,
+  xlab = "Populational Proportion",
+  ylab = "Margin of Error",
+  pch = 19
+)
+```
+
+
+> Exercício 6: Descreva a relação entre `p` e `ME`.
+
+Como vemos, e como é esperado, a margem de erro do intervalo de confiança para a proporção é máxima quando $p = 0.5$, assim como acontece com o erro padrão do estimador. 
+
+
+## Condição de sucesso-falha
+
+
+O livro enfatiza que você deve sempre verificar as condições antes de fazer inferências. Para inferência sobre proporções, a proporção da amostra pode ser considerada quase normal se for baseada em uma amostra aleatória de observações independentes e se ambas as expressões a seguir forem válidas:
+
+$$ np \geq 10 $$
+
+$$ np*(1-p) \geq 10 $$
+
+Essa regra prática é fácil de seguir, mas nos faz pensar: o que há de tão especial no número 10?
+
+A resposta curta é: nada. Você poderia argumentar que estaríamos bem com 9 ou que realmente deveríamos usar 11. Qual é o “melhor” valor para tal regra prática é, pelo menos até certo ponto, arbitrário. No entanto, quando $np$ e $np*(1-p)$ atinge 10, a distribuição amostral é suficientemente normal para usar intervalos de confiança e testes de hipóteses baseados nessa aproximação.
+
+
+Podemos investigar a interação entre $n$, $p$ e a forma da distribuição amostral usando simulações. Para começar, simulamos o processo de extração de 5.000 amostras de tamanho 1.040 de uma população com uma proporção de verdadeiros ateus de 0,1. Para cada uma das 5.000 amostras, calculamos $\hat{p}$ e, em seguida, traçamos um histograma para visualizar sua distribuição.
+
+
+Para fazer a simulação, vamos usar a função `rdply()` da biblioteca `plyr`, já utilizada nos capítulos 4 e 5.
+
+
+```{r}
+set.seed(123)
+p = 0.1
+n = 1040
+sample_p_hat = rdply(
+  5000,
+  .expr = data.frame(
+    sample = sample(c("atheist", "non_atheist"), n, replace = T, prob = c(p, 1-p))
+  ),
+  .id = "id_sample"
+) %>%
+  group_by(id_sample) %>%
+  summarise(phat = mean(sample == "atheist"))
+```
+
+
+```{r}
+sample_p_hat %>%
+  ggplot(aes(x = phat)) +
+  geom_histogram(
+    aes(y = after_stat(density)),
+    fill = "orange", 
+    col = "black"
+  ) +
+  labs(
+    x = "p_hat",
+    title = "Distribuição da proporção amostral",
+    subtitle = "Simulação com 5000 amostras de tamanho n = 1040"
+  ) + 
+  theme(text = element_text(size = 18))
+```
+
+
+
+> Exercício 7: Descreva a distribuição amostral da proporção amostra para $n = 1040$ e $p = 0,1$. Certifique-se de observar o centro, dispersão e forma. Dica: Lembre-se de que o R tem funções como `mean` para calcular estatísticas resumidas.
+
+
+A forma da distribuição amostral obtida é aproximadamente normal. Vamos calcular a média a variância e comparar com $p$ e $\sqrt{p*(1-p)/n}$, respectivamente.
+
+
+```{r}
+sample_p_hat %>%
+  summarise(
+    xbar = mean(phat),
+    var = sd(phat)^2
+  ) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  )
+```
+
+
+Temos então $\bar{x} \approx p$ e $s^2 \approx p*(1-p)/1040$.
+
+
+> Exercício 8: Repita a simulação acima mais três vezes, mas com tamanhos e proporções de amostra modificados: para $n = 400$ e $p = 0,1$, $n = 1040$ e $p = 0,02$ e $n = 400$ e $p = 0,02$. Plote os histogramas lado a lado. Descreva as três novas distribuições amostrais. Com base nesses gráficos, como $n$ parece afetar a distribuição de $\hat{p}$? Como $p$ afeta a distribuição amostral?
+
+
+Primeiramente, vamos replicar o trecho de código utilizado para gerar as amostras:
+
+
+```{r}
+# n = 400 e p = 0,1
+set.seed(123)
+p = 0.1
+n = 400
+sample_phat_400_0.1 = rdply(
+  5000,
+  .expr = data.frame(
+    sample = sample(c("atheist", "non_atheist"), n, replace = T, prob = c(p, 1-p))
+  ),
+  .id = "id_sample"
+) %>%
+  group_by(id_sample) %>%
+  summarise(phat = mean(sample == "atheist"))
+
+
+# n = 1040 e p = 0,02
+set.seed(123)
+p = 0.02
+n = 1040
+sample_phat_1040_0.02 = rdply(
+  5000,
+  .expr = data.frame(
+    sample = sample(c("atheist", "non_atheist"), n, replace = T, prob = c(p, 1-p))
+  ),
+  .id = "id_sample"
+) %>%
+  group_by(id_sample) %>%
+  summarise(phat = mean(sample == "atheist"))
+
+
+# n = 400 e p = 0,02
+set.seed(123)
+p = 0.02
+n = 400
+sample_phat_400_0.02 = rdply(
+  5000,
+  .expr = data.frame(
+    sample = sample(c("atheist", "non_atheist"), n, replace = T, prob = c(p, 1-p))
+  ),
+  .id = "id_sample"
+) %>%
+  group_by(id_sample) %>%
+  summarise(phat = mean(sample == "atheist"))
+```
+
+
+Agora, vamos agrupar os 3 conjuntos de dados em um único dataframe, a fim de facilitar o processo de plotagem:
+
+
+```{r}
+sample_phat = rbind(
+  sample_phat_400_0.1,
+  sample_phat_1040_0.02,
+  sample_phat_400_0.02
+) %>%
+  select(-id_sample) %>%
+  mutate(
+    np = rep(c("[400; 0,1]", "[1040; 0,02]", "[400; 0,02]"), each = 5000)
+  )
+```
+
+
+Finalmente, vamos plotar os histogramas:
+
+
+```{r}
+sample_phat %>%
+  ggplot(aes(x = phat)) + 
+  geom_histogram(
+    fill = "orange", 
+    col = "black", 
+    binwidth = 0.003,
+    aes(y = after_stat(density))
+    ) +
+  facet_wrap(~np, ncol = 1, strip.position = "right") + 
+  labs(
+    title = "Comparação entre as distribuições amostrais da proporção",
+    subtitle = "Valores variados de n e p. Simulações com 5000 amostras."
+  ) +
+  theme(text = element_text(size = 16))
+```
+
+
+
+Como vemos nos gráficos plotados, todas as três distribuições são aproximadamente normais. Além disso, vemos que, dado o tamanho $n$ da amostra fixo, quanto maior o valor de $p$, maior a média da distribuição de $\hat{p}$ e maior a dispersão da distribuição. Por outro lado, dado o valor de $p$ fixo, quanto maior o valor de $n$, menor a distribuição amostral. Todas essas observações são compatíveis com a conclusão do teorema de limite central de que, para n suficientemente grande, 
+
+
+$$ \hat{p} \sim N \left(p, p*(1-p)/n \right). $$
+
+
+
+> Exercício 9: Se você consultar a Tabela 6, verá que a Austrália tem uma proporção amostral de 0,1 em um tamanho de amostra de 1.040, e que o Equador tem uma proporção amostral de 0,02 em 400 indivíduos. Vamos supor para este exercício que essas estimativas pontuais são realmente verdadeiras. Então, dada a forma de suas respectivas distribuições amostrais, você acha que é sensato prosseguir com a inferência e relatar a margem de erros, como o relatório faz? – Verificando nossa condição de pelo menos 10 sucessos e falhas observados.
+
+
+Analisando a situação dada para Austrália e Equador de acordo com os resultados dos gráficos acima, bem como tendo em vista as condições $np \geq 10$ e $np*(1-p) \geq 10$, conclui-se que o tamanho amostral utilizado para o Equador não parece ser adequado, já que não seria suficiente para cumprir essas duas condições. 
+
+
+## Por sua conta
+
+
+A questão do ateísmo foi feita pela WIN-Gallup International em uma pesquisa semelhante realizada em 2005. (Presumimos aqui que os tamanhos das amostras permaneceram os mesmos - ou próximos o suficiente, de modo que realmente não importa.) A tabela 4 na página 13 da release resume os resultados da pesquisa de 2005 e 2012 para 39 países.
+
+Responda às duas perguntas a seguir usando intervalos de confiança calculados "manualmente" ou usando as funções integradas descritas na seção final do laboratório. Como sempre, escreva as hipóteses para quaisquer testes que realizar e descreva o status das condições para inferência.
+
+a. Existem evidências convincentes de que a Espanha viu uma mudança em seu índice de ateísmo entre 2005 e 2012? Dica: crie um novo conjunto de dados para entrevistados da Espanha para 2005 e 2012. Forme intervalos de confiança para a verdadeira proporção de ateus em ambos os anos e determine se eles se sobrepõem.
+
+
+Para responder a essa questão, vamos usar as funções `prop.test()` e `binom.test()`, conforme comentários na próxima seção. A função `prop.test()` vai nos ajudar a verificar ou não a hipótese de que o índice de ateísmo na Espanha mudou entre uma amostragem e outra. No caso em análise, vamos passar como argumentos para a função os dois grupos (amostra de 2005 e de 2012) e `alternative = two.sided`, de acordo com as hipóteses nulas e alternativas descritas a seguir:
+
+
+$$ H_0: p_{2005} = p_{2012} $$
+
+$$ H_1: p_{2005} \neq p_{2012} $$
+
+Primeiro, vamos fazer o teste de hipóteses usando a função `prop.test()`. Para isso, devemos lembrar que sua implementação se baseia no teorema do limite central e, dessa forma, seu resultado é uma aproximação que depende do tamanho das amostras utilizadas. Para fazer esse teste, vamos determinar o número de sucessos em cada caso (ou seja, o número de ateus) e os respectivos números de tentativas:
+
+
+```{r}
+#2012
+response_esp_2012 = atheism %>%
+  filter(nationality == "Spain", year == 2012) %>%
+  select(response)
+
+n_esp_2012 = nrow(response_esp_2012)
+ateus_esp_2012 = sum(response_esp_2012$response == "atheist")
+
+
+#2005
+response_esp_2005 = atheism %>%
+  filter(nationality == "Spain", year == 2005) %>%
+  select(response)
+
+n_esp_2005 = nrow(response_esp_2005)
+ateus_esp_2005 = sum(response_esp_2005$response == "atheist")
+```
+
+
+Agora, faremos os testes propriamente ditos:
+
+
+```{r}
+#Usando a função prop.test()
+prop.test(
+  x = c(ateus_esp_2005, ateus_esp_2012),
+  n = c(n_esp_2005, n_esp_2012)
+  )
+```
+
+
+Conforme o p-valor obtido, decidimos então que, com essas amostras, não podemos rejeitar a hipótese nula de que o percentual de ateus na Espanha se manteve nas duas pesquisas. Vendo também do ponto de vista do intervalo de confiança, o resultado nos mostra que o IC de 95% para a diferença entre as duas proporções contêm o zero, o que corrobora com a afirmação já dada na frase anterior.
+
+
+Para comparar o resultado, vamos obter os intervalos de confiança exatos individuais para cada proporção:
+
+
+```{r}
+#Usando a função binom.test()
+
+cat("dados de 2005:\n")
+
+binom.test(
+  x = ateus_esp_2005,
+  n = n_esp_2005
+  )
+
+cat("dados de 2012:\n")
+
+binom.test(
+  x = ateus_esp_2012,
+  n = n_esp_2012
+  )
+```
+
+
+
+Como podemos ver, os intervalos de confiança se intersectam, o que leva à mesma conclusão já tirada através da função `prop.test()`: não podemos rejeitar a hipótese de que o percentual de ateus se manteve nas duas pesquisas realizadas. 
+
+b. Existem evidências convincentes de que os Estados Unidos viram uma mudança em seu índice de ateísmo entre 2005 e 2012?
+
+Para responder a esta pergunta, vamos repetir o que foi feito no item anterior, apenas trocando o país para Estados Unidos:
+
+
+```{r}
+#2012
+response_usa_2012 = atheism %>%
+  filter(nationality == "United States", year == 2012) %>%
+  select(response)
+
+n_usa_2012 = nrow(response_usa_2012)
+ateus_usa_2012 = sum(response_usa_2012$response == "atheist")
+
+
+#2005
+response_usa_2005 = atheism %>%
+  filter(nationality == "United States", year == 2005) %>%
+  select(response)
+
+n_usa_2005 = nrow(response_usa_2005)
+ateus_usa_2005 = sum(response_usa_2005$response == "atheist")
+```
+
+
+Finalmente, o teste de hipótese:
+
+
+```{r}
+#Usando a função prop.test()
+prop.test(
+  x = c(ateus_usa_2005, ateus_usa_2012),
+  n = c(n_usa_2005, n_usa_2012)
+  )
+```
+
+
+Conforme o p-valor obtido, isto é, $p << 0,05$, decidimos por rejeitar a hipótese nula de que a proporção de ateus é a mesma nas duas amostragens. Além disso, olhando para o intervalo de confiança de 95% para a diferença entre as duas probabilidades de sucesso, o percentual de ateus parece de fato ser maior em 2012, já que ambos os extremos do IC obtido são negativos.
+
+
+c. Se de fato não houve mudança no índice de ateísmo nos países listados na Tabela 4, em quantos desses países você esperaria detectar uma mudança (em um nível de significância de 0,05) simplesmente por acaso? *Dica: Procure no índice do livro didático o erro Tipo 1*.
+
+
+Para chegar a uma resposta para essa questão, primeiro vamos armazenar os dados referentes aos ateus para cada país em dois dataframes, uma para cada ano:
+
+
+```{r}
+response_2005 = atheism %>%
+  group_by(year, nationality) %>%
+  summarise(
+    n = n(),
+    n_ateus = sum(response == "atheist")
+  ) %>%
+  filter(year == 2005)
+
+response_2012 = atheism %>%
+  group_by(year, nationality) %>%
+  summarise(
+    n = n(),
+    n_ateus = sum(response == "atheist")
+  ) %>%
+  filter(year == 2012)
+```
+
+
+Agora, vamos fazer um *inner join* entre os dois dataframes, já que a quantidade de países em que a amostragem foi realizada é diferente nos dois casos:
+
+
+```{r}
+ateus_paises = merge(
+  response_2005, 
+  response_2012, 
+  by = "nationality", 
+  suffixes = c("_2005", "_2012")
+  ) %>%
+  select(-year_2005, -year_2012)
+```
+
+
+Finalmente, vamos usar a função `mutate` da biblioteca `dplyr` para adicionar uma coluna ao dataframe que conterá o p-valor do teste que verifica a igualdade das proporções amostrais nos dois anos em análise para cada nacionalidade. Note que também estamos usando a função `group_by()`, da mesma biblioteca, para que o cálculo seja feito linha a linha, ou seja, para que o teste para a proporção de ateus seja calculado para cada país:
+
+
+
+```{r}
+ateus_paises = ateus_paises %>%
+  group_by(nationality) %>%
+  mutate(
+    p_value = prop.test(
+      x = c(n_ateus_2005, n_ateus_2012),
+      n = c(n_2005, n_2012)
+      )$p.value
+  )
+
+  
+cat(
+  "Número de países nos quais esperaríamos mudança no índice de ateísmo segundo as amostras e no nível de 95%:",
+  sum(ateus_paises$p_value < 0.05, na.rm = T)
+)
+```
+
+
+Vemos portanto que, de acordo com as amostras, podemos esperar que em 18 dos 37 países em que a amostragem foi realizada haja mudança no índice de ateísmo entre as pesquisas de 2005 e 2012. Por outro lado, se essa mudança não ocorreu nas respectivas populações, isso indica que cometemos erro do tipo I.
+
+
+d. Suponha que você seja contratado pelo governo local para estimar a proporção de residentes que frequentam um serviço religioso semanalmente. De acordo com as diretrizes, a estimativa deve ter uma margem de erro não superior a 1% com 95% de confiança. Você não tem ideia do que esperar para $p$. Quantas pessoas você teria que amostrar para garantir que está dentro das diretrizes? *Dica: consulte seu gráfico da relação entre $p$ e margem de erro. Não use o conjunto de dados para responder a esta pergunta*.
+
+
+Conforme já estudado, a proporção amostral também segue o teorema do limite central, isto é, tem distribuição aproximadamente norml quando o tamanho das amostras torna-se suficientemente grande. Assim, sabemos que o quantil que devemos usar no cálculo solicitado é o quantil da normal padrão, $z$. Além disso, sabemos que, na expressão para qualquer intervalo de confiança, a margem de erro é tudo aquilo que vem depois do sinal $\pm$, de modo que, podemos dizer que:
+
+
+$$ \epsilon = q*EP = z*\sqrt{p*(1-p)/n} \Rightarrow n = \dfrac{z^2}{\epsilon^2}*p(1-p) $$
+
+e, como não temos ideia do que esperar para $p$, usamos o valor de 1/2, que está relacionada à margem de erro máxima (IC conservador), conforme o gráfico ilustrado na seção anterior:
+
+
+$$ n = \dfrac{z^2}{4*\epsilon^2}.$$
+
+Para a margem de erro e nível de confiança dados, esse valor será de
+
+
+```{r}
+qnorm(0.975)^2/(4*0.01^2)
+```
+
+
+ou seja, $n \approx 9604$.
+
+
+
+## Funções internas do R úteis para avaliar distribuições de proporção: `prop.test()` & `binom.test()`
+
+
+Os cálculos “manuais” representam um grande começo para conduzir inferências para proporções e diferenças de proporções (ou seja, intervalos de confiança e testes de hipóteses). Os métodos apresentados no livro dependem da aproximação normal para a distribuição binomial – daí a razão para requerer 10 sucessos e 10 falhas. No caso de **uma única amostra de proporção**, a distribuição verdadeira é a distribuição binomial e podemos calcular o intervalo de confiança exato e o valor-p do teste de hipótese usando a função `binom.test()`. Limitações computacionais tornaram isso impraticável no passado. Às vezes, esse método é chamado de teste exato.
+
+Outra opção é utilizar um método de aproximação alternativo que funciona tão bem e melhor em alguns casos do que os apresentados no livro. Esse método é conhecido como teste de qualidade de ajuste, que se estende facilmente a muitas situações e pode ser implementado usando a função `prop.test()`.
