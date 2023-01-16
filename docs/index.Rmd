@@ -1746,11 +1746,12 @@ Neste laboratório iremos explorar os dados de todos os 30 times da Liga Princip
 
 ## Os dados
 
-Vamos carregar os dados da temporada de 2011[^datasets]:
+Vamos carregar os dados da temporada de 2011:
 
 
 ```{r}
-load(file = "mlb11.Rdata")
+download.file("http://www.openintro.org/stat/data/mlb11.RData", destfile = "mlb11.RData")
+load("mlb11.RData")
 ```
 
 Além dos pontos marcados (`runs`), este conjunto de dados contém sete variáveis tradicionalmente utilizadas: vez ao taco (`at_bats`), rebatidas (`hits`), rebatidas para fora do campo (`homeruns`), média de rebatidas (`bat_avg`), eliminações (`strikeouts`), bases roubadas (`stolen_bases`), e vitórias (`wins`). Também foram incluídas três novas variáveis: percentual de alcance de base (`new_onbase`), percentual de potência (`new_slug`), e alcance de base mais potência (`new_obs`). Para a primeira parte da análise consideraremos as sete variáveis tradicionais. Ao final do laboratório, você trabalhará com as novas variáveis por conta própria.
@@ -4235,10 +4236,7 @@ Outra opção é utilizar um método de aproximação alternativo que funciona t
 
 
 
-# Lab10: Regressão linear simples
-
-
-# Lab11: Regressão linear múltipla
+# Lab10: Regressão linear múltipla
 
 
 

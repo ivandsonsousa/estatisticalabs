@@ -1,0 +1,97 @@
+---
+title: 'Lab10: Regressão Linear Múltipla'
+author: "Ivandson Praeiro de Sousa"
+date: "2023-01-13"
+output:
+  rmdformats::readthedown
+  # html_document:
+  # number_sections: no
+  #   toc: yes
+  #   toc_float: yes
+  #   theme: cerulean
+  #   df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+
+## Introdução
+
+
+Lembre-se de que exploramos a regressão linear simples examinando dados de beisebol da temporada de 2011 da *Major League Baseball* (MLB). Também usaremos esses dados para explorar a regressão múltipla. Nossa inspiração para explorar esses dados vem do filme Moneyball , que enfocou a “busca pelo segredo do sucesso no beisebol”. Ele segue uma equipe de baixo orçamento, o Oakland Athletics, que acreditava que estatísticas subutilizadas, como a capacidade de um jogador chegar à base, predizem melhor a capacidade de marcar pontos do que estatísticas típicas como *home runs*, *RBIs* (corridas impulsionadas) e média de rebatidas. Conseguir jogadores que se destacassem nessas estatísticas pouco aproveitadas acabou sendo muito mais acessível para o time.
+
+Neste laboratório, veremos os dados de todos os 30 times da Liga Principal de Beisebol e examinaremos a relação linear entre as pontos marcados em uma temporada e várias estatísticas de outros jogadores. Nosso objetivo será encontrar o modelo que melhor prevê os pontos de uma equipe em uma temporada. Também pretendemos encontrar o modelo que melhor prevê o total de vitórias de uma equipe em uma temporada. O primeiro modelo nos diria em quais estatísticas do jogador devemos prestar atenção se quisermos obter pontos e o segundo modelo indicaria quais estatísticas do jogador devemos utilizar quando desejamos obter vitórias.
+
+
+
+```{r}
+library(ggplot2)
+library(plyr)
+library(tidyr)
+library(dplyr)
+library(DescTools)
+library(htmltools)
+library(knitr)
+library(rmarkdown)
+library(combinat)
+library(kableExtra) #Para gerar tabelas com um layout agradável
+```
+
+
+## Conteúdos abordados neste laboratório
+
+
+* Regressão Linear Múltipla
+* Otimização
+* Intervalos de Confiança
+
+
+
+## Os dados
+
+
+Vamos carregar os dados para a temporada de 2011:
+
+
+```{r}
+download.file("http://www.openintro.org/stat/data/mlb11.RData", destfile = "mlb11.RData")
+load("mlb11.RData")
+```
+
+
+Além dos pontos marcados (`runs`), este conjunto de dados contém sete variáveis tradicionalmente utilizadas: vez ao taco (`at_bats`), rebatidas (`hits`), rebatidas para fora do campo (`homeruns`), média de rebatidas (`bat_avg`), eliminações (`strikeouts`), bases roubadas (`stolen_bases`), e vitórias (`wins`). Também foram incluídas três novas variáveis: percentual de alcance de base (`new_onbase`), percentual de potência (`new_slug`), e alcance de base mais potência (`new_obs`). Para a primeira parte da análise vamos considerar as sete variáveis tradicionais. Ao final do laboratório, você trabalhará sozinho com as variáveis mais recentes.
+
+
+Também gostaríamos de modificar os dados para facilitar o trabalho durante a seleção do modelo. Removemos a variável `team` do conjunto de dados e armazenamos a versão atualizada em `mlb11_wins`.
+
+
+```{r}
+mlb11_wins = mlb11 %>%
+  select(-team)
+```
+
+
+Como `wins` não é uma estatística a nível de jogador - pelo menos para não arremessadores - não queremos usá-la ao prever `runs`. Portanto, vamos criar outro conjunto de dados modificado para utilizar ao tentar encontrar o melhor modelo para prever o número total de pontos marcados por uma equipe durante uma temporada. O inverso não é um problema ao tentar prever o número de vitórias de um time em uma temporada - `runs` pode ser usado para prever `wins`.
+
+
+```{r}
+mlb11_runs = mlb11_wins %>%
+  select(-wins)
+```
+
+
+Conforme discutido em aula, há muitas maneiras de selecionar o modelo. Veremos a seguir alguns métodos de seleção. 
+
+
+## A busca pelo melhor modelo
+
+
+Conforme discutido em aula, há muitas maneiras de selecionar o modelo. Veremos os métodos de seleção direto e reverso, os quais utilizam critérios diferentes ($R_{adj}^2$, p-valor ou AIC).
+
+
+### Previsão dos pontos marcados usando seleção reversa
+
+
+O primeiro passo na seleção reversa é definir um modelo completo. Como criamos um conjunto de dados modificado para prever os pontos marcados, podemos usar um atalho, `runs ~ .`, para dizer ao R para usar todas as variáveis restantes para prever pontos.
