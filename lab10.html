@@ -1383,6 +1383,34 @@ utilizam critérios diferentes (<span class="math inline">\(R_{adj}^2\)</span>, 
 Como criamos um conjunto de dados modificado para prever os pontos
 marcados, podemos usar um atalho, <code>runs ~ .</code>, para dizer ao R
 para usar todas as variáveis restantes para prever pontos.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>runs_full <span class="ot">&lt;-</span> <span class="fu">lm</span>(runs <span class="sc">~</span> ., <span class="at">data =</span> mlb11_runs)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(runs_full)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = runs ~ ., data = mlb11_runs)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -40.062 -10.675   0.089   9.404  28.293 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(&gt;|t|)  
+## (Intercept)   2.448e+03  2.775e+03   0.882   0.3882  
+## at_bats      -5.564e-01  4.975e-01  -1.118   0.2766  
+## hits          2.578e+00  1.934e+00   1.333   0.1975  
+## homeruns      3.937e-01  4.537e-01   0.868   0.3957  
+## bat_avg      -1.506e+04  1.081e+04  -1.393   0.1790  
+## strikeouts   -2.835e-02  4.828e-02  -0.587   0.5637  
+## stolen_bases  3.209e-01  1.343e-01   2.389   0.0269 *
+## new_onbase   -3.551e+03  6.888e+03  -0.515   0.6119  
+## new_slug     -6.049e+03  6.947e+03  -0.871   0.3942  
+## new_obs       6.972e+03  6.850e+03   1.018   0.3209  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 19.1 on 20 degrees of freedom
+## Multiple R-squared:  0.963,  Adjusted R-squared:  0.9464 
+## F-statistic: 57.86 on 9 and 20 DF,  p-value: 2.327e-12</code></pre>
 </div>
 </div>
 </div>

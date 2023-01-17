@@ -1,0 +1,56 @@
+---
+title: 'Lab4.1: A Distribuição Normal'
+date: "2023-01-16"
+output:
+  rmdformats::readthedown
+  # html_document:
+  # number_sections: no
+  #   toc: yes
+  #   toc_float: yes
+  #   theme: cerulean
+  #   df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+
+## Introdução
+
+
+Neste laboratório, investigaremos a distribuição de probabilidade mais importante para a estatística: a distribuição normal. Se estivermos confiantes de que nossos dados são quase normais, isso abre a porta para muitos métodos estatísticos poderosos. Aqui, usaremos as ferramentas gráficas do R para avaliar a normalidade de nossos dados e também aprenderemos como gerar números aleatórios a partir de uma distribuição normal.
+
+
+```{r}
+library(ggplot2)
+library(plyr)
+library(tidyr)
+library(dplyr)
+library(DescTools)
+library(htmltools)
+library(knitr)
+library(rmarkdown)
+library(combinat)
+library(kableExtra) #Para gerar tabelas com um layout agradável
+```
+
+
+## Conteúdos abordados neste laboratório
+
+
+* Distribuição normal
+* quantis
+* Distribuição normal padrão
+
+
+## Os dados
+
+Neste laboratório, trabalharemos com medidas de dimensões corporais. Este conjunto de dados contém medições de 247 homens e 260 mulheres, a maioria dos quais considerados adultos jovens saudáveis.
+
+
+```{r}
+download.file("http://www.openintro.org/stat/data/bdims.RData", destfile = "bdims.RData")
+load("bdims.RData")
+```
+

@@ -95,3 +95,10 @@ Conforme discutido em aula, há muitas maneiras de selecionar o modelo. Veremos 
 
 
 O primeiro passo na seleção reversa é definir um modelo completo. Como criamos um conjunto de dados modificado para prever os pontos marcados, podemos usar um atalho, `runs ~ .`, para dizer ao R para usar todas as variáveis restantes para prever pontos.
+
+
+```{r}
+runs_full <- lm(runs ~ ., data = mlb11_runs)
+summary(runs_full)
+```
+

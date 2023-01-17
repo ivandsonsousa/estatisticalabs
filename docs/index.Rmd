@@ -1378,7 +1378,10 @@ cowplot::plot_grid(hist_kobe, hist_sim, labels = "AUTO")
 ```
 
 
-# Lab04: Distribuições Amostrais
+# Lab04: A Distribuição Normal
+
+
+# Lab05: Distribuições Amostrais
 
 
 Neste laboratório, investigaremos os meios pelos quais as estatísticas de uma amostra aleatória de dados podem servir como estimativas pontuais de parâmetros populacionais. Estamos interessados em formular uma distribuição amostral de nossa estimativa para aprender sobre as propriedades da estimativa, como sua distribuição.
@@ -1726,7 +1729,7 @@ medias_amostra_price %>%
 
 
 
-# Lab05: Introdução à Regressão Linear
+# Lab06: Introdução à Regressão Linear
 
 
 O filme [Moneyball](https://en.wikipedia.org/wiki/Moneyball_(film)) aborda a “busca pelo segredo do sucesso no beisebol”. O filme conta a história de um time de baixo orçamento, o Oakland Athletics, que acreditava que estatísticas pouco utilizadas, tal como a habilidade de um jogador chegar a uma base, prediziam melhor a habilidade de marcar pontos do que estatísticas mais comuns, como **home** **runs**, **RBIs** (runs batted in, pontos feitos quando um jogador estava rebatendo), e média de rebatidas. Contratar jogadores que se destacavam nessas estatísticas pouco utilizadas se mostrou muito mais econômico para o time.
@@ -2213,7 +2216,7 @@ Finalmente, dados o gráfico do modelo ajustado e a análise de resíduos feita 
 
 
 
-# Lab06: Intervalos de confiança
+# Lab07: Intervalos de confiança
 
 
 Se você tem acesso aos dados de um população inteira, por exemplo o tamanho de cada casa na cidade de Ames, Iowa, Estado Unidos, é fácil e direto responder a questões como “Qual é o tamanho de uma casa típica na cidade de Ames?” e “Quanta variação existe no tamanho das casas?”. Se você tem acesso somente a uma amostra da população, como costuma ser o caso, responder a essas perguntas fica um pouco mais complicado. Qual é a sua melhor estimativa para o tamanho típico de uma casa se você só sabe o tamanho de algumas dezenas de casas? Esse tipo de situação requer que você use sua amostra para fazer inferências à respeito da população em geral.
@@ -2496,7 +2499,7 @@ Conforme podemos ver no gráfico gerado, apenas três intervalos em cinquenta, o
 
 
 
-# Lab07: Inferência para dados numéricos
+# Lab08: Inferência para dados numéricos
 
 
 Neste laboratório, realizaremos testes de hipóteses e construíremos intervalos de confiança (IC's) para médias e diferenças de médias. Vamos fazer esses cálculos "manualmente" e através do uso de uma função nativa do R chamada `t.test()`, que é uma função extremamente útil e flexível quando a amostra bruta é dada. Às vezes, porém, só temos acesso a estatísticas da amostra (por exemplo, $\bar{x}, s_x, n$), o que exige que realizemos cálculos "manualmente" - ou seja, a função `t.test()` requer os dados brutos.
@@ -2521,6 +2524,7 @@ Em 2004, o estado da Carolina do Norte, Estados Unidos, disponibilizou um grande
 Carregue o conjunto de dados `nc` em seu espaço de trabalho [@datasets].
 
 ```{r}
+download.file("http://www.openintro.org/stat/data/nc.RData", destfile = "nc.RData")
 load("nc.RData")
 ```
 
@@ -3063,7 +3067,7 @@ Assim, de acordo com o resultado do nosso teste, rejeitamos a hipótese nula de 
 
 
 
-# Lab08: Mais inferência para dados numéricos - comparando várias amostras
+# Lab09: Mais inferência para dados numéricos - comparando várias amostras
 
 
 Neste laboratório, daremos continuidade aos exemplos de inferência estatística. Porém, aqui, levaremos também em consideração comparações entre mais de duas populações, situação em que teremos que utilizar método ainda não visto no laboratório anterior.
@@ -3595,7 +3599,7 @@ em que $\mu_1$ se refere a quem tem ensino médio ou menor, $\mu_2$ é para quem
 
 
 
-# Lab09: Inferência para dados categóricos
+# Lab10: Inferência para dados categóricos
 
 
 ## Introdução
@@ -4236,7 +4240,7 @@ Outra opção é utilizar um método de aproximação alternativo que funciona t
 
 
 
-# Lab10: Regressão linear múltipla
+# Lab11: Regressão linear múltipla
 
 
 
