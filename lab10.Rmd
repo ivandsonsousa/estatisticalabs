@@ -102,3 +102,15 @@ runs_full <- lm(runs ~ ., data = mlb11_runs)
 summary(runs_full)
 ```
 
+```{r}
+m1 = summary(lm(runs ~ at_bats, data = mlb11_runs))$adj.r.squared
+m2 = summary(lm(runs ~ hits, data = mlb11_runs))$adj.r.squared
+m3 = summary(lm(runs ~ homeruns, data = mlb11_runs))$adj.r.squared
+m4 = summary(lm(runs ~ bat_avg, data = mlb11_runs))$adj.r.squared
+m5 = summary(lm(runs ~ strikeouts, data = mlb11_runs))$adj.r.squared
+m6 = summary(lm(runs ~ stolen_bases, data = mlb11_runs))$adj.r.squared
+m7 = summary(lm(runs ~ new_onbase, data = mlb11_runs))$adj.r.squared
+m8 = summary(lm(runs ~ new_slug, data = mlb11_runs))$adj.r.squared
+m9 = summary(lm(runs ~ new_obs, data = mlb11_runs))$adj.r.squared
+```
+
