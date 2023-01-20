@@ -103,14 +103,16 @@ summary(runs_full)
 ```
 
 ```{r}
-m1 = summary(lm(runs ~ at_bats, data = mlb11_runs))$adj.r.squared
-m2 = summary(lm(runs ~ hits, data = mlb11_runs))$adj.r.squared
-m3 = summary(lm(runs ~ homeruns, data = mlb11_runs))$adj.r.squared
-m4 = summary(lm(runs ~ bat_avg, data = mlb11_runs))$adj.r.squared
-m5 = summary(lm(runs ~ strikeouts, data = mlb11_runs))$adj.r.squared
-m6 = summary(lm(runs ~ stolen_bases, data = mlb11_runs))$adj.r.squared
-m7 = summary(lm(runs ~ new_onbase, data = mlb11_runs))$adj.r.squared
-m8 = summary(lm(runs ~ new_slug, data = mlb11_runs))$adj.r.squared
-m9 = summary(lm(runs ~ new_obs, data = mlb11_runs))$adj.r.squared
+runs_full <- lm(runs ~ at_bats, data = mlb11_runs)
+summary(runs_full)
 ```
 
+
+> Exercício 1: Quantas variáveis estão sendo usadas para prever `runs` no modelo completo? Quantos parâmetros estão sendo estimados no modelo completo? Quantos dos parâmetros são significativamente diferentes de 0 no nível 0,05? qual é o $R^2_{adj}$ do modelo completo?
+
+
+Conforme a saída do último trecho de código, 9 variáveis estão sendo consideradas no modelo como preditoras de `runs`, ao passo que 10 parâmetros estão sendo estimados, já que o modelo linear envolve também um termo constante (intercepto). 
+
+De acordo com o modelo ajustado, apenas um parâmetro é significativo no nível de 0,05, que é o corficiente do termo `stolen_bases`.
+
+O $R^2_{adj}$ do modelo é igual a 0,9464 e, conforme já estudado no livro-texto, é um indicador da qualidade do ajuste, também conhecido como *coeficiente de explicação* do modelo, e nos mostra a proporção da variância na variável resposta que é explicada pelas variáveis independentes. Aqui, é importante fazer uma observação quanto à diferença entre o $R^2$ e o $R^2_{adj}$.

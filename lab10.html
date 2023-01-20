@@ -1411,6 +1411,45 @@ para usar todas as variáveis restantes para prever pontos.</p>
 ## Residual standard error: 19.1 on 20 degrees of freedom
 ## Multiple R-squared:  0.963,  Adjusted R-squared:  0.9464 
 ## F-statistic: 57.86 on 9 and 20 DF,  p-value: 2.327e-12</code></pre>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>runs_full <span class="ot">&lt;-</span> <span class="fu">lm</span>(runs <span class="sc">~</span> at_bats, <span class="at">data =</span> mlb11_runs)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(runs_full)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = runs ~ at_bats, data = mlb11_runs)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -125.58  -47.05  -16.59   54.40  176.87 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -2789.2429   853.6957  -3.267 0.002871 ** 
+## at_bats         0.6305     0.1545   4.080 0.000339 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 66.47 on 28 degrees of freedom
+## Multiple R-squared:  0.3729, Adjusted R-squared:  0.3505 
+## F-statistic: 16.65 on 1 and 28 DF,  p-value: 0.0003388</code></pre>
+<blockquote>
+<p>Exercício 1: Quantas variáveis estão sendo usadas para prever
+<code>runs</code> no modelo completo? Quantos parâmetros estão sendo
+estimados no modelo completo? Quantos dos parâmetros são
+significativamente diferentes de 0 no nível 0,05? qual é o <span class="math inline">\(R^2_{adj}\)</span> do modelo completo?</p>
+</blockquote>
+<p>Conforme a saída do último trecho de código, 9 variáveis estão sendo
+consideradas no modelo como preditoras de <code>runs</code>, ao passo
+que 10 parâmetros estão sendo estimados, já que o modelo linear envolve
+também um termo constante (intercepto).</p>
+<p>De acordo com o modelo ajustado, apenas um parâmetro é significativo
+no nível de 0,05, que é o corficiente do termo
+<code>stolen_bases</code>.</p>
+<p>O <span class="math inline">\(R^2_{adj}\)</span> do modelo é igual a
+0,9464 e, conforme já estudado no livro-texto, é um indicador da
+qualidade do ajuste, também conhecido como <em>coeficiente de
+explicação</em> do modelo, e nos mostra a proporção da variância na
+variável resposta que é explicada pelas variáveis independentes. Aqui, é
+importante fazer uma observação quanto à diferença entre o <span class="math inline">\(R^2\)</span> e o <span class="math inline">\(R^2_{adj}\)</span>.</p>
 </div>
 </div>
 </div>
