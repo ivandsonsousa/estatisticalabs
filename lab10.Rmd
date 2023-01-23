@@ -37,6 +37,7 @@ library(knitr)
 library(rmarkdown)
 library(combinat)
 library(kableExtra) #Para gerar tabelas com um layout agradável
+library(leaps) #Para regressão linear múltipla
 ```
 
 
@@ -98,14 +99,10 @@ O primeiro passo na seleção reversa é definir um modelo completo. Como criamo
 
 
 ```{r}
-runs_full <- lm(runs ~ ., data = mlb11_runs)
+runs_full = lm(runs ~ ., data = mlb11_runs)
 summary(runs_full)
 ```
 
-```{r}
-runs_full <- lm(runs ~ at_bats, data = mlb11_runs)
-summary(runs_full)
-```
 
 
 > Exercício 1: Quantas variáveis estão sendo usadas para prever `runs` no modelo completo? Quantos parâmetros estão sendo estimados no modelo completo? Quantos dos parâmetros são significativamente diferentes de 0 no nível 0,05? qual é o $R^2_{adj}$ do modelo completo?
@@ -113,6 +110,129 @@ summary(runs_full)
 
 Conforme a saída do último trecho de código, 9 variáveis estão sendo consideradas no modelo como preditoras de `runs`, ao passo que 10 parâmetros estão sendo estimados, já que o modelo linear envolve também um termo constante (intercepto). 
 
-De acordo com o modelo ajustado, apenas um parâmetro é significativo no nível de 0,05, que é o corficiente do termo `stolen_bases`.
+De acordo com o modelo ajustado, apenas um parâmetro é significativo no nível de 0,05, que é o coeficiente do termo `stolen_bases`.
 
 O $R^2_{adj}$ do modelo é igual a 0,9464 e, conforme já estudado no livro-texto, é um indicador da qualidade do ajuste, também conhecido como *coeficiente de explicação* do modelo, e nos mostra a proporção da variância na variável resposta que é explicada pelas variáveis independentes. Aqui, é importante fazer uma observação quanto à diferença entre o $R^2$ e o $R^2_{adj}$.
+
+O $R^2$ sempre aumenta quando inserimos uma nova variável independente. O $R_{adj}^2$, por outro lado, apenas irá aumentar se a variável inserida for significativa. 
+
+
+Agora que temos um modelo completo definido, podemos fazer a seleção do modelo reverso. A função `step()` torna extremamente fácil usar o AIC (Akiake's Information Criterion) para seleção de modelo. Semelhantemente ao $R^2_{adj}$, o AIC aplica uma penalidade aos modelos que usam mais variáveis preditoras.
+
+Usaremos o trecho de código a seguir para determinar o melhor modelo para prever os pontos de uma equipe em uma temporada usando seleção regressiva com AIC como critério (observe que um AIC mais baixo indica um modelo melhor).
+
+
+```{r}
+runs_backAIC = step(runs_full, direction = "backward")
+summary(runs_backAIC)
+```
+
+
+
+> Exercício 2: Quantos passos a seleção reversa usando AIC realizou antes de selecionar um modelo? Qual variável foi a primeira a ser removida? Quais variáveis acabaram no modelo final? Quantos parâmetros estão sendo estimados neste modelo final? Quantos dos parâmetros neste modelo final são significativamente diferentes de 0 no nível 0,05? Este modelo final tem um maior $R^2_{adj}$ do que o modelo completo para `runs`?
+
+
+Conforme a saída do código acima, vemos que foram executados 4 passos até chegar-se no modelo supostamente mais adequado. A primeira variável removida foi `new_onbase`, ao passo que no modelo final restaram 5 das 9 variáveis. Como no modelo linear geralmente existe o termo `intercept`, 6 parâmetros estão sendo estimados no modelo resultante. Contudo, apenas 3 dos 6 parâmetros restantes são significativamente diferentes de zero no nível de 0,05.
+
+
+O modelo resultante após a aplicação do AIC tem um $R^2_{adj}$ ligeiramente maior do que o modelo completo.
+
+
+Agora, em vez de AIC, vamos usar o valor de $R^2_{adj}$ como nosso critério ao conduzir a seleção reversa. Lembre-se de que um valor mais alto de $R^2_{adj}$ indica um modelo melhor. Assim, começaremos com o modelo completo e, a cada passo, retiraremos uma variável do modelo.
+
+
+```{r}
+# Step 1
+data.frame(
+  modelo = c("completo", "-at_bats", "-hits", "-homeruns", "-bat_avg", "-strikeouts", "-stolen_bases", "-new_onbase", "-new_slug", "-new_obs"),
+  adj_rsq = c(
+    summary(lm(runs ~ . , mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - at_bats, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - hits, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - homeruns, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - bat_avg, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - strikeouts, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - stolen_bases, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_slug, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_obs, mlb11_runs))$adj.r
+  )
+) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  )
+```
+
+
+Uma vez que o modelo que removeu `new_onbase` tem o maior $R^2_{adj}$, passamos para a etapa 2 usando esse modelo e continuamos removendo uma variável por vez e calculamos o novo $R^2_{adj}$ para cada modelo.
+ 
+
+```{r}
+# Step 2
+data.frame(
+  modelo = c("-new_onbase", "-new_onbase-at_bats", "-new_onbase-hits", "-new_onbase-homeruns", "-new_onbase-bat_avg", "-new_onbase-strikeouts", "-new_onbase-stolen_bases", "-new_onbase-new_slug", "-new_onbase-new_obs"),
+  adj_rsq = c(
+    summary(lm(runs ~ . - new_onbase, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - at_bats, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - hits, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - homeruns, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - bat_avg, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - stolen_bases, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - new_slug, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - new_obs, mlb11_runs))$adj.r
+  )
+) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  )
+```
+
+
+Como o modelo que apresenta o maior $R^2_{adj}$ na etapa 2 é aquele que removeu a variável `strikeouts`, passamos para a etapa 3 usando o modelo que agora tem ambos `new_onbase` e `strikeouts` removidos e continuamos removendo uma variável por vez e calculando o novo valor $R^2_{adj}$ para cada modelo.
+
+
+
+```{r}
+# Step 3
+data.frame(
+  modelo = c("-new_onbase-strikeouts", "-new_onbase-strikeouts-at_bats", "-new_onbase-strikeouts-hits", "-new_onbase-strikeouts-homeruns", "-new_onbase-strikeouts-bat_avg", "-new_onbase-strikeouts-stolen_bases", "-new_onbase-strikeouts-new_slug", "-new_onbase-strikeouts-new_obs"),
+  adj_rsq = c(
+    summary(lm(runs ~ . - new_onbase - strikeouts, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - at_bats, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - hits, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - homeruns, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - bat_avg, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - stolen_bases, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - new_slug, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - new_obs, mlb11_runs))$adj.r
+  )
+) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  )
+```
+
+
+
+Como nenhum dos modelos que retira mais uma variável adicional do modelo que já exclui ambas `new_onbase` e `strikeouts` tem maior $R^2_{adj}$, paramos o processo e agora temos um modelo final. No código abaixo, armazenamos o modelo final e vemos um resumo do modelo final.
+
+
+
+```{r}
+runs_backADJr = lm(runs ~ . - new_onbase - strikeouts, mlb11_runs)
+summary(runs_backADJr)
+```
+
+
+
+> Exercício 3: Quais variáveis acabaram no modelo final ao usar a seleção reversa com
