@@ -117,7 +117,7 @@ O $R^2_{adj}$ do modelo é igual a 0,9464 e, conforme já estudado no livro-text
 O $R^2$ sempre aumenta quando inserimos uma nova variável independente. O $R_{adj}^2$, por outro lado, apenas irá aumentar se a variável inserida for significativa. 
 
 
-Agora que temos um modelo completo definido, podemos fazer a seleção do modelo reverso. A função `step()` torna extremamente fácil usar o AIC (Akiake's Information Criterion) para seleção de modelo. Semelhantemente ao $R^2_{adj}$, o AIC aplica uma penalidade aos modelos que usam mais variáveis preditoras.
+Agora que temos um modelo completo definido, podemos fazer a seleção reversa do modelo. A função `step()` torna extremamente fácil usar o AIC (Akiake's Information Criterion) para seleção de modelo. Semelhantemente ao $R^2_{adj}$, o AIC aplica uma penalidade aos modelos que usam mais variáveis preditoras.
 
 Usaremos o trecho de código a seguir para determinar o melhor modelo para prever os pontos de uma equipe em uma temporada usando seleção regressiva com AIC como critério (observe que um AIC mais baixo indica um modelo melhor).
 
@@ -188,6 +188,7 @@ df1 %>%
     background = "green"
       )
 ```
+
 
 
 Uma vez que o modelo que removeu `new_onbase` tem o maior $R^2_{adj}$, passamos para a etapa 2 usando esse modelo e continuamos removendo uma variável por vez e calculamos o novo $R^2_{adj}$ para cada modelo.
@@ -300,7 +301,7 @@ summary(runs_backADJr)
 
 > Exercício 3: Quais variáveis acabaram no modelo final ao usar a seleção reversa com $R^2_{adj}$? Quantos parâmetros estão sendo estimados neste modelo final? Quantos dos parâmetros neste modelo final são significativamente diferentes de 0 no nível 0,05? Este modelo final tem um maior $R^2_{adj}$ do que o modelo completo para a variável `runs`? Maior que o modelo final ao usar a seleção reversa com AIC?
 
-Vemos então que o modelo que utilizou seleção reversa e o $R^2_{adj}$ como critério de seleção possui 7 variáveis e 8 parâmetros estimados. porém, apenas 3 destes parâmetros são significativos no nível de 0,05: `stolen_bases`, `new_slug` e `new_obs`, as quais são ligeiramente diferente daqueles que são significativos no outro modelo. O $R^2_{adj}$ deste modelo é igual a 0,9497, ao passo que, para a seleção com AIC, o valor foi de 0,9495 e para o modelo completo, 0,9464.
+Vemos então que o modelo que utilizou seleção reversa e o $R^2_{adj}$ como critério de seleção possui 7 variáveis e 8 parâmetros estimados. Porém, apenas 3 destes parâmetros são significativos no nível de 0,05: `stolen_bases`, `new_slug` e `new_obs`, as quais são ligeiramente diferente daqueles que são significativos no outro modelo. O $R^2_{adj}$ deste modelo é igual a 0,9497, ao passo que, para a seleção com AIC, o valor foi de 0,9495 e para o modelo completo, 0,9464.
 
 
 Finalmente, vamos usar um método de valor-p com um nível de significância de 0,05 como nosso critério ao conduzir a seleção reversa. Lembre-se de que valores-p mais altos são ruins, então removemos uma variável quando ela tem o valor-p maior que 0,05. Se todos os valores-p forem menores que 0,05, então paramos e chegamos ao nosso modelo final. Felizmente, o R tem uma função que torna isso mais fácil `drop1()` - `add1()` é para seleção direta. Devemos inserir o ajuste do modelo e, em seguida, indicar que `test = "F"` para que os valores-p sejam impressos.
@@ -326,4 +327,227 @@ drop1(lm(runs ~ . - at_bats - hits - homeruns - bat_avg - strikeouts - stolen_ba
 # Step 9
 drop1(lm(runs ~ . - at_bats - hits - homeruns - bat_avg - strikeouts - stolen_bases - new_onbase - new_slug, mlb11_runs), test = "F")
 ```
+
+
+> Observação acerca da função `drop1()`: O que essa função faz é comparar, em cada linha, o modelo completo (com todas as variáveis inseridas nele) com o modelo que exclui a variável preditora daquela linha. Na saída da função `drop1()`, as duas estatísticas mais importantes são o AIC e o p-valor. Ambos nos ajudam a inferir se seria melhor manter ou retirar aquele preditor do nosso modelo. Para obter o p-valor, a função usa uma ANOVA TIPO II para comparar os dois modelos linha a linha, ou seja, o modelo com e sem a variável daquela linha.
+
+
+Vemos então que, usando seleção reversa e o p-valor da ANOVA como critério, restam apenas as variáveis preditoras `new_obs` e `stolen_bases`. Abaixo armazenamos o modelo final selecionado sob este método e o examinamos usando `summary()`.
+
+
+```{r}
+# Final model using backward selection with p-value criterion
+runs_backPval = lm(runs ~ stolen_bases + new_obs, mlb11_runs)
+summary(runs_backPval)
+```
+
+
+> Exercício 4: Quais variáveis acabaram no modelo final usando um método de valor p com um nível de significância de 0,05 como nosso critério ao conduzir a seleção reversa? Quantos parâmetros estão sendo estimados neste modelo final? Quantos dos parâmetros neste modelo final são significativamente diferentes de 0 no nível 0,05? Este modelo final tem um $R^2_{adj}$ maior do que o modelo completo para `runs`? Por que alguém pode preferir este modelo final a todos os modelos até agora?
+
+
+Conforme já citado acima, o modelo final selecionado tem as variáveis preditoras `stolen_bases` e `new_obs`. Três parâmetros estão sendo estimados no modelo final e todos são significaivos no nível de 0,05. O $R^2_{adj}$ deste modelo selecionado é ligeiramente menor que aquele do modelo completo.
+
+
+Dos modelos selecionados até agora, este é o que tem o menor número de preditores e o valor do $R^2_{adj}$ é comparável aos demais e próximo de 1. Por esse motivo, esse modelo pode parecer preferível. Contudo, a escolha de quais variáveis incluir num modelo de regressão linear deve ser feita levando em consideração principalmente o conhecimento teórico pré-existente acerca das variáveis que podem influenciar a variável resposta observada.
+
+
+
+### Previsão dos pontos marcados usando seleção direta
+
+
+A primeira etapa na seleção direta é configurar um modelo nulo/base a partir do qual construir. Este modelo pode incluir variáveis que os pesquisadores estipulam que um modelo deve ter por razões teóricas. Nenhuma dessas variáveis existe em nosso caso, o que significa que nosso modelo nulo terá apenas o termo *intercepto*. Também devemos especificar o modelo completo para que o pré-procedimento saiba quais modelos tentar. Observe que o modelo completo será o mesmo que na seleção reversa.
+
+
+```{r}
+# Creating the null model for runs
+runs_null = lm(runs ~ 1, data = mlb11_runs)
+summary(runs_null)
+```
+
+
+
+Agora que temos um modelo nulo definido, podemos prosseguir com a seleção do modelo. Mais uma vez, usaremos a função `step()` do R para usar o AIC (Akiake's Information Criterion) para seleção de modelo - lembre-se de que um AIC mais baixo indica um modelo melhor.
+
+
+```{r}
+runs_forwardAIC = step(runs_null, direction = "forward", scope = formula(runs_full))
+summary(runs_forwardAIC)
+```
+
+
+> Exercício 5: Quantas etapas a seleção direta usando AIC realizou antes de selecionar um modelo? Qual variável foi a primeira a ser adicionada? Com qual método de seleção anterior isso concorda - isso nem sempre acontece?
+
+
+Conforme resultado mostrado acima, foram executados dois passos até o modelo ser selecionado. A primeira variável adicionada ao modelo foi `new_obs`. O modelo resultante desse método concorda com aquele selecionado por meio da seleção reversa usando o p-valor da ANOVA como critério. Talvez esse fato seja uma coincidência, já que são métodos diferentes e com critérios distintos.
+
+
+Em vez de AIC, vamos usar o $R^2_{adj}$ como nosso critério ao conduzir a seleção avançada. Lembre-se de que um valor alto de $R^2_{adj}$ indica um modelo melhor.
+
+
+
+```{r}
+# Step 1
+df1 = data.frame(
+  modelo = c("nulo", "+at_bats", "+hits", "+homeruns", "+bat_avg", "+strikeouts", "+stolen_bases", "+new_onbase", "+new_slug", "+new_obs"),
+  adj_rsq = c(
+    summary(lm(runs ~ 1 , mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + at_bats, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + hits, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + homeruns, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + bat_avg, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + strikeouts, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + stolen_bases, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + new_onbase, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + new_slug, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + new_obs, mlb11_runs))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(summary(lm(runs ~ 1 , mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + at_bats, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + hits, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + homeruns, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + bat_avg, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + strikeouts, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + stolen_bases, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + new_onbase, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + new_slug, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + new_obs, mlb11_runs))$adj.r
+        )
+      )
+      ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+      )
+```
+
+
+Como o modelo que adicionou `new_obs` tem o maior $R^2_{adj}$, passamos para a etapa 2 usando esse modelo e continuamos adicionando uma variável por vez e calculamos o novo $R^2_{adj}$ para cada modelo.
+
+
+```{r}
+# Step 2
+df1 = data.frame(
+  modelo = c("new_obs", "new_obs + at_bats", "new_obs + hits", "new_obs + homeruns", "new_obs + bat_avg", "new_obs + strikeouts", "new_obs + stolen_bases", "new_obs + new_onbase", "new_obs + new_slug"),
+  adj_rsq = c(
+    summary(lm(runs ~ new_obs, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + at_bats, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + hits, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + homeruns, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + bat_avg, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + strikeouts, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + new_onbase, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + new_slug, mlb11_runs))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(summary(lm(runs ~ new_obs, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + at_bats, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + hits, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + homeruns, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + bat_avg, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + strikeouts, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + new_onbase, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + new_slug, mlb11_runs))$adj.r
+        )
+      )
+      ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+      )
+```
+
+
+Como o modelo do passo 2 que adicionou `stolen_bases` tem o maior $R^2_{adj}$, passamos para a etapa 3 usando esse modelo e continuamos adicionando uma variável por vez e calculamos o novo $R^2_{adj}$ para cada modelo.
+
+
+
+```{r}
+# Step 3
+df1 = data.frame(
+  modelo = c("new_obs + stolen_bases", "new_obs + stolen_bases + at_bats", "new_obs + stolen_bases + hits", "new_obs + stolen_bases + homeruns", "new_obs + stolen_bases + bat_avg", "new_obs + stolen_bases + strikeouts", "new_obs + stolen_bases + new_onbase", "new_obs + stolen_bases + new_slug"),
+  adj_rsq = c(
+    summary(lm(runs ~ new_obs + stolen_bases, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + at_bats, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + hits, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + homeruns, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + bat_avg, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + strikeouts, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + new_onbase, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + new_slug, mlb11_runs))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(summary(lm(runs ~ new_obs + stolen_bases, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + at_bats, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + hits, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + homeruns, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + bat_avg, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + strikeouts, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + new_onbase, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + new_slug, mlb11_runs))$adj.r
+        )
+      )
+      ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+      )
+```
+
+
+Como nenhum dos modelos que adicionaram mais uma variável na etapa 3 resultou em um aumento do $R^2_{adj}$, paramos o processo e agora temos um modelo final. No código abaixo, armazenamos o modelo final e vemos o seu resumo.
+
+
+```{r}
+runs_forwardADJr = lm(runs ~ new_obs + stolen_bases, mlb11_runs)
+summary(runs_forwardADJr)
+```
+
+
+
+> Exercício 6: O modelo final selecionado usando seleção direta com $R^2_{adj}$ difere do modelo final usando seleção direta com AIC?
+
+
+Como vemos, esses dois modelos são idênticos.
+
+
+
+Finalmente, vamos usar um método de valor-p com um nível de significância de 0,05 como nosso critério ao conduzir a seleção direta. Lembre-se de que valores-p menores são considerados melhores, então adicionamos uma variável quando ela tem o valor-p menor que 0,05. Se a variável recém-adicionada não tiver um p-valor menor que 0,05, paramos e concluímos que chegamos ao nosso modelo final. Felizmente, R tem uma função que torna isso mais fácil, que é `add1()`. Devemos inserir o ajuste do modelo, o possível modelo completo e, em seguida, indicar que os `test = "F"` para que os valores p sejam impressos.
+
+
 
