@@ -38,6 +38,7 @@ library(rmarkdown)
 library(combinat)
 library(kableExtra) #Para gerar tabelas com um layout agradável
 library(leaps) #Para regressão linear múltipla
+library(rms) #Para selecionar modelos de regressão
 ```
 
 
@@ -291,12 +292,10 @@ df1 %>%
 Como nenhum dos modelos que retira mais uma variável adicional do modelo que já exclui ambas `new_onbase` e `strikeouts` tem maior $R^2_{adj}$, paramos o processo e agora temos um modelo final. No código abaixo, armazenamos o modelo final e vemos um resumo dele.
 
 
-
 ```{r}
-runs_backADJr = lm(runs ~ . - new_onbase - strikeouts, mlb11_runs)
+runs_backADJr = update(runs_full, ~ . - new_onbase - strikeouts)
 summary(runs_backADJr)
 ```
-
 
 
 > Exercício 3: Quais variáveis acabaram no modelo final ao usar a seleção reversa com $R^2_{adj}$? Quantos parâmetros estão sendo estimados neste modelo final? Quantos dos parâmetros neste modelo final são significativamente diferentes de 0 no nível 0,05? Este modelo final tem um maior $R^2_{adj}$ do que o modelo completo para a variável `runs`? Maior que o modelo final ao usar a seleção reversa com AIC?
@@ -306,30 +305,62 @@ Vemos então que o modelo que utilizou seleção reversa e o $R^2_{adj}$ como cr
 
 Finalmente, vamos usar um método de valor-p com um nível de significância de 0,05 como nosso critério ao conduzir a seleção reversa. Lembre-se de que valores-p mais altos são ruins, então removemos uma variável quando ela tem o valor-p maior que 0,05. Se todos os valores-p forem menores que 0,05, então paramos e chegamos ao nosso modelo final. Felizmente, o R tem uma função que torna isso mais fácil `drop1()` - `add1()` é para seleção direta. Devemos inserir o ajuste do modelo e, em seguida, indicar que `test = "F"` para que os valores-p sejam impressos.
 
+> Observação acerca da função `drop1()`: O que essa função faz é comparar, em cada linha, o modelo completo (com todas as variáveis inseridas nele) com o modelo que exclui a variável preditora daquela linha. Na saída da função `drop1()`, as duas estatísticas mais importantes são o AIC e o p-valor. Ambos nos ajudam a inferir se seria melhor manter ou retirar aquele preditor do nosso modelo. Para obter o p-valor, a função usa uma ANOVA TIPO II para comparar os dois modelos linha a linha, ou seja, o modelo com e sem a variável daquela linha.
+
 
 ```{r}
 # Step 1
-drop1(lm(runs ~ . , mlb11_runs), test = "F")
-# Step 2
-drop1(lm(runs ~ . - at_bats, mlb11_runs), test = "F")
-# Step 3
-drop1(lm(runs ~ . - at_bats - hits, mlb11_runs), test = "F")
-# Step 4
-drop1(lm(runs ~ . - at_bats - hits - homeruns, mlb11_runs), test = "F")
-# Step 5
-drop1(lm(runs ~ . - at_bats - hits - homeruns - bat_avg, mlb11_runs), test = "F")
-# Step 6
-drop1(lm(runs ~ . - at_bats - hits - homeruns - bat_avg - strikeouts, mlb11_runs), test = "F")
-# Step 7
-drop1(lm(runs ~ . - at_bats - hits - homeruns - bat_avg - strikeouts - stolen_bases, mlb11_runs), test = "F")
-# Step 8
-drop1(lm(runs ~ . - at_bats - hits - homeruns - bat_avg - strikeouts - stolen_bases - new_onbase, mlb11_runs), test = "F")
-# Step 9
-drop1(lm(runs ~ . - at_bats - hits - homeruns - bat_avg - strikeouts - stolen_bases - new_onbase - new_slug, mlb11_runs), test = "F")
+drop1(runs_full, test = "F")
 ```
 
+Devemos então remover a variável menos significativa, que no caso é `new_onbase`:
 
-> Observação acerca da função `drop1()`: O que essa função faz é comparar, em cada linha, o modelo completo (com todas as variáveis inseridas nele) com o modelo que exclui a variável preditora daquela linha. Na saída da função `drop1()`, as duas estatísticas mais importantes são o AIC e o p-valor. Ambos nos ajudam a inferir se seria melhor manter ou retirar aquele preditor do nosso modelo. Para obter o p-valor, a função usa uma ANOVA TIPO II para comparar os dois modelos linha a linha, ou seja, o modelo com e sem a variável daquela linha.
+```{r}
+# Step 2
+drop1(update(runs_full, ~ . -new_onbase), test = "F")
+```
+
+Agora, removemos a variável `strikeouts`:
+
+```{r}
+# Step 3
+drop1(update(runs_full, ~ . -new_onbase-strikeouts), test = "F")
+```
+
+Dando sequência, removemos `homeruns`:
+
+```{r}
+# Step 4
+drop1(update(runs_full, ~ . -new_onbase-strikeouts-homeruns), test = "F")
+```
+
+removemos então `at_bats`:
+
+```{r}
+# Step 5
+drop1(update(runs_full, ~ . -new_onbase-strikeouts-homeruns-at_bats), test = "F")
+```
+
+prosseguimos com a remoção de `hits`:
+
+```{r}
+# Step 6
+drop1(update(runs_full, ~ . -new_onbase-strikeouts-homeruns-at_bats-hits), test = "F")
+```
+
+retiramos agora `bat_avg`:
+
+```{r}
+# Step 7
+drop1(update(runs_full, ~ . -new_onbase-strikeouts-homeruns-at_bats-hits-bat_avg), test = "F")
+```
+
+por fim, removemos a variável `new_slug`:
+
+```{r}
+# Step 8
+drop1(update(runs_full, ~ . -new_onbase-strikeouts-homeruns-at_bats-hits-bat_avg-new_slug), test = "F")
+```
 
 
 Vemos então que, usando seleção reversa e o p-valor da ANOVA como critério, restam apenas as variáveis preditoras `new_obs` e `stolen_bases`. Abaixo armazenamos o modelo final selecionado sob este método e o examinamos usando `summary()`.
@@ -337,9 +368,15 @@ Vemos então que, usando seleção reversa e o p-valor da ANOVA como critério, 
 
 ```{r}
 # Final model using backward selection with p-value criterion
-runs_backPval = lm(runs ~ stolen_bases + new_obs, mlb11_runs)
+runs_backPval = update(
+  runs_full, 
+  ~ . -new_onbase-strikeouts-homeruns-at_bats-hits-bat_avg-new_slug
+  )
 summary(runs_backPval)
 ```
+
+
+> Nota: para sermos mais didáticos, decidimos primeiro fazer a seleção reversa do melhor modelo com o critério do p-valor "manualmente". Contudo, existe uma função no R que faz essa seleção de maneira automática: a função `fastbw()`, da biblioteca `rms`. Vamos testar abaixo:
 
 
 > Exercício 4: Quais variáveis acabaram no modelo final usando um método de valor p com um nível de significância de 0,05 como nosso critério ao conduzir a seleção reversa? Quantos parâmetros estão sendo estimados neste modelo final? Quantos dos parâmetros neste modelo final são significativamente diferentes de 0 no nível 0,05? Este modelo final tem um $R^2_{adj}$ maior do que o modelo completo para `runs`? Por que alguém pode preferir este modelo final a todos os modelos até agora?
@@ -529,45 +566,38 @@ df1 %>%
       )
 ```
 
-
 Como nenhum dos modelos que adicionaram mais uma variável na etapa 3 resultou em um aumento do $R^2_{adj}$, paramos o processo e agora temos um modelo final. No código abaixo, armazenamos o modelo final e vemos o seu resumo.
 
-
 ```{r}
-runs_forwardADJr = lm(runs ~ new_obs + stolen_bases, mlb11_runs)
+runs_forwardADJr = update(runs_null, ~ . + new_obs + stolen_bases)
 summary(runs_forwardADJr)
 ```
 
-
-
 > Exercício 6: O modelo final selecionado usando seleção direta com $R^2_{adj}$ difere do modelo final usando seleção direta com AIC?
 
-
 Como vemos, esses dois modelos são idênticos.
-
 
 
 Finalmente, vamos usar um método de valor-p com um nível de significância de 0,05 como nosso critério ao conduzir a seleção direta. Lembre-se de que valores-p menores são considerados melhores, então adicionamos uma variável quando ela tem o valor-p menor que 0,05. Se a variável recém-adicionada não tiver um p-valor menor que 0,05, paramos e concluímos que chegamos ao nosso modelo final. Felizmente, o R tem uma função que torna isso mais fácil, que é `add1()`. Devemos inserir o ajuste do modelo, o possível modelo completo e, em seguida, indicar que `test = "F"` para que os valores p sejam impressos.
 
 
-
 ```{r}
 # Step 1
-add1(lm(runs ~ 1 , mlb11_runs), test = "F", scope = formula(runs_full))
-# Step 2
-add1(lm(runs ~ 1 + at_bats, mlb11_runs), test = "F", scope = formula(runs_full))
-# Step 3
-add1(lm(runs ~ 1 + at_bats + hits, mlb11_runs), test = "F", scope = formula(runs_full))
-# Step 4
-add1(lm(runs ~ 1 + at_bats + hits + homeruns, mlb11_runs), test = "F", scope = formula(runs_full))
-# Step 5
-add1(lm(runs ~ 1 + at_bats + hits + homeruns + bat_avg, mlb11_runs), test = "F", scope = formula(runs_full))
-# Step 6
-add1(lm(runs ~ 1 + at_bats + hits + homeruns + bat_avg + strikeouts, mlb11_runs), test = "F", scope = formula(runs_full))
-# Step 7
-add1(lm(runs ~ 1 + at_bats + hits + homeruns + bat_avg + strikeouts + stolen_bases, mlb11_runs), test = "F", scope = formula(runs_full))
-# Step 8
-add1(lm(runs ~ 1 + at_bats + hits + homeruns + bat_avg + strikeouts + stolen_bases - new_onbase, mlb11_runs), test = "F", scope = formula(runs_full))
-# Step 9
-add1(lm(runs ~ 1 + at_bats + hits + homeruns + bat_avg + strikeouts + stolen_bases - new_onbase - new_slug, mlb11_runs), test = "F", scope = formula(runs_full))
+add1(runs_null, test = "F", scope = formula(runs_full))
 ```
+
+Devemos então incluir no modelo a variável mais signifiativa, que no caso é `new_obs`:
+
+```{r}
+# Step 2
+add1(update(runs_null, ~ . + new_obs), test = "F", scope = formula(runs_full))
+```
+
+No próximo passo, incluímos a variável `stolen_bases`, que é a única que foi significativa:
+
+```{r}
+# Step 3
+add1(update(runs_null, ~ . + new_obs + stolen_bases), test = "F", scope = formula(runs_full))
+```
+
+Como a adição de nenhuma das outras variáveis é significativa para o modelo no nível de significância de 0,05, o modelo final irá conter apenas as variáveis `new_obs` e `stolen_bases`:
