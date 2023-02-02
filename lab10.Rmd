@@ -547,7 +547,7 @@ Como vemos, esses dois modelos são idênticos.
 
 
 
-Finalmente, vamos usar um método de valor-p com um nível de significância de 0,05 como nosso critério ao conduzir a seleção direta. Lembre-se de que valores-p menores são considerados melhores, então adicionamos uma variável quando ela tem o valor-p menor que 0,05. Se a variável recém-adicionada não tiver um p-valor menor que 0,05, paramos e concluímos que chegamos ao nosso modelo final. Felizmente, R tem uma função que torna isso mais fácil, que é `add1()`. Devemos inserir o ajuste do modelo, o possível modelo completo e, em seguida, indicar que `test = "F"` para que os valores p sejam impressos.
+Finalmente, vamos usar um método de valor-p com um nível de significância de 0,05 como nosso critério ao conduzir a seleção direta. Lembre-se de que valores-p menores são considerados melhores, então adicionamos uma variável quando ela tem o valor-p menor que 0,05. Se a variável recém-adicionada não tiver um p-valor menor que 0,05, paramos e concluímos que chegamos ao nosso modelo final. Felizmente, o R tem uma função que torna isso mais fácil, que é `add1()`. Devemos inserir o ajuste do modelo, o possível modelo completo e, em seguida, indicar que `test = "F"` para que os valores p sejam impressos.
 
 
 
