@@ -37,8 +37,8 @@ library(knitr)
 library(rmarkdown)
 library(combinat)
 library(kableExtra) #Para gerar tabelas com um layout agradável
-library(leaps) #Para regressão linear múltipla
-library(rms) #Para selecionar modelos de regressão
+library(leaps) #Para selecionar variaveis numa regressao multipla usando o adjr2
+library(olsrr) #Para selecionar variaveis numa regressao multipla usando o p-valor da ANOVA
 ```
 
 
@@ -376,8 +376,15 @@ summary(runs_backPval)
 ```
 
 
-> Nota: para sermos mais didáticos, decidimos primeiro fazer a seleção reversa do melhor modelo com o critério do p-valor "manualmente". Contudo, existe uma função no R que faz essa seleção de maneira automática: a função `fastbw()`, da biblioteca `rms`. Vamos testar abaixo:
+> Nota: para sermos mais didáticos, decidimos primeiro fazer a seleção reversa do melhor modelo com o critério do p-valor "manualmente". Contudo, existe uma função no R que faz essa seleção de maneira automática: a função `ols_step_backward_p`, da biblioteca `olsrr`. Vamos testar abaixo:
 
+
+```{r}
+ols_step_backward_p(runs_full, prem = 0.05, progress = T)
+```
+
+
+Aqui, o argumento `prem` é o p-valor. Em cada passo, será removida a variável com valor p maior que `prem`, começando pela menos significativa, ou seja, aquela que possui maior valor p, dentro do primeiro critério.
 
 > Exercício 4: Quais variáveis acabaram no modelo final usando um método de valor p com um nível de significância de 0,05 como nosso critério ao conduzir a seleção reversa? Quantos parâmetros estão sendo estimados neste modelo final? Quantos dos parâmetros neste modelo final são significativamente diferentes de 0 no nível 0,05? Este modelo final tem um $R^2_{adj}$ maior do que o modelo completo para `runs`? Por que alguém pode preferir este modelo final a todos os modelos até agora?
 
@@ -601,3 +608,36 @@ add1(update(runs_null, ~ . + new_obs + stolen_bases), test = "F", scope = formul
 ```
 
 Como a adição de nenhuma das outras variáveis é significativa para o modelo no nível de significância de 0,05, o modelo final irá conter apenas as variáveis `new_obs` e `stolen_bases`:
+
+
+```{r}
+runs_forwardPval = update(runs_null, ~ . + new_obs + stolen_bases)
+summary(runs_forwardPval)
+```
+
+> Nota: para sermos mais didáticos, decidimos primeiro fazer a seleção direta do melhor modelo com o critério do p-valor "manualmente". Contudo, existe uma função no R que faz essa seleção de maneira automática: a função `ols_step_forward_p`, da biblioteca `olsrr`. Vamos testar abaixo:
+
+
+```{r}
+ols_step_forward_p(runs_full, progress = T, penter = 0.05)
+```
+
+Aqui, o argumento `penter` é o p-valor. Em cada passo, será adicionada a variável com valor p menor que `penter`, começando pela mais significativa, ou seja, aquela que possui menor valor p, dentro do primeiro critério.
+
+
+Por fim, também é inressante citar uma função que utiliza o critério do p-valor para adicionar e remover preditores de um modelo até chegar a um modelo otimizado, de acordo com o critério. Conforme pode ser visto logo abaixo, a função `ols_step_both_p()` cumpre esse objetivo:
+
+
+```{r}
+ols_step_both_p(runs_full, prem = 0.05, pent = 0.05, progress = T)
+```
+
+
+## Avaliação das condições para aplicabilidade do modelo de regressão linear
+
+```{r}
+par(mfrow = c(2,2))
+plot(runs_forwardPval)
+```
+
+
