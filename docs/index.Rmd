@@ -4244,4 +4244,1247 @@ Outra opção é utilizar um método de aproximação alternativo que funciona t
 
 
 
+## Introdução
+
+
+Lembre-se de que exploramos a regressão linear simples examinando dados de beisebol da temporada de 2011 da *Major League Baseball* (MLB). Também usaremos esses dados para explorar a regressão múltipla. Nossa inspiração para explorar esses dados vem do filme Moneyball , que enfocou a “busca pelo segredo do sucesso no beisebol”. Ele segue uma equipe de baixo orçamento, o Oakland Athletics, que acreditava que estatísticas subutilizadas, como a capacidade de um jogador chegar à base, predizem melhor a capacidade de marcar pontos do que estatísticas típicas como *home runs*, *RBIs* (corridas impulsionadas) e média de rebatidas. Conseguir jogadores que se destacassem nessas estatísticas pouco aproveitadas acabou sendo muito mais acessível para o time.
+
+Neste laboratório, veremos os dados de todos os 30 times da Liga Principal de Beisebol e examinaremos a relação linear entre os pontos marcados em uma temporada e várias estatísticas dos jogadores. Nosso objetivo será encontrar o modelo que melhor prevê os pontos de uma equipe em uma temporada. Também pretendemos encontrar o modelo que melhor prevê o total de vitórias de uma equipe em uma temporada. O primeiro modelo nos diria em quais estatísticas do jogador devemos prestar atenção se quisermos obter pontos e o segundo modelo indicaria quais estatísticas do jogador devemos utilizar quando desejamos obter vitórias.
+
+
+
+```{r}
+library(ggplot2)
+library(plyr)
+library(tidyr)
+library(dplyr)
+library(DescTools)
+library(htmltools)
+library(knitr)
+library(rmarkdown)
+library(combinat)
+library(kableExtra) #Para gerar tabelas com um layout agradável
+library(olsrr) #Para selecionar variaveis numa regressao multipla usando o p-valor da ANOVA
+```
+
+
+## Conteúdos abordados neste laboratório
+
+
+* Regressão Linear Múltipla
+* Otimização
+* Intervalos de Confiança
+
+
+
+## Os dados
+
+
+Vamos carregar os dados para a temporada de 2011:
+
+
+```{r}
+download.file("http://www.openintro.org/stat/data/mlb11.RData", destfile = "mlb11.RData")
+load("mlb11.RData")
+```
+
+
+Além dos pontos marcados (`runs`), este conjunto de dados contém sete variáveis tradicionalmente utilizadas: vez ao taco (`at_bats`), rebatidas (`hits`), rebatidas para fora do campo (`homeruns`), média de rebatidas (`bat_avg`), eliminações (`strikeouts`), bases roubadas (`stolen_bases`), e vitórias (`wins`). Também foram incluídas três novas variáveis: percentual de alcance de base (`new_onbase`), percentual de potência (`new_slug`), e alcance de base mais potência (`new_obs`). Para a primeira parte da análise vamos considerar as sete variáveis tradicionais. Ao final do laboratório, você trabalhará sozinho com as variáveis mais recentes.
+
+
+Também gostaríamos de modificar os dados para facilitar o trabalho durante a seleção do modelo. Removemos a variável `team` do conjunto de dados e armazenamos a versão atualizada em `mlb11_wins`.
+
+
+```{r}
+mlb11_wins = mlb11 %>%
+  select(-team)
+```
+
+
+Como `wins` não é uma estatística a nível de jogador - pelo menos para não arremessadores - não queremos usá-la ao prever `runs`. Portanto, vamos criar outro conjunto de dados modificado para utilizar ao tentar encontrar o melhor modelo para prever o número total de pontos marcados por uma equipe durante uma temporada. O inverso não é um problema ao tentar prever o número de vitórias de um time em uma temporada - `runs` pode ser usado para prever `wins`.
+
+
+```{r}
+mlb11_runs = mlb11_wins %>%
+  select(-wins)
+```
+
+
+Conforme discutido em aula, há muitas maneiras de selecionar o modelo. Veremos a seguir alguns métodos de seleção. 
+
+
+## A busca pelo melhor modelo
+
+
+Conforme discutido em aula, há muitas maneiras de selecionar o modelo. Veremos os métodos de seleção direto e reverso, os quais utilizam critérios diferentes ($R_{adj}^2$, p-valor ou AIC).
+
+
+### Previsão dos pontos marcados usando seleção reversa
+
+
+O primeiro passo na seleção reversa é definir um modelo completo. Como criamos um conjunto de dados modificado para prever os pontos marcados, podemos usar um atalho, `runs ~ .`, para dizer ao R para usar todas as variáveis restantes para prever pontos.
+
+
+```{r}
+runs_full = lm(runs ~ ., data = mlb11_runs)
+summary(runs_full)
+```
+
+
+
+> Exercício 1: Quantas variáveis estão sendo usadas para prever `runs` no modelo completo? Quantos parâmetros estão sendo estimados no modelo completo? Quantos dos parâmetros são significativamente diferentes de 0 no nível 0,05? qual é o $R^2_{adj}$ do modelo completo?
+
+
+Conforme a saída do último trecho de código, 9 variáveis estão sendo consideradas no modelo como preditoras de `runs`, ao passo que 10 parâmetros estão sendo estimados, já que o modelo linear envolve também um termo constante (intercepto). 
+
+De acordo com o modelo ajustado, apenas um parâmetro é significativo no nível de 0,05, que é o coeficiente do termo `stolen_bases`.
+
+O $R^2_{adj}$ do modelo é igual a 0,9464 e, conforme já estudado no livro-texto, é um indicador da qualidade do ajuste, também conhecido como *coeficiente de explicação* do modelo, e nos mostra a proporção da variância na variável resposta que é explicada pelas variáveis independentes. Aqui, é importante fazer uma observação quanto à diferença entre o $R^2$ e o $R^2_{adj}$.
+
+O $R^2$ sempre aumenta quando inserimos uma nova variável independente. O $R_{adj}^2$, por outro lado, apenas irá aumentar se a variável inserida for significativa. 
+
+
+Agora que temos um modelo completo definido, podemos fazer a seleção reversa do modelo. A função `step()` torna extremamente fácil usar o AIC (Akiake's Information Criterion) para seleção de modelo. Semelhantemente ao $R^2_{adj}$, o AIC aplica uma penalidade aos modelos que usam mais variáveis preditoras.
+
+Usaremos o trecho de código a seguir para determinar o melhor modelo para prever os pontos de uma equipe em uma temporada usando seleção regressiva com AIC como critério (observe que um AIC mais baixo indica um modelo melhor).
+
+
+```{r}
+runs_backAIC = step(runs_full, direction = "backward")
+summary(runs_backAIC)
+```
+
+
+
+> Exercício 2: Quantos passos a seleção reversa usando AIC realizou antes de selecionar um modelo? Qual variável foi a primeira a ser removida? Quais variáveis acabaram no modelo final? Quantos parâmetros estão sendo estimados neste modelo final? Quantos dos parâmetros neste modelo final são significativamente diferentes de 0 no nível 0,05? Este modelo final tem um maior $R^2_{adj}$ do que o modelo completo para `runs`?
+
+
+Conforme a saída do código acima, vemos que foram executados 4 passos até chegar-se no modelo supostamente mais adequado. A primeira variável removida foi `new_onbase`, ao passo que no modelo final restaram 5 das 9 variáveis. Como no modelo linear geralmente existe o termo `intercept`, 6 parâmetros estão sendo estimados no modelo resultante. Contudo, apenas 3 dos 6 parâmetros restantes são significativamente diferentes de zero no nível de 0,05.
+
+
+O modelo resultante após a aplicação do AIC tem um $R^2_{adj}$ ligeiramente maior do que o modelo completo.
+
+
+Agora, em vez de AIC, vamos usar o valor de $R^2_{adj}$ como nosso critério ao conduzir a seleção reversa. Lembre-se de que um valor mais alto de $R^2_{adj}$ indica um modelo melhor. Assim, começaremos com o modelo completo e, a cada passo, retiraremos uma variável do modelo.
+
+
+
+```{r}
+# Step 1
+df1 = data.frame(
+  modelo = c("completo", "-at_bats", "-hits", "-homeruns", "-bat_avg", "-strikeouts", "-stolen_bases", "-new_onbase", "-new_slug", "-new_obs"),
+  adj_rsq = c(
+    summary(lm(runs ~ . , mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - at_bats, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - hits, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - homeruns, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - bat_avg, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - strikeouts, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - stolen_bases, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_slug, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_obs, mlb11_runs))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(runs ~ . , mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - at_bats, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - hits, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - homeruns, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - bat_avg, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - strikeouts, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - stolen_bases, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_slug, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_obs, mlb11_runs))$adj.r
+        )
+      )
+      ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+      )
+```
+
+
+
+Uma vez que o modelo que removeu `new_onbase` tem o maior $R^2_{adj}$, passamos para a etapa 2 usando esse modelo e continuamos removendo uma variável por vez e calculamos o novo $R^2_{adj}$ para cada modelo.
+ 
+
+```{r}
+# Step 2
+df1 = data.frame(
+  modelo = c("-new_onbase", "-new_onbase-at_bats", "-new_onbase-hits", "-new_onbase-homeruns", "-new_onbase-bat_avg", "-new_onbase-strikeouts", "-new_onbase-stolen_bases", "-new_onbase-new_slug", "-new_onbase-new_obs"),
+  adj_rsq = c(
+    summary(lm(runs ~ . - new_onbase, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - at_bats, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - hits, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - homeruns, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - bat_avg, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - stolen_bases, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - new_slug, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - new_obs, mlb11_runs))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(runs ~ . - new_onbase, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - at_bats, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - hits, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - homeruns, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - bat_avg, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - strikeouts, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - stolen_bases, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - new_slug, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - new_obs, mlb11_runs))$adj.r
+        )
+      )
+      ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+      )
+```
+
+
+Como o modelo que apresenta o maior $R^2_{adj}$ na etapa 2 é aquele que removeu a variável `strikeouts`, passamos para a etapa 3 usando o modelo que agora tem ambos `new_onbase` e `strikeouts` removidos e continuamos removendo uma variável por vez e calculando o novo valor $R^2_{adj}$ para cada modelo.
+
+
+
+```{r}
+# Step 3
+df1 = data.frame(
+  modelo = c("-new_onbase-strikeouts", "-new_onbase-strikeouts-at_bats", "-new_onbase-strikeouts-hits", "-new_onbase-strikeouts-homeruns", "-new_onbase-strikeouts-bat_avg", "-new_onbase-strikeouts-stolen_bases", "-new_onbase-strikeouts-new_slug", "-new_onbase-strikeouts-new_obs"),
+  adj_rsq = c(
+    summary(lm(runs ~ . - new_onbase - strikeouts, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - at_bats, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - hits, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - homeruns, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - bat_avg, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - stolen_bases, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - new_slug, mlb11_runs))$adj.r,
+    summary(lm(runs ~ . - new_onbase - strikeouts - new_obs, mlb11_runs))$adj.r
+  )
+)
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(runs ~ . - new_onbase - strikeouts, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - strikeouts - at_bats, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - strikeouts - hits, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - strikeouts - homeruns, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - strikeouts - bat_avg, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - strikeouts - stolen_bases, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - strikeouts - new_slug, mlb11_runs))$adj.r,
+        summary(lm(runs ~ . - new_onbase - strikeouts - new_obs, mlb11_runs))$adj.r
+        )
+      )
+      ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+      )
+```
+
+
+
+Como nenhum dos modelos que retira mais uma variável adicional do modelo que já exclui ambas `new_onbase` e `strikeouts` tem maior $R^2_{adj}$, paramos o processo e agora temos um modelo final. No código abaixo, armazenamos o modelo final e vemos um resumo dele.
+
+
+```{r}
+runs_backADJr = update(runs_full, ~ . - new_onbase - strikeouts)
+summary(runs_backADJr)
+```
+
+
+> Exercício 3: Quais variáveis acabaram no modelo final ao usar a seleção reversa com $R^2_{adj}$? Quantos parâmetros estão sendo estimados neste modelo final? Quantos dos parâmetros neste modelo final são significativamente diferentes de 0 no nível 0,05? Este modelo final tem um maior $R^2_{adj}$ do que o modelo completo para a variável `runs`? Maior que o modelo final ao usar a seleção reversa com AIC?
+
+Vemos então que o modelo que utilizou seleção reversa e o $R^2_{adj}$ como critério de seleção possui 7 variáveis e 8 parâmetros estimados. Porém, apenas 3 destes parâmetros são significativos no nível de 0,05: `stolen_bases`, `new_slug` e `new_obs`, as quais são ligeiramente diferente daqueles que são significativos no outro modelo. O $R^2_{adj}$ deste modelo é igual a 0,9497, ao passo que, para a seleção com AIC, o valor foi de 0,9495 e para o modelo completo, 0,9464.
+
+
+Finalmente, vamos usar um método de valor-p com um nível de significância de 0,05 como nosso critério ao conduzir a seleção reversa. Lembre-se de que valores-p mais altos são ruins, então removemos uma variável quando ela tem o valor-p maior que 0,05. Se todos os valores-p forem menores que 0,05, então paramos e chegamos ao nosso modelo final. Felizmente, o R tem uma função que torna isso mais fácil `drop1()` - `add1()` é para seleção direta. Devemos inserir o ajuste do modelo e, em seguida, indicar que `test = "F"` para que os valores-p sejam impressos.
+
+> Observação acerca da função `drop1()`: O que essa função faz é comparar, em cada linha, o modelo completo (com todas as variáveis inseridas nele) com o modelo que exclui a variável preditora daquela linha. Na saída da função `drop1()`, as duas estatísticas mais importantes são o AIC e o p-valor. Ambos nos ajudam a inferir se seria melhor manter ou retirar aquele preditor do nosso modelo. Para obter o p-valor, a função usa uma ANOVA TIPO II para comparar os dois modelos linha a linha, ou seja, o modelo com e sem a variável daquela linha.
+
+
+```{r}
+# Step 1
+drop1(runs_full, test = "F")
+```
+
+Devemos então remover a variável menos significativa, que no caso é `new_onbase`:
+
+```{r}
+# Step 2
+drop1(update(runs_full, ~ . -new_onbase), test = "F")
+```
+
+Agora, removemos a variável `strikeouts`:
+
+```{r}
+# Step 3
+drop1(update(runs_full, ~ . -new_onbase-strikeouts), test = "F")
+```
+
+Dando sequência, removemos `homeruns`:
+
+```{r}
+# Step 4
+drop1(update(runs_full, ~ . -new_onbase-strikeouts-homeruns), test = "F")
+```
+
+removemos então `at_bats`:
+
+```{r}
+# Step 5
+drop1(update(runs_full, ~ . -new_onbase-strikeouts-homeruns-at_bats), test = "F")
+```
+
+prosseguimos com a remoção de `hits`:
+
+```{r}
+# Step 6
+drop1(update(runs_full, ~ . -new_onbase-strikeouts-homeruns-at_bats-hits), test = "F")
+```
+
+retiramos agora `bat_avg`:
+
+```{r}
+# Step 7
+drop1(update(runs_full, ~ . -new_onbase-strikeouts-homeruns-at_bats-hits-bat_avg), test = "F")
+```
+
+por fim, removemos a variável `new_slug`:
+
+```{r}
+# Step 8
+drop1(update(runs_full, ~ . -new_onbase-strikeouts-homeruns-at_bats-hits-bat_avg-new_slug), test = "F")
+```
+
+
+Vemos então que, usando seleção reversa e o p-valor da ANOVA como critério, restam apenas as variáveis preditoras `new_obs` e `stolen_bases`. Abaixo armazenamos o modelo final selecionado sob este método e o examinamos usando `summary()`.
+
+
+```{r}
+# Final model using backward selection with p-value criterion
+runs_backPval = update(
+  runs_full, 
+  ~ . -new_onbase-strikeouts-homeruns-at_bats-hits-bat_avg-new_slug
+  )
+summary(runs_backPval)
+```
+
+
+> Nota: para sermos mais didáticos, decidimos primeiro fazer a seleção reversa do melhor modelo com o critério do p-valor "manualmente". Contudo, existe uma função no R que faz essa seleção de maneira automática: a função `ols_step_backward_p`, da biblioteca `olsrr`. Vamos testar abaixo:
+
+
+```{r}
+ols_step_backward_p(runs_full, prem = 0.05, progress = T)
+```
+
+
+Aqui, o argumento `prem` é o p-valor. Em cada passo, será removida a variável com valor p maior que `prem`, começando pela menos significativa, ou seja, aquela que possui maior valor p, dentro do primeiro critério.
+
+> Exercício 4: Quais variáveis acabaram no modelo final usando um método de valor p com um nível de significância de 0,05 como nosso critério ao conduzir a seleção reversa? Quantos parâmetros estão sendo estimados neste modelo final? Quantos dos parâmetros neste modelo final são significativamente diferentes de 0 no nível 0,05? Este modelo final tem um $R^2_{adj}$ maior do que o modelo completo para `runs`? Por que alguém pode preferir este modelo final a todos os modelos até agora?
+
+
+Conforme já citado acima, o modelo final selecionado tem as variáveis preditoras `stolen_bases` e `new_obs`. Três parâmetros estão sendo estimados no modelo final e todos são significaivos no nível de 0,05. O $R^2_{adj}$ deste modelo selecionado é ligeiramente menor que aquele do modelo completo.
+
+
+Dos modelos selecionados até agora, este é o que tem o menor número de preditores e o valor do $R^2_{adj}$ é comparável aos demais e próximo de 1. Por esse motivo, esse modelo pode parecer preferível. Contudo, a escolha de quais variáveis incluir num modelo de regressão linear deve ser feita levando em consideração principalmente o conhecimento teórico pré-existente acerca das variáveis que podem influenciar a variável resposta observada.
+
+
+
+### Previsão dos pontos marcados usando seleção direta
+
+
+A primeira etapa na seleção direta é configurar um modelo nulo/base a partir do qual construir. Este modelo pode incluir variáveis que os pesquisadores estipulam que um modelo deve ter por razões teóricas. Nenhuma dessas variáveis existe em nosso caso, o que significa que nosso modelo nulo terá apenas o termo *intercepto*. Também devemos especificar o modelo completo para que o pré-procedimento saiba quais modelos tentar. Observe que o modelo completo será o mesmo que na seleção reversa.
+
+
+```{r}
+# Creating the null model for runs
+runs_null = lm(runs ~ 1, data = mlb11_runs)
+summary(runs_null)
+```
+
+
+
+Agora que temos um modelo nulo definido, podemos prosseguir com a seleção do modelo. Mais uma vez, usaremos a função `step()` do R para usar o AIC (Akiake's Information Criterion) para seleção de modelo - lembre-se de que um AIC mais baixo indica um modelo melhor.
+
+
+```{r}
+runs_forwardAIC = step(runs_null, direction = "forward", scope = formula(runs_full))
+summary(runs_forwardAIC)
+```
+
+
+> Exercício 5: Quantas etapas a seleção direta usando AIC realizou antes de selecionar um modelo? Qual variável foi a primeira a ser adicionada? Com qual método de seleção anterior isso concorda - isso nem sempre acontece?
+
+
+Conforme resultado mostrado acima, foram executados dois passos até o modelo ser selecionado. A primeira variável adicionada ao modelo foi `new_obs`. O modelo resultante desse método concorda com aquele selecionado por meio da seleção reversa usando o p-valor da ANOVA como critério. Talvez esse fato seja uma coincidência, já que são métodos diferentes e com critérios distintos.
+
+
+Em vez de AIC, vamos usar o $R^2_{adj}$ como nosso critério ao conduzir a seleção direta. Lembre-se de que um valor alto de $R^2_{adj}$ indica um modelo melhor.
+
+
+
+```{r}
+# Step 1
+df1 = data.frame(
+  modelo = c("nulo", "+at_bats", "+hits", "+homeruns", "+bat_avg", "+strikeouts", "+stolen_bases", "+new_onbase", "+new_slug", "+new_obs"),
+  adj_rsq = c(
+    summary(lm(runs ~ 1 , mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + at_bats, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + hits, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + homeruns, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + bat_avg, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + strikeouts, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + stolen_bases, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + new_onbase, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + new_slug, mlb11_runs))$adj.r,
+    summary(lm(runs ~ 1 + new_obs, mlb11_runs))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(runs ~ 1 , mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + at_bats, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + hits, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + homeruns, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + bat_avg, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + strikeouts, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + stolen_bases, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + new_onbase, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + new_slug, mlb11_runs))$adj.r,
+        summary(lm(runs ~ 1 + new_obs, mlb11_runs))$adj.r
+        )
+      )
+      ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+      )
+```
+
+
+Como o modelo que adicionou `new_obs` tem o maior $R^2_{adj}$, passamos para a etapa 2 usando esse modelo e continuamos adicionando uma variável por vez e calculamos o novo $R^2_{adj}$ para cada modelo.
+
+
+```{r}
+# Step 2
+df1 = data.frame(
+  modelo = c("new_obs", "new_obs + at_bats", "new_obs + hits", "new_obs + homeruns", "new_obs + bat_avg", "new_obs + strikeouts", "new_obs + stolen_bases", "new_obs + new_onbase", "new_obs + new_slug"),
+  adj_rsq = c(
+    summary(lm(runs ~ new_obs, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + at_bats, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + hits, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + homeruns, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + bat_avg, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + strikeouts, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + new_onbase, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + new_slug, mlb11_runs))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(runs ~ new_obs, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + at_bats, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + hits, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + homeruns, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + bat_avg, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + strikeouts, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + new_onbase, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + new_slug, mlb11_runs))$adj.r
+        )
+      )
+      ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+      )
+```
+
+
+Como o modelo do passo 2 que adicionou `stolen_bases` tem o maior $R^2_{adj}$, passamos para a etapa 3 usando esse modelo e continuamos adicionando uma variável por vez e calculamos o novo $R^2_{adj}$ para cada modelo.
+
+
+
+```{r}
+# Step 3
+df1 = data.frame(
+  modelo = c("new_obs + stolen_bases", "new_obs + stolen_bases + at_bats", "new_obs + stolen_bases + hits", "new_obs + stolen_bases + homeruns", "new_obs + stolen_bases + bat_avg", "new_obs + stolen_bases + strikeouts", "new_obs + stolen_bases + new_onbase", "new_obs + stolen_bases + new_slug"),
+  adj_rsq = c(
+    summary(lm(runs ~ new_obs + stolen_bases, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + at_bats, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + hits, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + homeruns, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + bat_avg, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + strikeouts, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + new_onbase, mlb11_runs))$adj.r,
+    summary(lm(runs ~ new_obs + stolen_bases + new_slug, mlb11_runs))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(runs ~ new_obs + stolen_bases, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + at_bats, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + hits, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + homeruns, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + bat_avg, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + strikeouts, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + new_onbase, mlb11_runs))$adj.r,
+        summary(lm(runs ~ new_obs + stolen_bases + new_slug, mlb11_runs))$adj.r
+        )
+      )
+      ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+      )
+```
+
+Como nenhum dos modelos que adicionaram mais uma variável na etapa 3 resultou em um aumento do $R^2_{adj}$, paramos o processo e agora temos um modelo final. No código abaixo, armazenamos o modelo final e vemos o seu resumo.
+
+```{r}
+runs_forwardADJr = update(runs_null, ~ . + new_obs + stolen_bases)
+summary(runs_forwardADJr)
+```
+
+> Exercício 6: O modelo final selecionado usando seleção direta com $R^2_{adj}$ difere do modelo final usando seleção direta com AIC?
+
+Como vemos, esses dois modelos são idênticos.
+
+
+Finalmente, vamos usar um método de valor-p com um nível de significância de 0,05 como nosso critério ao conduzir a seleção direta. Lembre-se de que valores-p menores são considerados melhores, então adicionamos uma variável quando ela tem o valor-p menor que 0,05. Se a variável recém-adicionada não tiver um p-valor menor que 0,05, paramos e concluímos que chegamos ao nosso modelo final. Felizmente, o R tem uma função que torna isso mais fácil, que é `add1()`. Devemos inserir o ajuste do modelo, o possível modelo completo e, em seguida, indicar que `test = "F"` para que os valores p sejam impressos.
+
+
+```{r}
+# Step 1
+add1(runs_null, test = "F", scope = formula(runs_full))
+```
+
+Devemos então incluir no modelo a variável mais signifiativa, que no caso é `new_obs`:
+
+```{r}
+# Step 2
+add1(update(runs_null, ~ . + new_obs), test = "F", scope = formula(runs_full))
+```
+
+No próximo passo, incluímos a variável `stolen_bases`, que é a única que foi significativa:
+
+```{r}
+# Step 3
+add1(update(runs_null, ~ . + new_obs + stolen_bases), test = "F", scope = formula(runs_full))
+```
+
+Como a adição de nenhuma das outras variáveis é significativa para o modelo no nível de significância de 0,05, o modelo final irá conter apenas as variáveis `new_obs` e `stolen_bases`:
+
+
+```{r}
+runs_forwardPval = update(runs_null, ~ . + new_obs + stolen_bases)
+summary(runs_forwardPval)
+```
+
+> Nota: para sermos mais didáticos, decidimos primeiro fazer a seleção direta do melhor modelo com o critério do p-valor "manualmente". Contudo, existe uma função no R que faz essa seleção de maneira automática: a função `ols_step_forward_p`, da biblioteca `olsrr`. Vamos testar abaixo:
+
+
+```{r}
+ols_step_forward_p(runs_full, progress = T, penter = 0.05)
+```
+
+Aqui, o argumento `penter` é o p-valor. Em cada passo, será adicionada a variável com valor p menor que `penter`, começando pela mais significativa, ou seja, aquela que possui menor valor p, dentro do primeiro critério.
+
+
+Por fim, também é interessante citar uma função que utiliza o critério do p-valor para adicionar e remover preditores de um modelo ao mesmo tempo até chegar a um modelo otimizado, de acordo com o critério. Conforme pode ser visto logo abaixo, a função `ols_step_both_p()` cumpre esse objetivo:
+
+
+```{r}
+ols_step_both_p(runs_full, prem = 0.05, pent = 0.05, progress = T)
+```
+
+
+## Avaliação das condições para aplicabilidade do modelo de regressão linear
+
+Depois de realizar um procedimento de seleção de modelo, devemos realizar verificações gráficas para explorar se nossas condições para regressão múltipla estão sendo atendidas. O R possui comandos integrados para gráficos de diagnóstico básicos. Basta usar a função `plot()` e inserir o modelo para o qual você deseja gráficos de diagnóstico, conforme demonstrado no código abaixo.
+
+
+```{r}
+par(mfrow = c(2,2))
+plot(runs_forwardPval)
+```
+
+
+Nenhum dos modelos tem desvios severos de nossas condições necessárias para a regressão múltipla. Os métodos de diagnóstico podem ser complicados e, para realmente obter uma boa compreensão deles, será necessário um estudo mais aprofundado ou um curso de regressão.
+
+
+## Por sua conta
+
+
+1. Usando todas as variáveis disponíveis em nosso conjunto de dados, conduza a seleção reversa usando AIC para selecionar o melhor modelo de previsão de `wins` para uma equipe em uma única temporada. Dicas: verifique se você está usando o conjunto de dados `mlb11_wins`. Quantas variáveis estão sendo usadas para prever `wins` no modelo completo? Quais variáveis estão incluídas neste modelo final?
+
+Primeiramente, vamos ajustar o modelo linear completo para a variável `wins`:
+
+```{r}
+wins_full = lm(wins ~ ., data = mlb11_wins)
+```
+
+Para realizar a seleção reversa do modelo usando o AIC como critério, usaremos novamente a função `step()`:
+
+
+```{r}
+wins_backAIC = step(wins_full, direction = "backward")
+summary(wins_backAIC)
+```
+
+Como podemos ver, no modelo completo, 10 variáveis estão sendo usadas para prever `wins` no modelo completo. No modelo final selecionado pelo critério AIC, por outro lado, restaram 5 variáveis, as quais estão mostradas na saída do comando `summary()`, logo acima.
+
+2. Construa um intervalo de confiança de 95% para uma das inclinações no modelo final da parte 1.
+
+Para fazer isso, usaremos a função `confint()`, nativa do R:
+
+
+```{r}
+confint(wins_backAIC, level = 0.95)
+```
+
+
+3. Conduza a seleção reversa usando $R^2_{adj}$ e, em seguida, o método do valor-p para selecionar o melhor modelo de previsão para `wins`. Algum dos modelos finais selecionados usando esses critérios corresponde ao modelo final selecionado usando seleção regressiva com AIC? Eles combinam entre si?
+
+
+Primeiro, vamos selecionar o modelo usando o $R^2_{adj}$:
+
+
+```{r}
+# Step 1
+df1 = data.frame(
+  modelo = c("completo", "-runs", "-at_bats", "-hits", "-homeruns", "-bat_avg", "-strikeouts", "-stolen_bases", "-new_onbase", "-new_slug", "-new_obs"),
+  adj_rsq = c(
+    summary(lm(wins ~ . , mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - runs, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - at_bats, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - hits, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - bat_avg, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - strikeouts, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - stolen_bases, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - new_onbase, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - new_slug, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - new_obs, mlb11_wins))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(wins ~ . , mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - runs, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - at_bats, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - hits, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - bat_avg, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - strikeouts, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - stolen_bases, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - new_onbase, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - new_slug, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - new_obs, mlb11_wins))$adj.r
+      )
+    )
+    ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+  )
+```
+
+
+Como o modelo que removeu a variável `homeruns` possui o maior $R^2_{adj}$, passamos para a próxima etapa com esse modelo:
+
+
+```{r}
+# Step 2
+df1 = data.frame(
+  modelo = c("-homeruns", "-homeruns-runs", "-homeruns-at_bats", "-homeruns-hits", "-homeruns-bat_avg", "-homeruns-strikeouts", "-homeruns-stolen_bases", "-homeruns-new_onbase", "-homeruns-new_slug", "-homeruns-new_obs"),
+  adj_rsq = c(
+    summary(lm(wins ~ . - homeruns, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - runs, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - at_bats, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - bat_avg, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - strikeouts, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - stolen_bases, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - new_onbase, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - new_slug, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - new_obs, mlb11_wins))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(wins ~ . - homeruns, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - runs, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - at_bats, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - bat_avg, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - strikeouts, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - stolen_bases, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - new_onbase, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - new_slug, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - new_obs, mlb11_wins))$adj.r
+      )
+    )
+    ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+  )
+```
+
+
+Agora, selecionamos o modelo que removeu `homeruns` e `hits`:
+
+
+```{r}
+# Step 3
+df1 = data.frame(
+  modelo = c("-homeruns-hits", "-homeruns-hits-runs", "-homeruns-hits-at_bats", "-homeruns-hits-bat_avg", "-homeruns-hits-strikeouts", "-homeruns-hits-stolen_bases", "-homeruns-hits-new_onbase", "-homeruns-hits-new_slug", "-homeruns-hits-new_obs"),
+  adj_rsq = c(
+    summary(lm(wins ~ . - homeruns - hits, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - at_bats, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - bat_avg, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - strikeouts, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - stolen_bases, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - new_onbase, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - new_slug, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - new_obs, mlb11_wins))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(wins ~ . - homeruns - hits, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - at_bats, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - bat_avg, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - strikeouts, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - stolen_bases, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - new_onbase, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - new_slug, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - new_obs, mlb11_wins))$adj.r
+      )
+    )
+    ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+  )
+```
+
+
+
+Selecionamos então o modelo que removeu `homeruns`, `hits` e `runs`:
+
+
+```{r}
+# Step 4
+df1 = data.frame(
+  modelo = c("-homeruns-hits-runs", "-homeruns-hits-runs-at_bats", "-homeruns-hits-runs-bat_avg", "-homeruns-hits-runs-strikeouts", "-homeruns-hits-runs-stolen_bases", "-homeruns-hits-runs-new_onbase", "-homeruns-hits-runs-new_slug", "-homeruns-hits-runs-new_obs"),
+  adj_rsq = c(
+    summary(lm(wins ~ . - homeruns - hits - runs, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - at_bats, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - bat_avg, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - strikeouts, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - new_onbase, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - new_slug, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - new_obs, mlb11_wins))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(wins ~ . - homeruns - hits - runs, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - at_bats, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - bat_avg, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - strikeouts, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - new_onbase, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - new_slug, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - new_obs, mlb11_wins))$adj.r
+      )
+    )
+    ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+  )
+```
+
+
+Seguimos então com o modelo que removeu também `stolen_bases`:
+
+
+```{r}
+# Step 5
+df1 = data.frame(
+  modelo = c("-homeruns-hits-runs-stolen_bases", "-homeruns-hits-runs-stolen_bases-at_bats", "-homeruns-hits-runs-stolen_bases-bat_avg", "-homeruns-hits-runs-stolen_bases-strikeouts", "-homeruns-hits-runs-stolen_bases-new_onbase", "-homeruns-hits-runs-stolen_bases-new_slug", "-homeruns-hits-runs-stolen_bases-new_obs"),
+  adj_rsq = c(
+    summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases - at_bats, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases - bat_avg, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases - strikeouts, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases - new_onbase, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases - new_slug, mlb11_wins))$adj.r,
+    summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases - new_obs, mlb11_wins))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases - at_bats, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases - bat_avg, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases - strikeouts, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases - new_onbase, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases - new_slug, mlb11_wins))$adj.r,
+        summary(lm(wins ~ . - homeruns - hits - runs - stolen_bases - new_obs, mlb11_wins))$adj.r
+      )
+    )
+    ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+  )
+```
+
+
+
+como este último passo não resultou em aumento do $R^2_{adj}$, as variáveis que serão eliminadas por esse método serão `homeruns`, `hits`, `runs` e `stolen_bases`:
+
+
+```{r}
+wins_backADJr = update(wins_full, ~ . -homeruns-hits-runs-stolen_bases)
+summary(wins_backADJr)
+```
+
+
+Finalmente, vamos fazer a seleção reversa do modelo linear para `wins` usando o critério do p-valor:
+
+
+```{r}
+ols_step_backward_p(wins_full, prem = 0.05, progress = T)
+```
+
+
+Agora, vamos atualizar o modelo com as variáveis selecionadas:
+
+
+```{r}
+wins_backPval = update(
+  wins_full,
+  ~ . -homeruns-hits-runs-stolen_bases-new_obs-new_onbase-bat_avg-strikeouts
+)
+summary(wins_backPval)
+```
+
+
+Os três modelos selecionados com os diferentes métodos são diferentes entre si. A menor diferença está naqueles selecionados por AIC e pelo método do $R^2_{adj}$, os quais possuem 5 e 6 variáveis preditoras, respectivamente.
+
+4. Realize a seleção direta com os três critérios diferentes que usamos para selecionar o melhor modelo de previsão de `wins`. Eles são todos iguais?
+
+
+Vamos começar usando AIC:
+
+
+```{r}
+wins_null = lm(wins ~ 1, data = mlb11_wins)
+wins_forwardAIC = step(wins_null, direction = "forward", scope = formula(wins_full))
+summary(wins_forwardAIC)
+```
+
+
+Agora, vamos usar o método do $R^2_{adj}$ para seleção do modelo:
+
+
+```{r}
+# Step 1
+df1 = data.frame(
+  modelo = c("nulo", "+runs", "+at_bats", "+hits", "+homeruns", "+bat_avg", "+strikeouts", "+stolen_bases", "+new_onbase", "+new_slug", "+new_obs"),
+  adj_rsq = c(
+    summary(lm(wins ~ 1 , mlb11_wins))$adj.r,
+    summary(lm(wins ~ 1 + runs, mlb11_wins))$adj.r,
+    summary(lm(wins ~ 1 + at_bats, mlb11_wins))$adj.r,
+    summary(lm(wins ~ 1 + hits, mlb11_wins))$adj.r,
+    summary(lm(wins ~ 1 + homeruns, mlb11_wins))$adj.r,
+    summary(lm(wins ~ 1 + bat_avg, mlb11_wins))$adj.r,
+    summary(lm(wins ~ 1 + strikeouts, mlb11_wins))$adj.r,
+    summary(lm(wins ~ 1 + stolen_bases, mlb11_wins))$adj.r,
+    summary(lm(wins ~ 1 + new_onbase, mlb11_wins))$adj.r,
+    summary(lm(wins ~ 1 + new_slug, mlb11_wins))$adj.r,
+    summary(lm(wins ~ 1 + new_obs, mlb11_wins))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(wins ~ 1 , mlb11_wins))$adj.r,
+        summary(lm(wins ~ 1 + runs, mlb11_wins))$adj.r,
+        summary(lm(wins ~ 1 + at_bats, mlb11_wins))$adj.r,
+        summary(lm(wins ~ 1 + hits, mlb11_wins))$adj.r,
+        summary(lm(wins ~ 1 + homeruns, mlb11_wins))$adj.r,
+        summary(lm(wins ~ 1 + bat_avg, mlb11_wins))$adj.r,
+        summary(lm(wins ~ 1 + strikeouts, mlb11_wins))$adj.r,
+        summary(lm(wins ~ 1 + stolen_bases, mlb11_wins))$adj.r,
+        summary(lm(wins ~ 1 + new_onbase, mlb11_wins))$adj.r,
+        summary(lm(wins ~ 1 + new_slug, mlb11_wins))$adj.r,
+        summary(lm(wins ~ 1 + new_obs, mlb11_wins))$adj.r
+      )
+    )
+    ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+  )
+```
+
+
+Selecionamos então a variável `homeruns`
+
+
+```{r}
+# Step 2
+df1 = data.frame(
+  modelo = c("homeruns", "homeruns+runs", "homeruns+at_bats", "homeruns+hits", "homeruns+bat_avg", "homeruns+strikeouts", "homeruns+stolen_bases", "homeruns+new_onbase", "homeruns+new_slug", "homeruns+new_obs"),
+  adj_rsq = c(
+    summary(lm(wins ~ homeruns, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + runs, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + hits, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + bat_avg, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + strikeouts, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + stolen_bases, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + new_onbase, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + new_slug, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + new_obs, mlb11_wins))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(wins ~ homeruns, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + runs, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + hits, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + bat_avg, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + strikeouts, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + stolen_bases, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + new_onbase, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + new_slug, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + new_obs, mlb11_wins))$adj.r
+      )
+    )
+    ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+  )
+```
+
+
+Agora, selecionamos o modelo que incluiu `homeruns` e `at_bats`:
+
+
+```{r}
+# Step 3
+df1 = data.frame(
+  modelo = c("homeruns+at_bats", "homeruns+at_bats+runs", "homeruns+at_bats+hits", "homeruns+at_bats+bat_avg", "homeruns+at_bats+strikeouts", "homeruns+at_bats+stolen_bases", "homeruns+at_bats+new_onbase", "homeruns+at_bats+new_slug", "homeruns+at_bats+new_obs"),
+  adj_rsq = c(
+    summary(lm(wins ~ homeruns + at_bats, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + runs, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + hits, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + bat_avg, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + strikeouts, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + stolen_bases, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_slug, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_obs, mlb11_wins))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(wins ~ homeruns + at_bats, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + runs, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + hits, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + bat_avg, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + strikeouts, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + stolen_bases, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_slug, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_obs, mlb11_wins))$adj.r
+      )
+    )
+    ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+  )
+```
+
+
+Prosseguindo, selecionamos as variáveis `homeruns`, `at_bats` e `new_onbase`:
+
+
+
+```{r}
+# Step 4
+df1 = data.frame(
+  modelo = c("homeruns+at_bats+new_onbase", "homeruns+at_bats+new_onbase+runs", "homeruns+at_bats+new_onbase+hits", "homeruns+at_bats+new_onbase+bat_avg", "homeruns+at_bats+new_onbase+strikeouts", "homeruns+at_bats+new_onbase+stolen_bases", "homeruns+at_bats+new_onbase+new_slug", "homeruns+at_bats+new_onbase+new_obs"),
+  adj_rsq = c(
+    summary(lm(wins ~ homeruns + at_bats + new_onbase, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + runs, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + hits, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + bat_avg, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + stolen_bases, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + new_slug, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + new_obs, mlb11_wins))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(wins ~ homeruns + at_bats + new_onbase, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + runs, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + hits, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + bat_avg, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + stolen_bases, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + new_slug, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + new_obs, mlb11_wins))$adj.r
+      )
+    )
+    ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+  )
+```
+
+
+Acrescentamos então a variável `strikeouts`:
+
+
+```{r}
+# Step 5
+df1 = data.frame(
+  modelo = c("homeruns+at_bats+new_onbase+strikeouts", "homeruns+at_bats+new_onbase+runs", "homeruns+at_bats+new_onbase+hits", "homeruns+at_bats+new_onbase+bat_avg", "homeruns+at_bats+new_onbase+stolen_bases", "homeruns+at_bats+new_onbase+new_slug", "homeruns+at_bats+new_onbase+new_obs"),
+  adj_rsq = c(
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts + runs, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts + hits, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts + bat_avg, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts + stolen_bases, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts + new_slug, mlb11_wins))$adj.r,
+    summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts + new_obs, mlb11_wins))$adj.r
+  )
+) 
+
+
+df1 %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+  ) %>%
+  row_spec(
+    which(df1$adj_rsq == max(
+      c(
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts + runs, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts + hits, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts + bat_avg, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts + stolen_bases, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts + new_slug, mlb11_wins))$adj.r,
+        summary(lm(wins ~ homeruns + at_bats + new_onbase + strikeouts + new_obs, mlb11_wins))$adj.r
+      )
+    )
+    ), 
+    bold = T, 
+    color = "white", 
+    background = "green"
+  )
+```
+
+
+Como nenhum dos modelos que adicionou uma quinta variável possui um maior valor de $R^2_{adj}$, paramos a seleção. O modelo final de acordo com esse critério de seleção será:
+
+
+
+```{r}
+wins_forwardADJr = update(wins_null, ~ . + homeruns + at_bats + new_onbase + strikeouts)
+summary(wins_forwardADJr)
+```
+
+
+Por fim, fazemos a seleção de variáveis usando o método do p-valor:
+
+
+```{r}
+ols_step_forward_p(wins_full, penter = 0.05, progress = T)
+```
+
+Atualizamos então o modelo selecionado:
+
+
+```{r}
+wins_forwardPval = update(wins_null, ~ . + homeruns)
+summary(wins_forwardPval)
+```
+
+
+
 # Referências
