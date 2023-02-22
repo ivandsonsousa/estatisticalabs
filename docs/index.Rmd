@@ -5206,7 +5206,7 @@ summary(wins_forwardAIC)
 Agora, vamos usar o método do $R^2_{adj}$ para seleção do modelo:
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 1
 df1 = data.frame(
   modelo = c("nulo", "+runs", "+at_bats", "+hits", "+homeruns", "+bat_avg", "+strikeouts", "+stolen_bases", "+new_onbase", "+new_slug", "+new_obs"),
@@ -5260,7 +5260,7 @@ df1 %>%
 Selecionamos então a variável `homeruns`
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 2
 df1 = data.frame(
   modelo = c("homeruns", "homeruns+runs", "homeruns+at_bats", "homeruns+hits", "homeruns+bat_avg", "homeruns+strikeouts", "homeruns+stolen_bases", "homeruns+new_onbase", "homeruns+new_slug", "homeruns+new_obs"),
@@ -5312,7 +5312,7 @@ df1 %>%
 Agora, selecionamos o modelo que incluiu `homeruns` e `at_bats`:
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 3
 df1 = data.frame(
   modelo = c("homeruns+at_bats", "homeruns+at_bats+runs", "homeruns+at_bats+hits", "homeruns+at_bats+bat_avg", "homeruns+at_bats+strikeouts", "homeruns+at_bats+stolen_bases", "homeruns+at_bats+new_onbase", "homeruns+at_bats+new_slug", "homeruns+at_bats+new_obs"),
@@ -5363,7 +5363,7 @@ Prosseguindo, selecionamos as variáveis `homeruns`, `at_bats` e `new_onbase`:
 
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 4
 df1 = data.frame(
   modelo = c("homeruns+at_bats+new_onbase", "homeruns+at_bats+new_onbase+runs", "homeruns+at_bats+new_onbase+hits", "homeruns+at_bats+new_onbase+bat_avg", "homeruns+at_bats+new_onbase+strikeouts", "homeruns+at_bats+new_onbase+stolen_bases", "homeruns+at_bats+new_onbase+new_slug", "homeruns+at_bats+new_onbase+new_obs"),
@@ -5411,7 +5411,7 @@ df1 %>%
 Acrescentamos então a variável `strikeouts`:
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 5
 df1 = data.frame(
   modelo = c("homeruns+at_bats+new_onbase+strikeouts", "homeruns+at_bats+new_onbase+runs", "homeruns+at_bats+new_onbase+hits", "homeruns+at_bats+new_onbase+bat_avg", "homeruns+at_bats+new_onbase+stolen_bases", "homeruns+at_bats+new_onbase+new_slug", "homeruns+at_bats+new_onbase+new_obs"),
