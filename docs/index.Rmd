@@ -73,6 +73,7 @@ library(knitr)
 library(rmarkdown)
 library(combinat)
 library(kableExtra) #Para gerar tabelas com um layout agradável
+library(olsrr) #Para selecionar variaveis numa regressao multipla usando o p-valor da ANOVA
 ```
 
 ## Os dados: Registros de batismos do Dr. Arbuthnot
@@ -4247,25 +4248,10 @@ Outra opção é utilizar um método de aproximação alternativo que funciona t
 ## Introdução
 
 
-Lembre-se de que exploramos a regressão linear simples examinando dados de beisebol da temporada de 2011 da *Major League Baseball* (MLB). Também usaremos esses dados para explorar a regressão múltipla. Nossa inspiração para explorar esses dados vem do filme Moneyball , que enfocou a “busca pelo segredo do sucesso no beisebol”. Ele segue uma equipe de baixo orçamento, o Oakland Athletics, que acreditava que estatísticas subutilizadas, como a capacidade de um jogador chegar à base, predizem melhor a capacidade de marcar pontos do que estatísticas típicas como *home runs*, *RBIs* (corridas impulsionadas) e média de rebatidas. Conseguir jogadores que se destacassem nessas estatísticas pouco aproveitadas acabou sendo muito mais acessível para o time.
+Lembre-se de que exploramos a regressão linear simples examinando dados de beisebol da temporada de 2011 da *Major League Baseball* (MLB). Também usaremos esses dados para explorar a regressão múltipla. Nossa inspiração para explorar esses dados vem do filme Moneyball, que teve como tema a “busca pelo segredo do sucesso no beisebol”. Ele segue uma equipe de baixo orçamento, o Oakland Athletics, que acreditava que estatísticas subutilizadas, como a capacidade de um jogador chegar à base, predizem melhor a capacidade de marcar pontos do que estatísticas típicas como *home runs*, *RBIs* (corridas impulsionadas) e média de rebatidas. Conseguir jogadores que se destacassem nessas estatísticas pouco aproveitadas acabou sendo muito mais acessível para o time.
 
 Neste laboratório, veremos os dados de todos os 30 times da Liga Principal de Beisebol e examinaremos a relação linear entre os pontos marcados em uma temporada e várias estatísticas dos jogadores. Nosso objetivo será encontrar o modelo que melhor prevê os pontos de uma equipe em uma temporada. Também pretendemos encontrar o modelo que melhor prevê o total de vitórias de uma equipe em uma temporada. O primeiro modelo nos diria em quais estatísticas do jogador devemos prestar atenção se quisermos obter pontos e o segundo modelo indicaria quais estatísticas do jogador devemos utilizar quando desejamos obter vitórias.
 
-
-
-```{r}
-library(ggplot2)
-library(plyr)
-library(tidyr)
-library(dplyr)
-library(DescTools)
-library(htmltools)
-library(knitr)
-library(rmarkdown)
-library(combinat)
-library(kableExtra) #Para gerar tabelas com um layout agradável
-library(olsrr) #Para selecionar variaveis numa regressao multipla usando o p-valor da ANOVA
-```
 
 
 ## Conteúdos abordados neste laboratório
@@ -4309,8 +4295,6 @@ mlb11_runs = mlb11_wins %>%
   select(-wins)
 ```
 
-
-Conforme discutido em aula, há muitas maneiras de selecionar o modelo. Veremos a seguir alguns métodos de seleção. 
 
 
 ## A busca pelo melhor modelo
@@ -4369,7 +4353,7 @@ Agora, em vez de AIC, vamos usar o valor de $R^2_{adj}$ como nosso critério ao 
 
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 1
 df1 = data.frame(
   modelo = c("completo", "-at_bats", "-hits", "-homeruns", "-bat_avg", "-strikeouts", "-stolen_bases", "-new_onbase", "-new_slug", "-new_obs"),
@@ -4422,7 +4406,7 @@ df1 %>%
 Uma vez que o modelo que removeu `new_onbase` tem o maior $R^2_{adj}$, passamos para a etapa 2 usando esse modelo e continuamos removendo uma variável por vez e calculamos o novo $R^2_{adj}$ para cada modelo.
  
 
-```{r}
+```{r, echo=FALSE}
 # Step 2
 df1 = data.frame(
   modelo = c("-new_onbase", "-new_onbase-at_bats", "-new_onbase-hits", "-new_onbase-homeruns", "-new_onbase-bat_avg", "-new_onbase-strikeouts", "-new_onbase-stolen_bases", "-new_onbase-new_slug", "-new_onbase-new_obs"),
@@ -4473,7 +4457,7 @@ Como o modelo que apresenta o maior $R^2_{adj}$ na etapa 2 é aquele que removeu
 
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 3
 df1 = data.frame(
   modelo = c("-new_onbase-strikeouts", "-new_onbase-strikeouts-at_bats", "-new_onbase-strikeouts-hits", "-new_onbase-strikeouts-homeruns", "-new_onbase-strikeouts-bat_avg", "-new_onbase-strikeouts-stolen_bases", "-new_onbase-strikeouts-new_slug", "-new_onbase-strikeouts-new_obs"),
@@ -4658,7 +4642,7 @@ Em vez de AIC, vamos usar o $R^2_{adj}$ como nosso critério ao conduzir a sele�
 
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 1
 df1 = data.frame(
   modelo = c("nulo", "+at_bats", "+hits", "+homeruns", "+bat_avg", "+strikeouts", "+stolen_bases", "+new_onbase", "+new_slug", "+new_obs"),
@@ -4710,7 +4694,7 @@ df1 %>%
 Como o modelo que adicionou `new_obs` tem o maior $R^2_{adj}$, passamos para a etapa 2 usando esse modelo e continuamos adicionando uma variável por vez e calculamos o novo $R^2_{adj}$ para cada modelo.
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 2
 df1 = data.frame(
   modelo = c("new_obs", "new_obs + at_bats", "new_obs + hits", "new_obs + homeruns", "new_obs + bat_avg", "new_obs + strikeouts", "new_obs + stolen_bases", "new_obs + new_onbase", "new_obs + new_slug"),
@@ -4761,7 +4745,7 @@ Como o modelo do passo 2 que adicionou `stolen_bases` tem o maior $R^2_{adj}$, p
 
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 3
 df1 = data.frame(
   modelo = c("new_obs + stolen_bases", "new_obs + stolen_bases + at_bats", "new_obs + stolen_bases + hits", "new_obs + stolen_bases + homeruns", "new_obs + stolen_bases + bat_avg", "new_obs + stolen_bases + strikeouts", "new_obs + stolen_bases + new_onbase", "new_obs + stolen_bases + new_slug"),
@@ -4876,7 +4860,17 @@ plot(runs_forwardPval)
 ```
 
 
-Nenhum dos modelos tem desvios severos de nossas condições necessárias para a regressão múltipla. Os métodos de diagnóstico podem ser complicados e, para realmente obter uma boa compreensão deles, será necessário um estudo mais aprofundado ou um curso de regressão.
+Nenhum dos modelos tem desvios severos de nossas condições necessárias para a regressão múltipla. Os métodos de diagnóstico podem ser complicados e, para realmente obter uma boa compreensão deles, será necessário um estudo mais aprofundado ou um curso de regressão. 
+
+Podemos resumir os critérios de diagnóstico da seguinte maneira:
+
+
+a. Os pontos no gráfico resíduos versus valores ajustados são dispersos aleatoriamente, sem nenhum padrão específico.
+
+b. Os pontos no gráfico Q–Q normal estão mais ou menos na linha, indicando que os resíduos seguem uma distribuição normal.
+
+c. Tanto no gráfico Escala-Localização quanto no gráfico Resíduos versus Alavancagem, os pontos estão em um grupo, com nenhum ponto muito longe do centro.
+
 
 
 ## Por sua conta
@@ -4916,7 +4910,7 @@ confint(wins_backAIC, level = 0.95)
 Primeiro, vamos selecionar o modelo usando o $R^2_{adj}$:
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 1
 df1 = data.frame(
   modelo = c("completo", "-runs", "-at_bats", "-hits", "-homeruns", "-bat_avg", "-strikeouts", "-stolen_bases", "-new_onbase", "-new_slug", "-new_obs"),
@@ -4970,7 +4964,7 @@ df1 %>%
 Como o modelo que removeu a variável `homeruns` possui o maior $R^2_{adj}$, passamos para a próxima etapa com esse modelo:
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 2
 df1 = data.frame(
   modelo = c("-homeruns", "-homeruns-runs", "-homeruns-at_bats", "-homeruns-hits", "-homeruns-bat_avg", "-homeruns-strikeouts", "-homeruns-stolen_bases", "-homeruns-new_onbase", "-homeruns-new_slug", "-homeruns-new_obs"),
@@ -5022,7 +5016,7 @@ df1 %>%
 Agora, selecionamos o modelo que removeu `homeruns` e `hits`:
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 3
 df1 = data.frame(
   modelo = c("-homeruns-hits", "-homeruns-hits-runs", "-homeruns-hits-at_bats", "-homeruns-hits-bat_avg", "-homeruns-hits-strikeouts", "-homeruns-hits-stolen_bases", "-homeruns-hits-new_onbase", "-homeruns-hits-new_slug", "-homeruns-hits-new_obs"),
@@ -5073,7 +5067,7 @@ df1 %>%
 Selecionamos então o modelo que removeu `homeruns`, `hits` e `runs`:
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 4
 df1 = data.frame(
   modelo = c("-homeruns-hits-runs", "-homeruns-hits-runs-at_bats", "-homeruns-hits-runs-bat_avg", "-homeruns-hits-runs-strikeouts", "-homeruns-hits-runs-stolen_bases", "-homeruns-hits-runs-new_onbase", "-homeruns-hits-runs-new_slug", "-homeruns-hits-runs-new_obs"),
@@ -5121,7 +5115,7 @@ df1 %>%
 Seguimos então com o modelo que removeu também `stolen_bases`:
 
 
-```{r}
+```{r, echo=FALSE}
 # Step 5
 df1 = data.frame(
   modelo = c("-homeruns-hits-runs-stolen_bases", "-homeruns-hits-runs-stolen_bases-at_bats", "-homeruns-hits-runs-stolen_bases-bat_avg", "-homeruns-hits-runs-stolen_bases-strikeouts", "-homeruns-hits-runs-stolen_bases-new_onbase", "-homeruns-hits-runs-stolen_bases-new_slug", "-homeruns-hits-runs-stolen_bases-new_obs"),
