@@ -4892,16 +4892,19 @@ wins_backAIC = step(wins_full, direction = "backward")
 summary(wins_backAIC)
 ```
 
-Como podemos ver, no modelo completo, 10 variáveis estão sendo usadas para prever `wins` no modelo completo. No modelo final selecionado pelo critério AIC, por outro lado, restaram 5 variáveis, as quais estão mostradas na saída do comando `summary()`, logo acima.
+Como podemos ver, no modelo completo, 10 variáveis estão sendo usadas para prever `wins`. No modelo final selecionado pelo critério AIC, por outro lado, restaram 5 variáveis, as quais estão mostradas na saída do comando `summary()`, logo acima.
 
 2. Construa um intervalo de confiança de 95% para uma das inclinações no modelo final da parte 1.
 
-Para fazer isso, usaremos a função `confint()`, nativa do R:
+Para fazer isso, usaremos a função `confint()`, nativa do R, passando como argumento o modelo obtido por meio da seleção reversa com critério AIC.
 
 
 ```{r}
 confint(wins_backAIC, level = 0.95)
 ```
+
+
+Como resultado, vemos os intervalos de confiança para cada um dos parâmetros que estão sendo estimados no modelo, sendo mostrados os valores extremos do intervalo e os quantis equivalentes na t de Student.
 
 
 3. Conduza a seleção reversa usando $R^2_{adj}$ e, em seguida, o método do valor-p para selecionar o melhor modelo de previsão para `wins`. Algum dos modelos finais selecionados usando esses critérios corresponde ao modelo final selecionado usando seleção regressiva com AIC? Eles combinam entre si?
@@ -5479,6 +5482,8 @@ wins_forwardPval = update(wins_null, ~ . + homeruns)
 summary(wins_forwardPval)
 ```
 
+
+Vemos então que os modelos selecionados através dos critérios AIC e $R^2_{adj}$ concordam entre si, e ambos diferem do modelo selecionado usando o critério do p-valor da ANOVA.
 
 
 # Referências

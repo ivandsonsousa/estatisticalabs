@@ -6,7 +6,7 @@
     <meta name="generator" content="pandoc" />
 
     
-        <meta name="date" content="2023-01-16" />
+        <meta name="date" content="2023-02-25" />
     
     <title>Lab4.1: A Distribuição Normal</title>
 
@@ -1108,6 +1108,230 @@ src: url(data:font/ttf;base64,AAEAAAARAQAABAAQR0RFRgs+Cz8AAjwQAAAAQEdQT1MXWeoAAA
 
 });
 </script>
+        <script>$(document).ready(function(){
+    if (typeof $('[data-toggle="tooltip"]').tooltip === 'function') {
+        $('[data-toggle="tooltip"]').tooltip();
+    }
+    if ($('[data-toggle="popover"]').popover === 'function') {
+        $('[data-toggle="popover"]').popover();
+    }
+});
+</script>
+        <style type="text/css">
+.lightable-minimal {
+border-collapse: separate;
+border-spacing: 16px 1px;
+width: 100%;
+margin-bottom: 10px;
+}
+.lightable-minimal td {
+margin-left: 5px;
+margin-right: 5px;
+}
+.lightable-minimal th {
+margin-left: 5px;
+margin-right: 5px;
+}
+.lightable-minimal thead tr:last-child th {
+border-bottom: 2px solid #00000050;
+empty-cells: hide;
+}
+.lightable-minimal tbody tr:first-child td {
+padding-top: 0.5em;
+}
+.lightable-minimal.lightable-hover tbody tr:hover {
+background-color: #f5f5f5;
+}
+.lightable-minimal.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-classic {
+border-top: 0.16em solid #111111;
+border-bottom: 0.16em solid #111111;
+width: 100%;
+margin-bottom: 10px;
+margin: 10px 5px;
+}
+.lightable-classic tfoot tr td {
+border: 0;
+}
+.lightable-classic tfoot tr:first-child td {
+border-top: 0.14em solid #111111;
+}
+.lightable-classic caption {
+color: #222222;
+}
+.lightable-classic td {
+padding-left: 5px;
+padding-right: 5px;
+color: #222222;
+}
+.lightable-classic th {
+padding-left: 5px;
+padding-right: 5px;
+font-weight: normal;
+color: #222222;
+}
+.lightable-classic thead tr:last-child th {
+border-bottom: 0.10em solid #111111;
+}
+.lightable-classic.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-classic.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-classic-2 {
+border-top: 3px double #111111;
+border-bottom: 3px double #111111;
+width: 100%;
+margin-bottom: 10px;
+}
+.lightable-classic-2 tfoot tr td {
+border: 0;
+}
+.lightable-classic-2 tfoot tr:first-child td {
+border-top: 3px double #111111;
+}
+.lightable-classic-2 caption {
+color: #222222;
+}
+.lightable-classic-2 td {
+padding-left: 5px;
+padding-right: 5px;
+color: #222222;
+}
+.lightable-classic-2 th {
+padding-left: 5px;
+padding-right: 5px;
+font-weight: normal;
+color: #222222;
+}
+.lightable-classic-2 tbody tr:last-child td {
+border-bottom: 3px double #111111;
+}
+.lightable-classic-2 thead tr:last-child th {
+border-bottom: 1px solid #111111;
+}
+.lightable-classic-2.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-classic-2.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-material {
+min-width: 100%;
+white-space: nowrap;
+table-layout: fixed;
+font-family: Roboto, sans-serif;
+border: 1px solid #EEE;
+border-collapse: collapse;
+margin-bottom: 10px;
+}
+.lightable-material tfoot tr td {
+border: 0;
+}
+.lightable-material tfoot tr:first-child td {
+border-top: 1px solid #EEE;
+}
+.lightable-material th {
+height: 56px;
+padding-left: 16px;
+padding-right: 16px;
+}
+.lightable-material td {
+height: 52px;
+padding-left: 16px;
+padding-right: 16px;
+border-top: 1px solid #eeeeee;
+}
+.lightable-material.lightable-hover tbody tr:hover {
+background-color: #f5f5f5;
+}
+.lightable-material.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-material.lightable-striped tbody td {
+border: 0;
+}
+.lightable-material.lightable-striped thead tr:last-child th {
+border-bottom: 1px solid #ddd;
+}
+.lightable-material-dark {
+min-width: 100%;
+white-space: nowrap;
+table-layout: fixed;
+font-family: Roboto, sans-serif;
+border: 1px solid #FFFFFF12;
+border-collapse: collapse;
+margin-bottom: 10px;
+background-color: #363640;
+}
+.lightable-material-dark tfoot tr td {
+border: 0;
+}
+.lightable-material-dark tfoot tr:first-child td {
+border-top: 1px solid #FFFFFF12;
+}
+.lightable-material-dark th {
+height: 56px;
+padding-left: 16px;
+padding-right: 16px;
+color: #FFFFFF60;
+}
+.lightable-material-dark td {
+height: 52px;
+padding-left: 16px;
+padding-right: 16px;
+color: #FFFFFF;
+border-top: 1px solid #FFFFFF12;
+}
+.lightable-material-dark.lightable-hover tbody tr:hover {
+background-color: #FFFFFF12;
+}
+.lightable-material-dark.lightable-striped tbody tr:nth-child(even) {
+background-color: #FFFFFF12;
+}
+.lightable-material-dark.lightable-striped tbody td {
+border: 0;
+}
+.lightable-material-dark.lightable-striped thead tr:last-child th {
+border-bottom: 1px solid #FFFFFF12;
+}
+.lightable-paper {
+width: 100%;
+margin-bottom: 10px;
+color: #444;
+}
+.lightable-paper tfoot tr td {
+border: 0;
+}
+.lightable-paper tfoot tr:first-child td {
+border-top: 1px solid #00000020;
+}
+.lightable-paper thead tr:last-child th {
+color: #666;
+vertical-align: bottom;
+border-bottom: 1px solid #00000020;
+line-height: 1.15em;
+padding: 10px 5px;
+}
+.lightable-paper td {
+vertical-align: middle;
+border-bottom: 1px solid #00000010;
+line-height: 1.15em;
+padding: 7px 5px;
+}
+.lightable-paper.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-paper.lightable-striped tbody tr:nth-child(even) {
+background-color: #00000008;
+}
+.lightable-paper.lightable-striped tbody td {
+border: 0;
+}
+</style>
     
     
         <style type="text/css">code{white-space: pre;}</style>
@@ -1278,7 +1502,7 @@ margin-left: 0 !important;
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
-                  <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2023-01-16</p>
+                  <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2023-02-25</p>
           </div>
    </div>
      
@@ -1323,6 +1547,566 @@ Este conjunto de dados contém medições de 247 homens e 260 mulheres, a
 maioria dos quais considerados adultos jovens saudáveis.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">download.file</span>(<span class="st">&quot;http://www.openintro.org/stat/data/bdims.RData&quot;</span>, <span class="at">destfile =</span> <span class="st">&quot;bdims.RData&quot;</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&quot;bdims.RData&quot;</span>)</span></code></pre></div>
+<p>Vamos dar uma olhada rápida nas primeiras linhas dos dados:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(bdims) <span class="sc">%&gt;%</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">full_width =</span> F, </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">&quot;striped&quot;</span>, <span class="st">&quot;hover&quot;</span>, <span class="st">&quot;condensed&quot;</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;responsive&quot;</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+bia.di
+</th>
+<th style="text-align:right;">
+bii.di
+</th>
+<th style="text-align:right;">
+bit.di
+</th>
+<th style="text-align:right;">
+che.de
+</th>
+<th style="text-align:right;">
+che.di
+</th>
+<th style="text-align:right;">
+elb.di
+</th>
+<th style="text-align:right;">
+wri.di
+</th>
+<th style="text-align:right;">
+kne.di
+</th>
+<th style="text-align:right;">
+ank.di
+</th>
+<th style="text-align:right;">
+sho.gi
+</th>
+<th style="text-align:right;">
+che.gi
+</th>
+<th style="text-align:right;">
+wai.gi
+</th>
+<th style="text-align:right;">
+nav.gi
+</th>
+<th style="text-align:right;">
+hip.gi
+</th>
+<th style="text-align:right;">
+thi.gi
+</th>
+<th style="text-align:right;">
+bic.gi
+</th>
+<th style="text-align:right;">
+for.gi
+</th>
+<th style="text-align:right;">
+kne.gi
+</th>
+<th style="text-align:right;">
+cal.gi
+</th>
+<th style="text-align:right;">
+ank.gi
+</th>
+<th style="text-align:right;">
+wri.gi
+</th>
+<th style="text-align:right;">
+age
+</th>
+<th style="text-align:right;">
+wgt
+</th>
+<th style="text-align:right;">
+hgt
+</th>
+<th style="text-align:left;">
+sex
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+42.9
+</td>
+<td style="text-align:right;">
+26.0
+</td>
+<td style="text-align:right;">
+31.5
+</td>
+<td style="text-align:right;">
+17.7
+</td>
+<td style="text-align:right;">
+28.0
+</td>
+<td style="text-align:right;">
+13.1
+</td>
+<td style="text-align:right;">
+10.4
+</td>
+<td style="text-align:right;">
+18.8
+</td>
+<td style="text-align:right;">
+14.1
+</td>
+<td style="text-align:right;">
+106.2
+</td>
+<td style="text-align:right;">
+89.5
+</td>
+<td style="text-align:right;">
+71.5
+</td>
+<td style="text-align:right;">
+74.5
+</td>
+<td style="text-align:right;">
+93.5
+</td>
+<td style="text-align:right;">
+51.5
+</td>
+<td style="text-align:right;">
+32.5
+</td>
+<td style="text-align:right;">
+26.0
+</td>
+<td style="text-align:right;">
+34.5
+</td>
+<td style="text-align:right;">
+36.5
+</td>
+<td style="text-align:right;">
+23.5
+</td>
+<td style="text-align:right;">
+16.5
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+65.6
+</td>
+<td style="text-align:right;">
+174.0
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+43.7
+</td>
+<td style="text-align:right;">
+28.5
+</td>
+<td style="text-align:right;">
+33.5
+</td>
+<td style="text-align:right;">
+16.9
+</td>
+<td style="text-align:right;">
+30.8
+</td>
+<td style="text-align:right;">
+14.0
+</td>
+<td style="text-align:right;">
+11.8
+</td>
+<td style="text-align:right;">
+20.6
+</td>
+<td style="text-align:right;">
+15.1
+</td>
+<td style="text-align:right;">
+110.5
+</td>
+<td style="text-align:right;">
+97.0
+</td>
+<td style="text-align:right;">
+79.0
+</td>
+<td style="text-align:right;">
+86.5
+</td>
+<td style="text-align:right;">
+94.8
+</td>
+<td style="text-align:right;">
+51.5
+</td>
+<td style="text-align:right;">
+34.4
+</td>
+<td style="text-align:right;">
+28.0
+</td>
+<td style="text-align:right;">
+36.5
+</td>
+<td style="text-align:right;">
+37.5
+</td>
+<td style="text-align:right;">
+24.5
+</td>
+<td style="text-align:right;">
+17.0
+</td>
+<td style="text-align:right;">
+23
+</td>
+<td style="text-align:right;">
+71.8
+</td>
+<td style="text-align:right;">
+175.3
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+40.1
+</td>
+<td style="text-align:right;">
+28.2
+</td>
+<td style="text-align:right;">
+33.3
+</td>
+<td style="text-align:right;">
+20.9
+</td>
+<td style="text-align:right;">
+31.7
+</td>
+<td style="text-align:right;">
+13.9
+</td>
+<td style="text-align:right;">
+10.9
+</td>
+<td style="text-align:right;">
+19.7
+</td>
+<td style="text-align:right;">
+14.1
+</td>
+<td style="text-align:right;">
+115.1
+</td>
+<td style="text-align:right;">
+97.5
+</td>
+<td style="text-align:right;">
+83.2
+</td>
+<td style="text-align:right;">
+82.9
+</td>
+<td style="text-align:right;">
+95.0
+</td>
+<td style="text-align:right;">
+57.3
+</td>
+<td style="text-align:right;">
+33.4
+</td>
+<td style="text-align:right;">
+28.8
+</td>
+<td style="text-align:right;">
+37.0
+</td>
+<td style="text-align:right;">
+37.3
+</td>
+<td style="text-align:right;">
+21.9
+</td>
+<td style="text-align:right;">
+16.9
+</td>
+<td style="text-align:right;">
+28
+</td>
+<td style="text-align:right;">
+80.7
+</td>
+<td style="text-align:right;">
+193.5
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+44.3
+</td>
+<td style="text-align:right;">
+29.9
+</td>
+<td style="text-align:right;">
+34.0
+</td>
+<td style="text-align:right;">
+18.4
+</td>
+<td style="text-align:right;">
+28.2
+</td>
+<td style="text-align:right;">
+13.9
+</td>
+<td style="text-align:right;">
+11.2
+</td>
+<td style="text-align:right;">
+20.9
+</td>
+<td style="text-align:right;">
+15.0
+</td>
+<td style="text-align:right;">
+104.5
+</td>
+<td style="text-align:right;">
+97.0
+</td>
+<td style="text-align:right;">
+77.8
+</td>
+<td style="text-align:right;">
+78.8
+</td>
+<td style="text-align:right;">
+94.0
+</td>
+<td style="text-align:right;">
+53.0
+</td>
+<td style="text-align:right;">
+31.0
+</td>
+<td style="text-align:right;">
+26.2
+</td>
+<td style="text-align:right;">
+37.0
+</td>
+<td style="text-align:right;">
+34.8
+</td>
+<td style="text-align:right;">
+23.0
+</td>
+<td style="text-align:right;">
+16.6
+</td>
+<td style="text-align:right;">
+23
+</td>
+<td style="text-align:right;">
+72.6
+</td>
+<td style="text-align:right;">
+186.5
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+42.5
+</td>
+<td style="text-align:right;">
+29.9
+</td>
+<td style="text-align:right;">
+34.0
+</td>
+<td style="text-align:right;">
+21.5
+</td>
+<td style="text-align:right;">
+29.4
+</td>
+<td style="text-align:right;">
+15.2
+</td>
+<td style="text-align:right;">
+11.6
+</td>
+<td style="text-align:right;">
+20.7
+</td>
+<td style="text-align:right;">
+14.9
+</td>
+<td style="text-align:right;">
+107.5
+</td>
+<td style="text-align:right;">
+97.5
+</td>
+<td style="text-align:right;">
+80.0
+</td>
+<td style="text-align:right;">
+82.5
+</td>
+<td style="text-align:right;">
+98.5
+</td>
+<td style="text-align:right;">
+55.4
+</td>
+<td style="text-align:right;">
+32.0
+</td>
+<td style="text-align:right;">
+28.4
+</td>
+<td style="text-align:right;">
+37.7
+</td>
+<td style="text-align:right;">
+38.6
+</td>
+<td style="text-align:right;">
+24.4
+</td>
+<td style="text-align:right;">
+18.0
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+78.8
+</td>
+<td style="text-align:right;">
+187.2
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+43.3
+</td>
+<td style="text-align:right;">
+27.0
+</td>
+<td style="text-align:right;">
+31.5
+</td>
+<td style="text-align:right;">
+19.6
+</td>
+<td style="text-align:right;">
+31.3
+</td>
+<td style="text-align:right;">
+14.0
+</td>
+<td style="text-align:right;">
+11.5
+</td>
+<td style="text-align:right;">
+18.8
+</td>
+<td style="text-align:right;">
+13.9
+</td>
+<td style="text-align:right;">
+119.8
+</td>
+<td style="text-align:right;">
+99.9
+</td>
+<td style="text-align:right;">
+82.5
+</td>
+<td style="text-align:right;">
+80.1
+</td>
+<td style="text-align:right;">
+95.3
+</td>
+<td style="text-align:right;">
+57.5
+</td>
+<td style="text-align:right;">
+33.0
+</td>
+<td style="text-align:right;">
+28.0
+</td>
+<td style="text-align:right;">
+36.6
+</td>
+<td style="text-align:right;">
+36.1
+</td>
+<td style="text-align:right;">
+23.5
+</td>
+<td style="text-align:right;">
+16.9
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+74.8
+</td>
+<td style="text-align:right;">
+181.5
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+</tbody>
+</table>
+<p>Você verá que para cada observação temos 25 medidas, muitas das quais
+são diâmetros ou circunferências. Vamos nos concentrar em apenas três
+colunas para começar: peso em kg (wgt), altura em cm (hgt) e sex (1
+indica masculino, 0 indica feminino).</p>
+<p>Como homens e mulheres tendem a ter dimensões corporais diferentes,
+será útil criar dois conjuntos de dados adicionais: um só com homens e
+outro só com mulheres.</p>
 </div>
 </div>
 

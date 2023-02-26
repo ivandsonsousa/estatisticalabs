@@ -1,6 +1,6 @@
 ---
 title: 'Lab4.1: A Distribuição Normal'
-date: "2023-01-16"
+date: "2023-02-25"
 output:
   rmdformats::readthedown
   # html_document:
@@ -54,3 +54,22 @@ download.file("http://www.openintro.org/stat/data/bdims.RData", destfile = "bdim
 load("bdims.RData")
 ```
 
+
+Vamos dar uma olhada rápida nas primeiras linhas dos dados:
+
+
+```{r}
+head(bdims) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
+```
+
+
+
+Você verá que para cada observação temos 25 medidas, muitas das quais são diâmetros ou circunferências. Vamos nos concentrar em apenas três colunas para começar: peso em kg (wgt), altura em cm (hgt) e sex (1 indica masculino, 0 indica feminino).
+
+Como homens e mulheres tendem a ter dimensões corporais diferentes, será útil criar dois conjuntos de dados adicionais: um só com homens e outro só com mulheres.
