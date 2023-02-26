@@ -70,6 +70,48 @@ head(bdims) %>%
 
 
 
-Você verá que para cada observação temos 25 medidas, muitas das quais são diâmetros ou circunferências. Vamos nos concentrar em apenas três colunas para começar: peso em kg (wgt), altura em cm (hgt) e sex (1 indica masculino, 0 indica feminino).
+Você verá que para cada observação temos 25 medidas, muitas das quais são diâmetros ou circunferências. Vamos nos concentrar em apenas três colunas para começar: peso em kg (`wgt`), altura em cm (`hgt`) e `sex` (1 indica masculino, 0 indica feminino).
 
 Como homens e mulheres tendem a ter dimensões corporais diferentes, será útil criar dois conjuntos de dados adicionais: um só com homens e outro só com mulheres.
+
+
+```{r}
+mdims = bdims %>%
+  subset(sex == 1)
+
+fdims = bdims %>%
+  subset(sex == 0)
+```
+
+
+> Exercício 1: Faça um histograma das alturas dos homens e um histograma das alturas das mulheres. Depois de plotar cada histograma, também pode ser útil construir os histogramas no mesmo gráfico/eixos. Boxplots para cada gênero também podem ser úteis. Depois de examinar os gráficos, como você compararia os vários aspectos das duas distribuições?
+
+
+Vamos primeiro fazer os histogramas no mesmo eixo. Em seguida, faremos também os boxplots, a fim de subsidiar as comparações entre as duas distribuições.
+
+
+```{r}
+bdims = mutate(
+  bdims,
+  sex = ifelse(sex == 1, "m", "f")
+)
+
+bdims %>%
+  ggplot(aes(x = hgt, fill = sex)) + 
+  geom_density(alpha = 0.8) + 
+  labs(
+    title = "Alturas de homes e mulheres",
+    x = "Altura (cm)",
+    y = "Densidade"
+  ) + 
+  theme(text = element_text(size = 18)) + 
+  scale_fill_manual(values = c("skyblue", "orange"))
+
+bdims %>%
+  ggplot(aes(y = hgt, fill = sex)) + 
+  geom_boxplot(size = 0.6) + 
+  scale_fill_manual(values = c("skyblue", "orange")) +
+  theme_void() + 
+  theme(text = element_text(size = 18))
+```
+
