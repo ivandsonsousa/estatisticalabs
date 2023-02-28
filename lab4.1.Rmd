@@ -98,7 +98,7 @@ bdims = mutate(
 
 bdims %>%
   ggplot(aes(x = hgt, fill = sex)) + 
-  geom_density(alpha = 0.8) + 
+  geom_histogram(alpha = 0.8, bins = 20) + 
   labs(
     title = "Alturas de homes e mulheres",
     x = "Altura (cm)",
@@ -112,6 +112,34 @@ bdims %>%
   geom_boxplot(size = 0.6) + 
   scale_fill_manual(values = c("skyblue", "orange")) +
   theme_void() + 
+  theme(text = element_text(size = 18))
+```
+
+
+Com base nos gráficos construídos e nos box plots, concluímos que os dois grupos possuem médias diferentes e distribuição aproximadamente normal.
+
+
+## Distribuição normal
+
+
+Em sua descrição das distribuições, você usou palavras como `forma de sino` ou `normal`? É tentador dizer isso quando nos deparamos com uma distribuição simétrica unimodal.
+
+Para ver a precisão dessa descrição, podemos plotar uma curva de distribuição normal no topo de um histograma para ver o quanto os dados seguem uma distribuição normal.
+
+A curva normal sobreposta deve ter a mesma média e desvio padrão dos dados. Estaremos trabalhando com as alturas das mulheres, então vamos armazená-las como um objeto separado e depois calcular algumas estatísticas que serão usadas/referenciadas posteriormente.
+
+
+```{r}
+fhgtmean = mean(fdims$hgt)
+fhgtsd  = sd(fdims$hgt)
+```
+
+
+```{r}
+fdims %>%
+  ggplot(aes(x = hgt)) + 
+  geom_histogram(aes(y = ..density..), alpha = 0.8, fill = "skyblue", bins = 20) + 
+  geom_function(fun = dnorm, args = list(mean = fhgtmean, sd = fhgtsd), col = "red", linewidth = 1) + 
   theme(text = element_text(size = 18))
 ```
 
