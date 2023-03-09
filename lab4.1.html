@@ -2323,6 +2323,103 @@ que, supostamente, a população de mulheres tem peso que se distribui
 normalmente com a média e desvio padrão obtida do conjunto de dados da
 amostra apresentada neste relatório. Outra maneira de fazer isso é a
 seguinte:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pnorm</span>(<span class="at">q =</span> <span class="dv">182</span>, <span class="at">mean =</span> fhgtmean, <span class="at">sd =</span> fhgtsd, <span class="at">lower.tail =</span> F)</span></code></pre></div>
+<pre><code>## [1] 0.004434387</code></pre>
+<p>O resultado é o mesmo obtido anteriormente. A função
+<code>pnorm()</code> calcula a probabilidade acumulada à esquerda do
+quantil fornecido. Fornecemos então o argumento
+<code>lower.tail = FALSE</code> para inverter a calda, já que queremos a
+probabilidade do peso ser maior que 182 cm.</p>
+<p>Assumir uma distribuição normal nos permitiu calcular uma
+probabilidade teórica. Se quisermos calcular a probabilidade
+empiricamente, simplesmente precisamos determinar quantas observações
+ficam acima de 182 e dividir esse número pelo tamanho total da
+amostra:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(fdims<span class="sc">$</span>hgt <span class="sc">&gt;</span> <span class="dv">182</span>) <span class="sc">/</span> <span class="fu">nrow</span>(fdims)</span></code></pre></div>
+<pre><code>## [1] 0.003846154</code></pre>
+<p>Embora as probabilidades não sejam exatamente as mesmas, elas são
+razoavelmente próximas. Quanto mais próxima a sua distribuição estiver
+da normal, mais precisas serão as probabilidades teóricas.</p>
+<blockquote>
+<p>Exercício 6: Escreva duas questões de probabilidade que você gostaria
+de responder; um em relação às alturas femininas e outro em relação aos
+pesos femininos. Calcule essas probabilidades usando tanto a
+distribuição normal teórica quanto a distribuição empírica (quatro
+probabilidades ao todo). Qual variável, altura ou peso, apresentou maior
+concordância entre os dois métodos?</p>
+</blockquote>
+<p>Assumindo a distribuição normal dos pesos e das alturas femininas na
+população geral, vamos calcular as probabilidades do peso de uma mulher
+selecionada ao acaso ser menor que 50 e da altura ser menor que 160 e
+comarar com os respectivos valores empíricos:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>fwgtmean <span class="ot">=</span> <span class="fu">mean</span>(fdims<span class="sc">$</span>wgt)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>fwgtsd <span class="ot">=</span> <span class="fu">sd</span>(fdims<span class="sc">$</span>wgt)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">teorico =</span> </span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(<span class="fu">pnorm</span>(<span class="at">q =</span> <span class="dv">160</span>, <span class="at">mean =</span> fhgtmean, <span class="at">sd =</span> fhgtsd), <span class="fu">pnorm</span>(<span class="at">q =</span> <span class="dv">50</span>, <span class="at">mean =</span> fwgtmean, <span class="at">sd =</span> fwgtsd)),</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">empirico =</span> </span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(<span class="fu">sum</span>(fdims<span class="sc">$</span>hgt <span class="sc">&lt;</span> <span class="dv">160</span>) <span class="sc">/</span> <span class="fu">nrow</span>(fdims), <span class="fu">sum</span>(fdims<span class="sc">$</span>wgt <span class="sc">&lt;</span> <span class="dv">50</span>) <span class="sc">/</span> <span class="fu">nrow</span>(fdims)),</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="fu">c</span>(<span class="st">&quot;Altura&quot;</span>, <span class="st">&quot;Peso&quot;</span>)</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">diferenca =</span> teorico <span class="sc">-</span> empirico</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">full_width =</span> F, </span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">&quot;striped&quot;</span>, <span class="st">&quot;hover&quot;</span>, <span class="st">&quot;condensed&quot;</span>,</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;responsive&quot;</span>)</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+teorico
+</th>
+<th style="text-align:right;">
+empirico
+</th>
+<th style="text-align:right;">
+diferenca
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Altura
+</td>
+<td style="text-align:right;">
+0.2282939
+</td>
+<td style="text-align:right;">
+0.1923077
+</td>
+<td style="text-align:right;">
+0.0359862
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Peso
+</td>
+<td style="text-align:right;">
+0.1351430
+</td>
+<td style="text-align:right;">
+0.1038462
+</td>
+<td style="text-align:right;">
+0.0312969
+</td>
+</tr>
+</tbody>
+</table>
+<p>Como podemos ver, a diferença nominal é maior para a diferença entre
+as distribuições das alturas teórica e empírica.</p>
 </div>
 </div>
 

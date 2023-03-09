@@ -1382,6 +1382,285 @@ cowplot::plot_grid(hist_kobe, hist_sim, labels = "AUTO")
 # Lab04: A Distribuição Normal
 
 
+## Introdução
+
+
+Neste laboratório, investigaremos a distribuição de probabilidade mais importante para a estatística: a distribuição normal. Se estivermos confiantes de que nossos dados são quase normais, isso abre a porta para muitos métodos estatísticos poderosos. Aqui, usaremos as ferramentas gráficas do R para avaliar a normalidade de nossos dados e também aprenderemos como gerar números aleatórios a partir de uma distribuição normal.
+
+
+## Conteúdos abordados neste laboratório
+
+
+* Distribuição normal
+* quantis
+* Distribuição normal padrão
+
+
+## Os dados
+
+Neste laboratório, trabalharemos com medidas de dimensões corporais. Este conjunto de dados contém medições de 247 homens e 260 mulheres, a maioria dos quais considerados adultos jovens saudáveis.
+
+
+```{r}
+download.file("http://www.openintro.org/stat/data/bdims.RData", destfile = "bdims.RData")
+load("bdims.RData")
+```
+
+
+Vamos dar uma olhada rápida nas primeiras linhas dos dados:
+
+
+```{r}
+head(bdims) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
+```
+
+
+
+Você verá que para cada observação temos 25 medidas, muitas das quais são diâmetros ou circunferências. Vamos nos concentrar em apenas três colunas para começar: peso em kg (`wgt`), altura em cm (`hgt`) e `sex` (1 indica masculino, 0 indica feminino).
+
+Como homens e mulheres tendem a ter dimensões corporais diferentes, será útil criar dois conjuntos de dados adicionais: um só com homens e outro só com mulheres.
+
+
+```{r}
+mdims = bdims %>%
+  subset(sex == 1)
+
+fdims = bdims %>%
+  subset(sex == 0)
+```
+
+
+> Exercício 1: Faça um histograma das alturas dos homens e um histograma das alturas das mulheres. Depois de plotar cada histograma, também pode ser útil construir os histogramas no mesmo gráfico/eixos. Boxplots para cada gênero também podem ser úteis. Depois de examinar os gráficos, como você compararia os vários aspectos das duas distribuições?
+
+
+Vamos primeiro fazer os histogramas no mesmo eixo. Em seguida, faremos também os boxplots, a fim de subsidiar as comparações entre as duas distribuições.
+
+
+```{r}
+bdims = mutate(
+  bdims,
+  sex = ifelse(sex == 1, "m", "f")
+)
+
+bdims %>%
+  ggplot(aes(x = hgt, fill = sex)) + 
+  geom_histogram(alpha = 0.8, bins = 20) + 
+  labs(
+    title = "Alturas de homes e mulheres",
+    x = "Altura (cm)",
+    y = "Densidade"
+  ) + 
+  theme(text = element_text(size = 18)) + 
+  scale_fill_manual(values = c("skyblue", "orange"))
+
+bdims %>%
+  ggplot(aes(y = hgt, fill = sex)) + 
+  geom_boxplot(size = 0.6, width = 0.1) + 
+  scale_fill_manual(values = c("skyblue", "orange")) +
+  theme_void() + 
+  theme(text = element_text(size = 18))
+```
+
+
+Com base nos gráficos construídos e nos box plots, concluímos que os dois grupos possuem médias diferentes e distribuição aproximadamente normal.
+
+
+## Distribuição normal
+
+
+Em sua descrição das distribuições, você usou palavras como `forma de sino` ou `normal`? É tentador dizer isso quando nos deparamos com uma distribuição simétrica unimodal.
+
+Para ver a precisão dessa descrição, podemos plotar uma curva de distribuição normal no topo de um histograma para ver o quanto os dados seguem uma distribuição normal.
+
+A curva normal sobreposta deve ter a mesma média e desvio padrão dos dados. Estaremos trabalhando com as alturas das mulheres, então vamos armazená-las como um objeto separado e depois calcular algumas estatísticas que serão usadas/referenciadas posteriormente.
+
+
+```{r}
+fhgtmean = mean(fdims$hgt)
+fhgtsd  = sd(fdims$hgt)
+```
+
+
+Em seguida, fazemos um histograma de densidade para usar como pano de fundo e usamos a `geom_function()`, da biblioteca `ggplot2`, para sobrepor uma curva de probabilidade normal ao histograma. A diferença entre um histograma de frequência e um histograma de densidade é que enquanto em um histograma de frequência as alturas das barras somam o número total de observações, em um histograma de densidade as áreas das barras somam 1. A área de cada barra pode ser calculado simplesmente como a multiplicação da altura pela largura da barra. O uso de um histograma de densidade nos permite sobrepor adequadamente uma curva de distribuição normal sobre o histograma, pois a curva é uma função de densidade de probabilidade normal. Os histogramas de frequência e densidade exibem a mesma forma exata; eles diferem apenas em seu eixo y. Você pode verificar isso comparando o histograma de frequência que você construiu anteriormente e o histograma de densidade criado pelos comandos abaixo.
+
+
+```{r}
+fdims %>%
+  ggplot(aes(x = hgt)) + 
+  geom_histogram(aes(y = ..density..), alpha = 0.8, fill = "skyblue", bins = 20) + 
+  geom_function(fun = dnorm, args = list(mean = fhgtmean, sd = fhgtsd), col = "red", linewidth = 1) + 
+  labs(
+    title = "Distribuição das alturas do grupo das mulheres",
+    x = "Altura"
+  ) +
+  theme(text = element_text(size = 18))
+```
+
+
+> Exercício 2: Com base neste gráfico, parece que os dados seguem uma distribuição quase normal?
+
+Com base no histograma e no ajuste normal plotados, os dados seguem uma distribuição aproximadamente normal. A amostra utlizada tem `r nrow(fdims)` elementos. Provavelmente, com o aumento do tamanho da amostra, veríamos um melhor ajuste dos dados à curva de sino. De fato, já é bem conhecido que medidas biológicas em geral exibem distribuição normal.
+
+
+## Avaliando a distribuição normal
+
+
+Observar a forma do histograma é uma maneira de determinar se os dados parecem ter uma distribuição quase normal, mas pode ser frustrante decidir o quão próximo o histograma está da curva. Uma abordagem alternativa envolve a construção de um gráfico de probabilidade normal, também chamado de gráfico QQ normal para “quantil-quantil”.
+
+
+
+```{r}
+bdims %>%
+  ggplot(aes(sample = hgt, col = sex)) + 
+  geom_qq(size = 2) + 
+  geom_qq_line(linewidth = 1, linetype = "dashed") + 
+  scale_color_manual(values = c("skyblue", "orange")) + 
+  theme(text = element_text(size = 18)) + 
+  labs(
+    x = "quantis teóricos da normal",
+    y = "quantis amostrais",
+    title = "q-q plot para as alturas de homens e mulheres"
+  )
+```
+
+
+Um conjunto de dados quase normal resultará em um gráfico de probabilidade em que os pontos seguem a linha. Quaisquer desvios da normalidade levam a desvios desses pontos da linha. O gráfico para alturas femininas mostra pontos que tendem a seguir a linha, mas com alguns pontos errantes em direção às caudas. Ficamos com o mesmo problema que encontramos com o histograma acima: quão próximo é próximo o suficiente?
+
+Uma maneira útil de abordar essa questão é reformulá-la como: como são os gráficos de probabilidade para dados que sei que vieram de uma distribuição normal? Podemos responder a isso simulando dados de uma distribuição normal usando `rnorm`.
+
+
+```{r}
+set.seed(42)
+sim_norm = rnorm(
+  n = nrow(fdims),
+  mean = fhgtmean,
+  sd = fhgtsd
+)
+```
+
+
+O primeiro argumento indica quantos números você gostaria de gerar, que especificamos como sendo o mesmo número de alturas no conjunto de dados `fdims` usando a função `nrow()`. Os dois últimos argumentos determinam a média e o desvio padrão da distribuição normal a partir da qual a amostra simulada será gerada. Podemos dar uma olhada na forma de nosso conjunto de dados simulado, `sim_norm`, bem como em seu gráfico de probabilidade normal.
+
+
+> Exercício 3: Faça um gráfico de probabilidade normal de `sim_norm`. Todos os pontos caem na linha? Como esse gráfico se compara ao gráfico de probabilidade para os dados reais?
+
+
+```{r}
+sim_norm = as.data.frame(sim_norm)
+sim_norm %>%
+  ggplot(aes(sample = sim_norm)) + 
+  geom_qq(col = "orange", size = 2) + 
+  geom_qq_line(linewidth = 1) + 
+  labs(
+    x = "quantis teóricos da normal",
+    y = "quantis dos dados simulados",
+    title = "qq-plot para dados normais simulados"
+  ) + 
+  theme(text = element_text(size = 18))
+```
+
+
+Conforme observamos no gráfico acima, a maioria dos pontos caíram sobre a reta. Contudo, alguns pontos se distanciaram ligeiramente da reta, especialmente nas caldas da distribuição.
+
+
+Ainda melhor do que comparar o gráfico original com um único gráfico gerado a partir de uma distribuição normal é compará-lo com muitos outros gráficos usando a seguinte função. Pode ser útil clicar no botão de zoom na janela do gráfico.
+
+
+```{r}
+set.seed(42)
+qqnormsim(fdims$hgt)
+```
+
+
+> Exercício 4: O gráfico de probabilidade normal para `fdims$hgt` parece semelhante aos gráficos criados para os dados simulados? Ou seja, os gráficos fornecem evidências de que as alturas femininas são quase normais?
+
+Sim, vemos que o qq-plot para os dados reais é muito semelhante àqueles construídos para os dados simulados, o que indica que os dados das alturas são aproximadamente normais.
+
+
+> Exercício 5: Usando a mesma técnica, determine se os pesos femininos parecem ou não vir de uma distribuição normal.
+
+
+```{r}
+set.seed(42)
+qqnormsim(fdims$wgt)
+```
+
+
+No caso dos dados de peso feminino, vemos que o gráfico qq-plot para os dados reais se afastam consideravelmente da normalidade nas caldas.
+
+
+## Probabilidades Normais
+
+Ok, agora você tem uma série de ferramentas para julgar se uma variável é ou não normalmente distribuída. Por que devemos nos importar?
+
+Acontece que os estatísticos sabem muito sobre a distribuição normal. Depois de decidirmos que uma variável aleatória é aproximadamente normal, podemos responder a todos os tipos de perguntas sobre essa variável relacionadas à probabilidade. Tomemos, por exemplo, a pergunta: “Qual é a probabilidade de uma jovem adulta escolhida aleatoriamente ter mais de 6 pés (cerca de 182 cm)?” (**O estudo que publicou este conjunto de dados é claro ao apontar que a amostra não foi aleatória e, portanto, a inferência para uma população geral não é sugerida. Fazemos isso aqui apenas como um exercício.**)
+
+Se assumirmos que as alturas femininas são normalmente distribuídas (uma aproximação muito próxima também é aceitável), podemos encontrar essa probabilidade calculando um quantil $z$ e consultando uma tabela $z$ (também chamada de tabela de probabilidade normal). No R, isso é feito em uma etapa com a função `pnorm`.
+
+
+```{r}
+1 - pnorm(q = 182, mean = fhgtmean, sd = fhgtsd)
+```
+
+No trecho acima, subtraímos a probabilidade retornada da unidade porque queremos o resultado da cauda direita, ou seja, a probabilidade de que a uma mulher selecionada ao acaso tenha mais que 182 cm, dados que, supostamente, a população de mulheres tem peso que se distribui normalmente com a média e desvio padrão obtida do conjunto de dados da amostra apresentada neste relatório. Outra maneira de fazer isso é a seguinte:
+
+
+```{r}
+pnorm(q = 182, mean = fhgtmean, sd = fhgtsd, lower.tail = F)
+```
+
+O resultado é o mesmo obtido anteriormente. A função `pnorm()` calcula a probabilidade acumulada à esquerda do quantil fornecido. Fornecemos então o argumento `lower.tail = FALSE` para inverter a calda, já que queremos a probabilidade do peso ser maior que 182 cm.
+
+
+Assumir uma distribuição normal nos permitiu calcular uma probabilidade teórica. Se quisermos calcular a probabilidade empiricamente, simplesmente precisamos determinar quantas observações ficam acima de 182 e dividir esse número pelo tamanho total da amostra:
+
+
+```{r}
+sum(fdims$hgt > 182) / nrow(fdims)
+```
+
+
+Embora as probabilidades não sejam exatamente as mesmas, elas são razoavelmente próximas. Quanto mais próxima a sua distribuição estiver da normal, mais precisas serão as probabilidades teóricas.
+
+
+> Exercício 6: Escreva duas questões de probabilidade que você gostaria de responder; um em relação às alturas femininas e outro em relação aos pesos femininos. Calcule essas probabilidades usando tanto a distribuição normal teórica quanto a distribuição empírica (quatro probabilidades ao todo). Qual variável, altura ou peso, apresentou maior concordância entre os dois métodos?
+
+Assumindo a distribuição normal dos pesos e das alturas femininas na população geral, vamos calcular as probabilidades do peso de uma mulher selecionada ao acaso ser menor que 50 e da altura ser menor que 160 e comarar com os respectivos valores empíricos:
+
+
+```{r}
+fwgtmean = mean(fdims$wgt)
+fwgtsd = sd(fdims$wgt)
+
+data.frame(
+  teorico = 
+    c(pnorm(q = 160, mean = fhgtmean, sd = fhgtsd), pnorm(q = 50, mean = fwgtmean, sd = fwgtsd)),
+  empirico = 
+    c(sum(fdims$hgt < 160) / nrow(fdims), sum(fdims$wgt < 50) / nrow(fdims)),
+  row.names = c("Altura", "Peso")
+) %>%
+  mutate(
+    diferenca = teorico - empirico
+  ) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
+```
+
+
+Como podemos ver, a diferença nominal é maior para a diferença entre as distribuições das alturas teórica e empírica.
+
+
+
 # Lab05: Distribuições Amostrais
 
 

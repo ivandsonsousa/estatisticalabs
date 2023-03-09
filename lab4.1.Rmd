@@ -259,3 +259,51 @@ Se assumirmos que as alturas femininas são normalmente distribuídas (uma aprox
 
 No trecho acima, subtraímos a probabilidade retornada da unidade porque queremos o resultado da cauda direita, ou seja, a probabilidade de que a uma mulher selecionada ao acaso tenha mais que 182 cm, dados que, supostamente, a população de mulheres tem peso que se distribui normalmente com a média e desvio padrão obtida do conjunto de dados da amostra apresentada neste relatório. Outra maneira de fazer isso é a seguinte:
 
+
+```{r}
+pnorm(q = 182, mean = fhgtmean, sd = fhgtsd, lower.tail = F)
+```
+
+O resultado é o mesmo obtido anteriormente. A função `pnorm()` calcula a probabilidade acumulada à esquerda do quantil fornecido. Fornecemos então o argumento `lower.tail = FALSE` para inverter a calda, já que queremos a probabilidade do peso ser maior que 182 cm.
+
+
+Assumir uma distribuição normal nos permitiu calcular uma probabilidade teórica. Se quisermos calcular a probabilidade empiricamente, simplesmente precisamos determinar quantas observações ficam acima de 182 e dividir esse número pelo tamanho total da amostra:
+
+
+```{r}
+sum(fdims$hgt > 182) / nrow(fdims)
+```
+
+
+Embora as probabilidades não sejam exatamente as mesmas, elas são razoavelmente próximas. Quanto mais próxima a sua distribuição estiver da normal, mais precisas serão as probabilidades teóricas.
+
+
+> Exercício 6: Escreva duas questões de probabilidade que você gostaria de responder; um em relação às alturas femininas e outro em relação aos pesos femininos. Calcule essas probabilidades usando tanto a distribuição normal teórica quanto a distribuição empírica (quatro probabilidades ao todo). Qual variável, altura ou peso, apresentou maior concordância entre os dois métodos?
+
+Assumindo a distribuição normal dos pesos e das alturas femininas na população geral, vamos calcular as probabilidades do peso de uma mulher selecionada ao acaso ser menor que 50 e da altura ser menor que 160 e comarar com os respectivos valores empíricos:
+
+
+```{r}
+fwgtmean = mean(fdims$wgt)
+fwgtsd = sd(fdims$wgt)
+
+data.frame(
+  teorico = 
+    c(pnorm(q = 160, mean = fhgtmean, sd = fhgtsd), pnorm(q = 50, mean = fwgtmean, sd = fwgtsd)),
+  empirico = 
+    c(sum(fdims$hgt < 160) / nrow(fdims), sum(fdims$wgt < 50) / nrow(fdims)),
+  row.names = c("Altura", "Peso")
+) %>%
+  mutate(
+    diferenca = teorico - empirico
+  ) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
+```
+
+
+Como podemos ver, a diferença nominal é maior para a diferença entre as distribuições das alturas teórica e empírica.
